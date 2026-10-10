@@ -1,0 +1,840 @@
+# NYC Income Mixing — Methodology & Analysis Code
+
+This repo contains the analysis pipeline behind a data investigation into where New Yorkers
+of different income levels show up in the same commercial and public space, and where they
+don't. It's published for transparency and reproducibility alongside the reporting, not as a
+general-purpose tool — see **What's not here** below before assuming any input file is included.
+
+**Scope**: this is a study of commercial and secular public space — restaurants, bars, parks,
+gyms, retail, and similar venues that show up in mobile-location visit data. Congregations
+(churches, synagogues, mosques), K-12 schools, health care facilities, and shelters are outside
+what the underlying data can see: the vendor filters these categories out entirely before the
+data reaches this pipeline (see **Known limitations** below). That means this project can speak
+to where income groups' visit patterns overlap in commercial and recreational life, but says
+nothing one way or the other about that overlap (or its absence) in the institutions — schools,
+congregations, clinics — that a lot of "third place"/social infrastructure theory treats as
+central.
+
+**What this data can and can't say.** Four claims nest inside each other here, and this project
+only makes the first:
+
+1. **Persistent compositional diversity** -- a venue's monthly visitor base draws from a wider
+   (or narrower) range of incomes than its neighborhood alone would predict, and that pattern
+   repeats across independently-rebuilt months. This is what `income_mixing_score` and every
+   downstream number in this repo measures, and it's the only claim this project makes.
+2. **Cross-income co-presence** (different income groups physically in the same place at the
+   same time, not just the same month) would need visit-level time-of-day data this pipeline
+   does not have. Not claimed anywhere in this repo or its reporting.
+3. **Meaningful social interaction** isn't recoverable from mobile-location data under any
+   analysis, however the model is built. Not claimed, and not implied by the word "mixing" as
+   used here -- it is this project's technical shorthand for compositional diversity (the same
+   way a "diversity index" doesn't imply the index itself socializes), not a description of
+   visitor behavior.
+4. **The venue itself causes the mixing it shows** would need a causal design (a natural
+   experiment, a before/after, a matched comparison), not the cross-sectional model this repo
+   fits. Not claimed.
+
+Every score, residual, z-score, and pooled estimate produced by the scripts below is tier 1 only.
+Any writeup built from this repo's output should be too.
+
+## What the model does
+
+For roughly 26,000-30,000 actively-visited NYC establishments per month, each venue gets an
+`income_mixing_score` (and a related `balance_score`) built from anonymized, aggregated
+mobile-location data: how evenly a venue's visitors are spread across income quintiles,
+estimated from each visitor device's home Census block group. A venue in a naturally
+income-diverse neighborhood will look "mixed" for purely geographic reasons, so the real
+question isn't the raw score, it's the residual: given a venue's borough, neighborhood income,
+race composition, local commercial density, subway access, and proximity to tourist/cultural
+draws, is it *more or less* mixed than that context predicts?
+
+A RandomForest model is fit against that context to produce an expected score per venue; the
+residual (actual minus expected) is z-scored **within borough** (so venues are compared to
+similar peers, not citywide) to flag statistical outliers.
+
+That residual comes from a spatially-blocked cross-validation, not a random one. Nearby venues'
+residuals are correlated (documented below under **Known limitations**, r≈0.52-0.61 among near
+neighbors) — a random row-level K-fold split lets a venue's own physical neighbors leak into its
+training fold, inflating validation R² relative to genuine generalization to an unseen
+neighborhood. Venues are grouped into ~2000ft (610m) grid cells (projected to NY State Plane
+feet) and 5-fold cross-validation is grouped by cell (`GroupKFold`), so a whole neighborhood-scale
+cluster stays on one side of each split. This grid-cell R² (0.69-0.73, device-count weighted,
+across the four months tested) is the PRIMARY number and the one that feeds the residuals,
+z-scores, and outlier flagging described below; the original random row-level K-fold R²
+(0.74-0.77) is still fit and reported alongside it as a secondary comparison figure only. April's
+primary R² (0.69) runs a bit below May/June/July's (0.72-0.73) -- every data-quality check that
+caught the July-2025 extract's problem (full vs. pre-filtered export, neighbor-density coverage,
+eligible-venue count) came back clean for April, so this reads as genuine month-to-month
+variation rather than a data issue, but it's a real difference worth knowing about rather than
+rounding away.
+
+Outliers are flagged as the top/bottom
+0.5% of venues **within each borough** (not a flat citywide count): a fixed citywide number of
+"slots" doesn't scale with borough size, and is sensitive to month-to-month noise near the cutoff
+in a way a per-borough percentage isn't. This replaced an earlier flat top/bottom-30-citywide rule
+after checking it directly against this data: two of the project's flagship venues (Jacob Riis
+Beach, Chens Fresh Food Market) were genuinely extreme for their own borough but narrowly missed
+the flat citywide cutoff some months — a concrete case of the exact failure mode a fixed-count
+rule is prone to. A venue is only treated as a real finding, not noise, if it clears the following
+bars:
+
+1. **Bootstrap-stable, under TWO different kinds of resampling**: a venue must hold up under both
+   of two complementary bootstraps, not just one. **Model-refit stability** (30 iterations)
+   resamples which VENUES (rows) go into the training set and refits -- it tests whether the
+   model's ranking is stable, not whether a given venue's own score is. **Visitor-sampling
+   stability** (500 iterations) instead holds the model AND every venue's fixed, out-of-fold
+   spatial-CV expected score completely fixed, and resamples only that one venue's own
+   `income_mixing_score` from `Multinomial(income_known_devices, q1_pct..q5_pct)` -- i.e., "if
+   this venue's visitors that month had been a different, equally likely sample of the same size,
+   how far would its residual move against that SAME fixed expectation?" An earlier version of
+   this bootstrap refit the model on every resampled draw and re-flagged against a newly-refit
+   expectation each time, which mixed visitor-sampling noise together with model-refit noise and
+   made the two bootstraps partially redundant with each other; comparing every draw against one
+   fixed reference isolates pure visitor-sampling noise, and is also why this bootstrap now runs
+   500 draws per venue instead of 30 -- there's no refit per draw anymore. The two catch different
+   failure modes: a venue that's stable under model-refit but noisy under visitor-sampling is one
+   whose home, device-count-limited sample is doing most of the work, not a genuinely improbable
+   pattern.
+2. **Persistent across months, not just repeatedly flagged**: the entire pipeline -- feature
+   build, model fit, both bootstraps -- is rebuilt from scratch on each separate month of data.
+   Rather than just checking whether a venue gets re-flagged, each venue's per-month OBSERVED
+   spatial-CV residual (`improbable_copresence_cv` -- actual score minus the fixed, out-of-fold
+   model expectation) is pooled across every month it clears the eligibility floor with a
+   DerSimonian-Laird random-effects meta-analysis, weighted by the inverse of that month's
+   visitor-sampling-bootstrap variance (see **Known limitations** for the real numbers and an
+   important correction to how this used to be computed) -- separating genuine month-to-month
+   movement in a venue's own mixing from visitor-sampling noise, producing a pooled estimate and
+   a CONDITIONAL confidence interval (conditional on the fitted contextual model -- see below for
+   what that does and doesn't cover) that widens honestly when a venue's months disagree with each
+   other more than sampling noise alone would predict. The resulting p-values go through a
+   Benjamini-Hochberg false-discovery-rate correction across every venue with 2+ eligible months
+   (a venue tested only once has no independent replication to assess persistence against, so it's
+   excluded from that correction rather than diluting or inflating it). Each venue also gets a
+   plain-language `persistence_tier` label (`repeated_evidence` at 2 months, `provisional_persistence`
+   at 3, `current_period_persistence` at all 4 of the current April-July window) -- see **Known
+   limitations** for why none of this can yet earn the word "annual."
+
+A second scoring approach, `balance_score`, is also fit and checked against flagged venues (see
+`fit_balance_model_2026_0{4,5,6,7}.py` below), but it isn't treated as an independent third bar:
+empirically it tracks `income_mixing_score` too closely (~0.98 correlated among flagged venues)
+to count as separate confirmation. It functions as a robustness check that the primary score
+isn't an artifact of one particular target definition, not as corroborating evidence from an
+unrelated measure — see **Known limitations** for the full caveat.
+
+## Validation checks already run
+
+Four specific defensibility questions came up in review. Stated plainly here, with what was
+actually checked, rather than just asserted:
+
+**Is `income_mixing_score` reconstructable from published, non-proprietary numbers, not a black
+box?** Yes. It is the normalized Shannon entropy of a venue's own visitor quintile shares:
+`income_mixing_score = -sum(p_k * log(p_k) for k in 1..5) / log(5)`, where `p_k` is the share of
+a venue's income-known devices in income quintile `k` that month (0 when a venue draws from
+only one quintile, 1 when its visitors are split evenly across all five). `build_features_2026_0X.py`
+confirms this reproduces the vendor-supplied `income_mixing_score` column to within 1e-10 from
+the vendor's own `q1_devices..q5_devices` columns -- i.e. this is the real mechanism behind the
+score, independently verified, not a black-box number taken on faith, and not a figure that
+depends on anything in this repo being correct to reconstruct from the raw per-quintile counts.
+
+**Does any context feature leak information from WHO visits a venue, rather than WHERE it sits?**
+No -- checked directly against every feature the model uses. A venue's Census block group comes
+from a spatial join of the venue's OWN coordinates to the TIGER/Line block-group shapefile
+(`geocode_venues_to_cbg.py`), never from where its visitors live. Density, tourist/chain
+proximity, and subway-access features are all built from other venues' and subway stations'
+fixed locations, spatially blocked the same way. The one feature that smooths over multiple
+venues (`local_income_proxy_250m/500m`) averages nearby venues' own already-venue-derived
+`income_proxy_v2`, not anything about who visits any of them. No feature in `feats_num_full` /
+`feats_cat` in `fit_mixing_model_2026_0X.py` is derived from visitor home locations.
+
+**Is the finite-device-count problem actually handled, not just mentioned?** Yes, in three
+places that compound rather than substitute for each other: (1) the 50-device eligibility floor
+excludes the thinnest venues outright; (2) every model fit -- CV folds, the final fit, and every
+bootstrap refit -- is weighted by `income_known_devices`, so a venue with 60 devices influences
+the fitted relationship less than one with 600; (3) the visitor-sampling bootstrap's own
+variance scales directly with device count (a smaller multinomial sample produces noisier
+resampled draws), so a thin venue's pooled confidence interval is honestly wider, not just its
+point estimate suppressed.
+
+**Does the model generalize across TIME, not just across space within one month?** This is the
+one real gap that needed a new analysis, not just a code check, and it surfaced something worth
+knowing on the way to the answer. The existing grid-cell-blocked `GroupKFold` (see "What the
+model does" above) only tests spatial generalization within a single month. `geo_temporal_holdout_validation.py`
+tests the missing axis: train on three months pooled, predict the fourth, entirely out of time.
+The direct version of that test came back with a mean weighted R²=0.78 -- HIGHER than the
+within-month spatial CV's 0.69-0.73, which was a red flag rather than a win. The cause:
+92.4% of April's venues also appear in at least one other month (64% of all 33,767 distinct
+venues appear in all four), and every context feature except `log_devices` is derived from a
+venue's fixed physical location, so it barely changes month to month. The model had effectively
+already seen most "held-out" venues' context during training -- the same leakage mechanism that
+justified grid-cell-blocking the within-month CV in the first place, just crossing months
+instead of space, and just as able to inflate an R² if left unblocked.
+
+Corrected for that -- holding out a venue's physical location from training in ALL months, not
+just the target month, using the same ~2000ft grid-cell grouping applied to the pooled set of
+all distinct venues -- the result is the reassuring one: mean weighted R²=0.7263 (range
+0.698-0.743 across the four held-out months), close to and consistent with the within-month
+spatial-CV figures for the corresponding months (April's doubly-held-out R²=0.698 against its
+own within-month 0.69; the three summer months cluster the same way). No evidence the model is
+overfit to a specific month once venue overlap is actually blocked rather than ignored. See
+`geo_temporal_holdout_validation.py` and `geo_temporal_holdout_results.csv`.
+
+**How much do the two consolidation thresholds (75ft, name-token Jaccard≥0.4) and the 50-device
+eligibility floor, each picked somewhat by eye, actually drive the results?** Checked both.
+
+*Fragment-consolidation thresholds.* `sensitivity_fragments.py` reruns just the clustering step
+of `consolidate_fragments.py` across a 42-combination grid (distance ∈ {40,50,60,75,100,125,150}ft
+× name-token Jaccard ∈ {0.25,0.3,0.35,0.4,0.5,0.6}), built on one shared KD-tree query at the
+widest radius rather than rebuilding the tree per combination. Two things were checked at every
+grid point, not just the one combination that was picked: whether the unrelated Brooklyn "Jacob
+Riis Beach" stays excluded, and whether the Rockaway Jacob Riis cluster's 4 real fragments stay
+correctly grouped together. Brooklyn is correctly excluded in all 42/42 combinations -- that part
+of the method is robust across the whole grid. The Rockaway grouping is correct in 28/42,
+breaking down specifically once the Jaccard threshold reaches 0.5 or higher (both 0.5 and 0.6
+fail it at every distance tested); distance threshold on its own never breaks it within the range
+tested. That means 0.4 is closer to necessary than merely a reasonable-looking choice -- the
+method depends on not setting that threshold too strict, which is worth knowing plainly rather
+than presenting 0.4 as an arbitrary-but-fine pick. The total number of groups found ranges from
+101 (strictest: 150ft, Jaccard≥0.6) to 691 (loosest: 40ft, Jaccard≥0.25) across the grid, and is
+driven mostly by the Jaccard threshold, not the distance threshold -- consistent with the earlier
+finding that distance alone rarely breaks the Rockaway case. See `sensitivity_fragments.py` and
+`sensitivity_fragments_results.csv` for the full 42-row table.
+
+*Eligibility floor.* `sensitivity_eligibility_floor.py` reruns the exact fit_mixing_model_2026_04.py
+model spec and CV scheme (same features, same RandomForest hyperparameters, same
+income_known_devices sample weighting, same 2000ft grid-cell-blocked GroupKFold(5)) at five
+floors instead of one, so every number below is directly comparable to the published floor=50
+baseline for April (mean CV R²=0.6927, fold range 0.635-0.735). Raising the floor (75, 100, 150)
+needed no rebuild -- every spatial/context feature in `build_features_2026_0X.py` is computed on
+the full POI universe before the eligibility filter is applied as a final subset, so raising the
+floor is just filtering more rows out of the existing floor=50 dataframe. Lowering it to 30
+needed an actual rebuild (venues with 30-49 devices were never in the floor=50 dataframe at all),
+run via a patched copy of `build_features_2026_04.py` with the threshold changed -- cheap (41s)
+for the same reason.
+
+| floor | n venues | CV R² (mean) | fold range |
+|---|---|---|---|
+| 30  | 31,982 | 0.6948 | 0.672–0.725 |
+| 50 (published) | 27,481 | 0.6927 | 0.635–0.735 |
+| 75  | 22,832 | 0.6971 | 0.618–0.748 |
+| 100 | 18,937 | 0.7093 | 0.693–0.728 |
+| 150 | 13,336 | 0.7190 | 0.695–0.743 |
+
+The result is reassuring and unremarkable in the right way: R² is flat to a slight, steady climb
+across the whole range, from 0.6927 at the published floor=50 down to 0.6948 at floor=30 and up
+to 0.7190 at floor=150 -- no cliff, and no sign that 50 was propping up an otherwise fragile
+number. The mild upward drift at higher floors is itself explainable rather than suspicious:
+`income_mixing_score` has a documented finite-sample bias at low device counts (see "Regression
+is weighted by..." below), so a stricter floor is simply a less noisy target variable to predict,
+not a different relationship being fit. Lowering the floor to 30 -- which keeps the shakiest,
+most sampling-noise-prone venues out of the floor=50 run, roughly 4,500 additional borderline
+venues -- barely moves R² at all. See `sensitivity_eligibility_floor.py` and
+`sensitivity_eligibility_floor_results.csv`.
+
+## Repo structure
+
+```
+income_mixing_model.ipynb       Main annotated notebook: feature engineering (including the
+                                 ACS income-proxy construction), model fit, bootstrap, and the
+                                 full methodology writeup in markdown cells alongside the code.
+
+geocode_venues_to_cbg.py        Assigns each venue its own Census block group by spatially
+                                 joining its lat/long to the TIGER/Line block-group shapefile.
+                                 Run once per month, before build_features_2026_0X.py. Produces
+                                 cbg_geoid_2026_0X.csv. Requires geopandas and shapely.
+
+build_features_2026_0{4,5,6,7}.py Standalone script version of the feature pipeline, one per
+                                 replication month, used for the cross-month check described
+                                 in the notebook. Also merges in q1_devices..q5_devices from
+                                 the FULL (non-slim) analysis_pois_2026_0X.csv export, needed
+                                 for fit_mixing_model_2026_0X.py's visitor-sampling bootstrap.
+                                 Produces model_ready_2026_0X.pkl.
+
+fit_mixing_model_2026_0{4,5,6,7}.py   Fits the final model against income_mixing_score, weighted
+                                     by device count, CV'd with a ~2000ft grid-cell-blocked
+                                     GroupKFold (primary) plus a random KFold reported only as
+                                     a secondary comparison, runs TWO 30-iteration bootstraps
+                                     (model-refit resampling and visitor-sampling resampling of
+                                     each venue's own q1-q5 device counts -- see Known
+                                     limitations), saves stable top/bottom-0.5%-per-borough
+                                     lists with both stability figures attached.
+
+fit_balance_model_2026_0{4,5,6,7}.py  Fits the same feature set against balance_score as a
+                                     robustness check (see Known limitations -- this score
+                                     is not independent of income_mixing_score), also weighted
+                                     by device count and CV'd the same grid-cell-blocked way.
+
+verify_library_categories.py    Spot-checks vendor-tagged "library" venues against NYC's
+                                 official public library locations by nearest-neighbor distance
+                                 -- see "Category reliability" under Known limitations. Reads
+                                 NYC_Library_Locations.csv plus a venues_2026_0X_slim.csv-style
+                                 export; prints matches/mismatches, doesn't change any file.
+
+estimate_overdispersion.py      Cross-month check (reads all three months' model_ready_2026_0X.pkl
+                                 at once, not per-month) of the independence assumption behind the
+                                 visitor-sampling bootstrap -- see Known limitations. Prints the
+                                 result, doesn't change any model output; the visitor-sampling
+                                 bootstrap is not given a Dirichlet-multinomial correction, since
+                                 this check doesn't find evidence to support one.
+
+pool_persistence.py             Pools each venue's per-month visitor-sampling residual (from the
+                                 fixed-reference bootstrap in fit_mixing_model_2026_0X.py above)
+                                 across however many months it cleared the eligibility floor, via a
+                                 DerSimonian-Laird random-effects meta-analysis, then applies a
+                                 Benjamini-Hochberg FDR correction across venues with 2+ eligible
+                                 months -- see Known limitations. Reads every month's
+                                 results_mixing_2026_0X.pkl; produces
+                                 pooled_persistence_2026.{pkl,csv}. Superseded for most purposes by
+                                 consolidate_fragments.py below, which reruns this same pooling on
+                                 fragment-consolidated entities -- kept because it's also the
+                                 pre-consolidation sanity check referenced in Known limitations.
+
+consolidate_fragments.py        Citywide pass that groups POI-catalog fragments representing the
+                                 same real place (spatial proximity within 75ft + name-token
+                                 Jaccard similarity + same top_category; see Known limitations --
+                                 POI fragmentation) and reruns the persistence pooling above on the
+                                 merged entities. Produces fragment_groups_report.csv (250 groups,
+                                 43 flagged as exact-name matches worth a manual glance) and
+                                 consolidated_pooled_persistence_2026.{pkl,csv} -- this is the
+                                 canonical, current persistence table; prefer it over
+                                 pooled_persistence_2026.{pkl,csv} above.
+
+presence_bookkeeping.py         Per consolidated entity and month, distinguishes "absent,"
+                                 "present but under the eligibility floor," "present and eligible
+                                 but excluded by the encounter_type category filter," "...but no
+                                 CBG income match," "...but only rescued over the floor by
+                                 fragment-combining after the fact, so never individually fitted,"
+                                 and "pooled" -- so a venue missing from a month's pooled table
+                                 reads as what it actually is rather than "not mixed." See Known
+                                 limitations. Produces presence_bookkeeping_2026.csv.
+
+geo_temporal_holdout_validation.py   Tests whether the model generalizes across TIME, not just
+                                 across space within one month -- see Validation checks already
+                                 run above. Trains on three months pooled, predicts the fourth,
+                                 with venues grid-cell-blocked out of training in ALL months (not
+                                 just the held-out one) so a test venue was never seen anywhere.
+                                 Reads all four months' model_ready_2026_0X.pkl; produces
+                                 geo_temporal_holdout_results.csv.
+
+sensitivity_fragments.py        Stress-tests the two consolidation thresholds in
+                                 consolidate_fragments.py (75ft, name-token Jaccard≥0.4) across a
+                                 42-combination grid -- see Validation checks already run above.
+                                 Reruns only the clustering step, not the RF refit/bootstrap.
+                                 Reads all four months' model_ready_2026_0X.pkl; produces
+                                 sensitivity_fragments_results.csv.
+
+sensitivity_eligibility_floor.py  Stress-tests the 50-device eligibility floor in
+                                 build_features_2026_0X.py at four other floors (30, 75, 100,
+                                 150) for April -- see Validation checks already run above.
+                                 Reruns the exact fit_mixing_model_2026_04.py model spec and
+                                 grid-cell-blocked CV at each floor so results are directly
+                                 comparable to the published baseline. Reads the floor=50
+                                 model_ready_2026_04.pkl plus a separately-rebuilt floor=30
+                                 version; produces sensitivity_eligibility_floor_results.csv.
+```
+
+Run order per month: `geocode_venues_to_cbg.py` -> `build_features_2026_0X.py` ->
+`fit_mixing_model_2026_0X.py` and `fit_balance_model_2026_0X.py`. The notebook is self-contained
+for a single month end to end. `estimate_overdispersion.py` can be run once all three months'
+`model_ready_2026_0X.pkl` files exist. Once all four months' `results_mixing_2026_0X.pkl` files
+exist (i.e. `fit_mixing_model_2026_0X.py` has been rerun for each month), run
+`consolidate_fragments.py` (which calls the same pooling logic as `pool_persistence.py`
+internally, so running `pool_persistence.py` separately first is optional, not a prerequisite),
+then `presence_bookkeeping.py`, which reads `consolidate_fragments.py`'s output.
+
+Regression is weighted by `income_known_devices` (device count) when fitting the RandomForest,
+since `income_mixing_score` has a documented finite-sample bias below ~150 devices (see the
+diagnostic cell in the notebook) that the 50-device eligibility floor alone doesn't correct.
+
+## Data sources (not included in this repo)
+
+- **Mobile location / visit data**: an anonymized, aggregated mobility panel (visit-level
+  records matched to POIs via Placekey, with each device's home location generalized to a
+  Census block group). The panel is Veraset's mobile-location product, accessed through a
+  Dewey Data subscription. Dewey's subscriber terms permit publishing "summary insights
+  derived from the Licensed Data" while restricting redistribution of the raw data itself,
+  with a required acknowledgment for any derived publication -- credited here to Dewey Data
+  and Veraset accordingly. POI category/name/Placekey metadata is SafeGraph's, joined in by
+  Veraset, and warrants its own separate attribution. *[Note for repo maintainer: this
+  reflects Dewey's and Veraset's public terms pages, not a lawyer's review of the actual
+  signed agreement -- confirm against your own order terms (or ask Dewey directly) before
+  this goes public.]*
+- **POI metadata**: Placekey-linked venue attributes (name, category, brand, lat/long).
+- **Census block-group boundaries**: `tl_2025_36_bg` (2025 TIGER/Line block-group shapefile for
+  NY State), public data from the Census Bureau. Each venue's own block group is assigned by
+  spatially joining its lat/long to this shapefile (`geocode_venues_to_cbg.py`) — a venue's
+  borough, neighborhood income, and race context all come from where the venue itself sits,
+  not from where its visitors happen to live.
+- **Census ACS estimates**: block-group-level income and race/ethnicity tables (variable codes
+  like `SE_A14001B_*` and `SE_A04001_*` come from a Social Explorer ACS extract). The
+  cumulative household-income-bracket table (`SE_A14001B_*`) is used to build `income_proxy_v2`
+  instead of the single median-income variable (`SE_A14006_001`), which is suppressed for
+  ~20% of NYC block groups, non-randomly by borough — see the notebook for the full rationale.
+- **MTA subway stations**: `MTA_Subway_Stations.csv`, public data from data.ny.gov / the MTA.
+- **NYC public library locations**: `NYC_Library_Locations.csv`, public data from NYC Open Data
+  (the combined NYPL/Brooklyn Public Library/Queens Public Library point file), used only for
+  the category spot-check in `verify_library_categories.py` -- not a model input.
+
+None of the raw or lightly-transformed vendor mobility data is included or should be added to
+this repo. Before publishing, confirm the vendor's license actually permits sharing the
+derived, venue-level outputs (placekey, scores, residuals) that these scripts produce — some
+data licenses restrict redistribution even of aggregated results.
+
+## What's not here
+
+- Raw or per-device visit records. `build_features_*.py` and the notebook expect an
+  already-aggregated `analysis_pois_2026_0X_slim.csv` (venue-level, including each venue's own
+  lat/long), the FULL (non-slim) `analysis_pois_2026_0X.csv` export of the same month (used only
+  for its venue-level `q1_devices`..`q5_devices` columns, which the slim export drops -- this is
+  still a venue-level aggregate, not a device-level table, just a wider one), and a
+  `cbg_geoid_2026_0X.csv` (venue -> its own geographic Census block group, produced by
+  `geocode_venues_to_cbg.py` from a spatial join against the TIGER/Line block-group shapefile --
+  never derived from visitors' home locations; an earlier `cbg_lookup_2026_0X.csv`, the
+  visitor-derived version this replaced, is obsolete and should not be reintroduced -- see Known
+  limitations).
+- The raw ACS extract and MTA station file — public data, but not redistributed here; fetch
+  your own copies (see Data sources) and point `DATA_DIR` at them.
+- Any file path specific to one machine. Every script reads its paths from environment
+  variables with sensible defaults, never a hardcoded absolute path -- most read `DATA_DIR`/
+  `OUTPUT_DIR` (defaulting to `./data`/`./output`); the scripts that need every month's output at
+  once (`pool_persistence.py`, `consolidate_fragments.py`, `presence_bookkeeping.py`,
+  `geo_temporal_holdout_validation.py`, `sensitivity_fragments.py`,
+  `sensitivity_eligibility_floor.py`) read `OUTPUT_DIR`/`DATA_DIR` too, on the assumption that
+  each month's `build_features_2026_0X.py`/`fit_mixing_model_2026_0X.py` run was pointed at the
+  SAME shared `DATA_DIR`/`OUTPUT_DIR` each time (producing differently-month-named files into one
+  shared pair of folders, not one folder per month) -- set them to wherever your inputs live. (An
+  earlier version of this repo had three scripts -- `pool_persistence.py`, `consolidate_fragments.py`,
+  `presence_bookkeeping.py` -- with absolute `/home/claude/work/...`-style paths hardcoded despite
+  this claim; caught by external review and fixed. If you find another one, it's a bug, not an
+  exception to this rule.)
+
+## Known limitations
+
+- The model explains roughly 73-75% of the variance in venue-level mixing across the three
+  replicated months; the rest is unexplained, which is normal for social/behavioral data but
+  means "expected" is a statistical baseline, not a claim about what should happen at a given
+  venue.
+- The "less mixed than expected" outliers are consistently somewhat more statistically stable
+  than the "more mixed" ones across all four months.
+- Three of the four replication months (May-July 2026) are summer; a fourth, April 2026, was
+  added specifically to test whether one of the headline venues (a public beach) is a
+  warm-weather-specific draw rather than a year-round effect -- see the persistence bullet below
+  for the answer (it is: `I2`=96.3% for that venue, meaning most of its month-to-month movement is
+  real seasonal variation, not sampling noise). No fall/winter month has been tested yet.
+- **Device counts vs. real foot traffic**: `income_known_devices` measures how many visitors the
+  mobile-location panel captured and could confidently trace to a home neighborhood -- not how
+  many people actually visited. A venue showing 89 income-known devices in a month plausibly saw
+  far more real foot traffic; the panel only ever samples a fraction of it. That distinction
+  matters because a modest device count means the income-mix score rests on a thinner slice of a
+  venue's true visitor base, which makes it more sensitive to a handful of unusual devices --
+  regardless of how busy the place actually is. Many flagged venues sit just above the 50-device
+  eligibility floor, and that's why we treat individually-named small businesses as leads worth
+  on-the-ground verification rather than settled findings; the neighborhood- or corridor-level
+  pattern is the safer unit of analysis in most cases.
+- **Panel representativeness**: neither Dewey nor Veraset's own documentation discloses what
+  share of the population their location panel captures or how representative it is by
+  income, race, or age -- that isn't something this project can audit directly. (Veraset does
+  disclose panel *size* and rough geographic coverage -- roughly 70% of census block groups,
+  ~90% of populated ones, varying month to month, with the US panel averaging 24.1 million
+  devices so far in 2026, down from 50.1 million in 2024 -- but not its demographic skew.) The
+  closest available evidence on that skew is an independent, peer-reviewed analysis of
+  SafeGraph data (the same general category of commercial POI-visit data Veraset's product
+  descends from, though not an audit of this exact panel): Li, Z., Ning, H., Jing, F., & Lessani, M.N. (2024). "Understanding
+  the Bias of Mobile Location Data Across Spatial Scales and Over Time: A Comprehensive Analysis
+  of SafeGraph Data in the United States." *PLOS ONE*. It found households earning under $50k are
+  significantly underrepresented (most pronounced in the South and Midwest), the $50k-$100k band
+  is the best-represented income group, Hispanic populations are notably underrepresented in
+  several states, and representation of both low-income and minority populations is worse in
+  rural counties than urban ones. This doesn't tell us the size of the effect specifically in
+  NYC, and the direction of the resulting distortion is not uniform across venues -- it depends
+  on a venue's true composition, not a blanket "everything reads low." At a venue that is
+  genuinely used across income levels, undercounting the low end mostly shaves visibility off an
+  already-mixed crowd, so the observed score likely *understates* true mixing. At a venue whose
+  true visitor base is dominated by one lower-income group with only a thin overlay of other
+  visitors, the same undercounting can make that thin overlay look proportionally larger than it
+  is, manufacturing an appearance of mixing that may not be real. Practically: the "more mixed
+  than expected" finding for a place with independent, non-dataset evidence of broad, cross-class
+  use (Jacob Riis Beach's century of documented public, cross-class history) sits in the first,
+  lower-risk case; an individually-named small business flagged as surprisingly mixed with no
+  such outside corroboration sits in the second, higher-risk case, and is exactly the kind of
+  claim the eligibility-floor limitation above already says needs on-the-ground verification
+  before naming. The same mechanism cuts the other way for "less mixed than expected" findings:
+  undercounting low-income visitors tends to inflate apparent mixing at low-income-dominated
+  venues, which would make it *harder*, not easier, for a genuinely segregated venue to clear the
+  bar as an outlier -- consistent with the pattern already noted above that "less mixed" outliers
+  have been more statistically stable than "more mixed" ones across all three months.
+- **Cross-validation is now spatially blocked, which changed the reported numbers**: an earlier
+  version of this pipeline validated with a random row-level 5-fold split. Because nearby venues'
+  residuals are correlated (see "Location vs. category" below, r≈0.52-0.61), a random split let a
+  venue's own physical neighbors leak across the train/test boundary, inflating apparent
+  out-of-sample R². Switching to a ~2000ft grid-cell-blocked `GroupKFold` (see "What the model
+  does" above) is a stricter, more honest validation, and it changed the headline numbers: primary
+  R² fell from roughly 0.75-0.77 (random-fold) to roughly 0.72-0.73 (grid-cell) across the three
+  months, and the 30-iteration bootstrap-stability check -- computed downstream of these residuals
+  -- runs lower too. In June, for example, mean stability among TOP ("more mixed than expected")
+  outliers fell from 68.9% to 56.7%, and among BOTTOM ("less mixed than expected") outliers from
+  88.7% to 81.0%; the same direction of change held in May and July. The project's specific named
+  findings were checked directly against this stricter validation and hold up well under it: Jacob
+  Riis Beach/Park (as a fragment complex -- see POI fragmentation below), Chens Fresh Food Market,
+  Amenazel Organic, and Hunts Point Floating Pier all remain flagged at or near 100% stability in
+  every month tested under the corrected, spatially-blocked residuals and this resampling scheme.
+  (A second, different resampling scheme -- visitor-sampling stability, below -- tells a less
+  uniform story for a couple of these venues; see that bullet for the real numbers.)
+- **Persistence is now a formal pooled estimate, not a percentage-of-30-iterations count, and it
+  resolves the earlier July/Jacob-Riis ambiguity**: an earlier version of this section reported
+  "visitor-sampling stability" as a raw percentage of bootstrap iterations in which a venue
+  re-cleared an arbitrary top/bottom-0.5%-per-borough percentile cutoff, computed separately per
+  month with no principled way to combine months into one honest estimate -- which is why a venue
+  could look like "93.3% stable in May, a coin flip in July" with no way to say what its *actual*
+  persistent effect was. That's been replaced by the pooling in `pool_persistence.py` /
+  `consolidate_fragments.py` (see "What the model does" above): each venue's per-month OBSERVED
+  spatial-CV residual, measured against one FIXED out-of-fold expectation, is pooled across its
+  eligible months with a DerSimonian-Laird random-effects meta-analysis into one pooled estimate
+  (`mu_re`), confidence interval, and a direct measure of how much of its apparent month-to-month
+  movement is genuine (`tau2`, `I2`) rather than visitor-sampling noise, then run through a
+  Benjamini-Hochberg FDR correction across every venue tested in 2+ months (29,825 such venues
+  citywide; 11,733 survive at q<=0.05).
+
+  **Point-estimate correction (external review caught this):** an earlier version of this script
+  used the MEAN of the 500 visitor-sampling bootstrap draws (`resid_vs_mean`) as each month's point
+  estimate, reserving the observed residual for nothing. That's backwards, and not just
+  stylistically: normalized entropy is concave, so the mean of resampled-entropy draws is
+  systematically a little LOWER than the entropy of what was actually observed (a finite-sample/
+  Jensen's-inequality bias), meaning every pooled estimate below was quietly biased, worst for
+  low-device venues where the bootstrap distribution skews most. The fix is the standard one:
+  the OBSERVED spatial-CV residual (`improbable_copresence_cv`) is the point estimate; the 500
+  bootstrap draws are still exactly the right tool for estimating ITS VARIANCE (`resid_vs_var`,
+  used as the inverse-variance pooling weight) -- they just never should have stood in for the
+  point estimate itself. The numbers below reflect that fix; see `pool_persistence.py`'s docstring
+  for the full explanation and the (deferred) bias-correction alternative if one is ever wanted.
+
+  **What the resulting confidence interval is, and isn't:** `resid_vs_var` captures
+  VISITOR-SAMPLING uncertainty only -- "if this venue had drawn a different, equally-likely sample
+  of its own visitors, how much would its residual move" -- while holding the fitted RandomForest's
+  prediction completely fixed. It does NOT capture uncertainty in that prediction itself (how much
+  it would move under different training rows, different spatial folds, different hyperparameters,
+  or a different month's panel composition). The model-refit bootstrap in
+  `fit_mixing_model_2026_0X.py` measures a related but different thing (ranking stability under row
+  resampling, not a residual variance) and isn't yet combined into the number below. So every CI
+  in this section is a CONDITIONAL interval -- conditional on the fitted contextual model being
+  exactly right -- not yet a full confidence interval for the venue's true residual. Combining in
+  model-refit variance (an approximate sum of variances, or a full nested bootstrap) is a
+  documented next step, not something to read into the numbers as they stand today.
+
+  **DerSimonian-Laird with 2-4 months, read honestly:** `tau2` and `I2` below use the standard
+  moment-based DerSimonian-Laird estimator, which is known to be optimistic (too-narrow intervals,
+  too-eager to call `tau2=0`) with only a handful of observations per group -- a `tau2=0` reading
+  for a venue with 2-4 months usually means the heterogeneity test lacked the power to detect
+  real between-month variation, not that none exists. REML for `tau2`, Hartung-Knapp intervals
+  (which widen the CI to reflect how little data `tau2` itself was estimated from), and a
+  prediction interval for a hypothetical future month are the documented, better-behaved
+  alternative for this few observations -- not yet implemented here, flagged rather than silently
+  assumed away. Read every `tau2`/`I2`/CI pairing below as "no heterogeneity detected under a
+  method known to underpower small samples," not as "heterogeneity ruled out."
+
+  The four named venues, under this corrected point estimate, across all four replicated months
+  (April-July 2026) -- every CI below is the conditional, visitor-sampling-only interval described
+  above, and every `persistence_tier` reflects only how many of the CURRENT four months (all
+  spring/summer) a venue cleared, not a seasonal or annual claim:
+  - **Amenazel Organic** (Bronx specialty food store), `persistence_tier`=`current_period_persistence`
+    (4/4 months): `mu_re`=+0.283, 95% CI [0.249, 0.316], `tau2`=0 (`I2`=0%) -- no heterogeneity
+    detected, `q_bh`<0.0001. The cleanest of the four results.
+  - **Chens Fresh Food Market** (Brooklyn grocery), `persistence_tier`=`current_period_persistence`
+    (4/4 months): `mu_re`=-0.283, 95% CI [-0.351, -0.215], `tau2`=0.0003 (`I2`=5.9%, essentially all
+    sampling noise), `q_bh`<0.0001.
+  - **Jacob Riis Park / beach complex** (the 4-fragment Rockaways cluster, now consolidated into
+    one entity -- see POI fragmentation below), `persistence_tier`=`current_period_persistence`
+    (4/4 months): `mu_re`=+0.119, 95% CI [0.064, 0.174], `tau2`=0.0030, `I2`=96.4%, `q_bh`=0.0001.
+    This is the one headline venue where `I2` says real month-to-month movement, not sampling
+    noise, accounts for almost all the apparent variation -- consistent with a warm-weather-linked
+    pattern across April-July rather than a flat one across those four months, though "seasonal"
+    in the fuller, year-round sense isn't something 4 spring/summer months alone can establish
+    (that needs fall/winter data -- see below). The pooled estimate is still clearly positive and
+    survives FDR correction even with that heterogeneity folded honestly into its (wider)
+    confidence interval -- a more defensible claim than the earlier framing ("confirmed in May and
+    June, ambiguous in July, absent in April"), since the random-effects estimate already accounts
+    for exactly that kind of across-month disagreement rather than requiring a separate, subjective
+    call about which months "count."
+  - **Hunts Point Floating Pier** only clears the eligibility floor in 2 of the 4 months (June,
+    July) -- see `presence_bookkeeping_2026.csv` for exactly why it's absent/ineligible the other
+    two. `persistence_tier`=`repeated_evidence`: pooled across those 2 adjacent months,
+    `mu_re`=+0.328, 95% CI [0.289, 0.367], `tau2`=0, `q_bh`<0.0001 -- a real, precisely-estimated
+    effect across the two months it could be tested in, correctly described as replicated across
+    two observed months, not yet established as persistent beyond that narrow window.
+
+  Separately -- and this is the correction that prompted building the citywide consolidation pass
+  in the first place -- the Brooklyn "Jacob Riis Beach" catalog entry, 14.6km from the real
+  Rockaways complex and confirmed to be a different, unrelated venue that merely shares part of
+  its name (see POI fragmentation below), pools to `mu_re`=+0.023 across its 3 eligible months
+  (`persistence_tier`=`provisional_persistence`), 95% CI [0.014, 0.032], `tau2`=0, `q_bh`=0.000002:
+  statistically significant on its own terms but a much smaller effect than the real Jacob Riis
+  complex, and should never be cited as evidence for, or against, the Jacob Riis finding.
+
+  Caveat on the visitor-sampling bootstrap itself, and a direct test of it: it assumes each
+  income-known device's home-quintile draw is independent given the venue's observed rate. If
+  visits cluster -- multiple devices from the same household, workplace, or tour group arriving
+  together -- true sampling variance would run higher than a plain multinomial implies, so these
+  stability numbers could in principle be an optimistic floor rather than a worst case. This is
+  testable, because the same venues appear in all three real months, so a venue's own
+  month-to-month movement in quintile shares can be compared against what a plain multinomial
+  predicts for its device count. Doing this properly (a chi-square test of homogeneity across
+  each venue's 2-3 months, with the right degrees of freedom for the fact that each venue's
+  reference rate has to be *estimated* from those same few months -- the naive version of this
+  check, which doesn't correct for that, understates real variance by roughly a third) gives an
+  observed-to-expected variance ratio of **0.91** across 28,172 venues appearing in 2+ of the 3
+  months (81,074 venue-months total; sanity-checked at 0.91 again when restricted to the 17,001
+  venues with 100+ devices every month they're present). A ratio at or below 1.0 means real
+  month-to-month movement is no larger -- if anything slightly smaller -- than independent-sampling
+  noise alone would predict for these device counts. Because this comparison conflates true
+  behavioral change between months with sampling noise (both would inflate the ratio, not shrink
+  it), a reading at or below 1.0 is real evidence against clustering showing up at a detectable
+  level here, not just an inconclusive null result. We therefore did not apply a Dirichlet-multinomial
+  (overdispersion-corrected) version of this bootstrap -- the data itself doesn't support one, and
+  forcing a correction the evidence doesn't show would trade a real number for an invented one.
+  The test can't rule out clustering entirely (three monthly snapshots is a thin basis, and a
+  clustering effect smaller than ordinary month-to-month behavioral noise could still be hiding
+  inside that 0.91), so this is "no detectable evidence of it," not "proven absent."
+- **`balance_score` is a robustness check, not independent confirmation**: an earlier draft of
+  this methodology treated a venue's also being extreme under `balance_score` as a third,
+  independent bar alongside bootstrap stability and cross-month replication. Directly checking
+  this: among venues flagged by `income_mixing_score`, the two metrics' residual z-scores
+  correlate at roughly 0.98. That's not independent evidence -- the two scores are overwhelmingly
+  tracking the same underlying signal, not catching different things. `balance_score` still has
+  value as a check that the primary score isn't an artifact of one particular target definition,
+  but it should not be described as a second, unrelated confirmation of a finding.
+- **Lingering/dwell measurement is not used in the headline scores**: `income_mixing_score`
+  and `balance_score` -- and every feature in the RandomForest model -- are built entirely
+  from visitor counts by income quintile; no dwell-time or "lingering" measure feeds into
+  either. A separate score family (`typical_dwell_mixing_score`, `dwell_balance_score`,
+  `shared_balance_score`, and the `shared_candidate` gate) was explored to check whether
+  headline venues also cleared a stricter, dwell-based bar, and almost none did (1.6% of
+  eligible venues clear `shared_candidate`; 74% of eligible venues have zero devices meeting
+  the lingering criterion in at least one income quintile). That's largely a measurement
+  artifact, not a behavioral finding: Veraset changed how a "visit" gets attributed in
+  mid-2024 (a single ping now qualifies, versus two pings ~4 minutes apart previously), and
+  dwell time now reads as zero for the large majority of visits nationally (74-80% per
+  Veraset's own documentation) -- not because visits got shorter, but because a single ping
+  can't establish a duration in the first place. The near-total failure of the dwell-based
+  family to clear its own bar reflects that measurement gap, not evidence that few venues
+  sustain an income-diverse crowd. Since these scores were never used to produce any reported
+  finding, this doesn't affect anything above -- it's documented here so the near-empty
+  `shared_candidate` column isn't mistaken for a result.
+- **Sensitive-location categories are absent, not just underrepresented**: Veraset has
+  filtered visits to health care facilities, places of worship, and shelters from its data
+  since August 2022 for privacy reasons -- and, confirmed directly against the June 2026 file,
+  K-12 schools as well: searching all 92,168 venues for NAICS 6111 (Elementary and Secondary
+  Schools) returned zero matches, against dozens of colleges, tutoring centers, and
+  specialty-instruction venues that do appear. (One public school, PS 128M, slipped through
+  mislabeled under the college/university NAICS code -- a rare leak, not evidence K-12 schools
+  are generally present.) This isn't a sampling gap that undercounts an otherwise-present
+  category; these venue types cannot appear in this analysis at all, regardless of how popular
+  or income-mixed they might be. That matters for how this project frames itself: Oldenburg's
+  original "third place" concept and Klinenberg's "social infrastructure" both treat
+  congregations and schools as central examples of places that foster cross-class contact, and
+  this dataset structurally cannot speak to either category. A sensitive location nested inside
+  a larger one (a cafeteria inside a school, a gift shop inside a hospital) is removed along
+  with it too, which can make an otherwise-ordinary venue disappear for reasons unrelated to
+  its own category.
+- **Category reliability**: `top_category`/`sub_category` come from the location-data vendor and
+  aren't fully reliable -- see the "libraries under NAICS 712" note above for the general
+  pattern. We spot-checked every vendor-tagged "library" against NYC's official public library
+  locations (`NYC_Library_Locations.csv`, from NYC Open Data, combining the NYPL/BPL/Queens
+  Public Library systems -- see `verify_library_categories.py`) by nearest-neighbor distance.
+  One branch, Castle Hill, was mistagged as a grocery store and is now treated as a library in
+  any library-level figure. One vendor-tagged "library," Washington Square Library, sits ~260m
+  from the nearest real library point -- inside Washington Square Park itself rather than at a
+  library address -- and could not be confirmed as an actual library; it's excluded from the
+  libraries analysis rather than reported as a finding. Plain proximity matching is noisy in
+  dense blocks (lots of unrelated venues sit within a few dozen meters of any given building),
+  so this was a targeted check, not a wholesale recategorization, and shouldn't be read as
+  having validated every other category in the data.
+- **Location vs. category**: location predicts how mixed a venue reads far more than what kind
+  of business it is does. Nearest-neighbor spatial autocorrelation of the model's residuals (how
+  much more or less mixed a venue is than the model expects, after accounting for its category,
+  income, race, population density, and transit/tourist/chain-business context) comes out to
+  r≈0.52-0.61 depending on how many neighbors are averaged (R²≈0.27-0.37) -- a venue's "surprise"
+  score is strongly predicted just by its physical neighbors' surprise scores, independent of
+  category. Category itself explains far less: `top_category` (24 groups) accounts for under 1%
+  of the variance left in that residual once the model has already used it as an input, and only
+  about 2.9% of the raw, pre-model mixing score. In Cobble Hill specifically, an 11-venue cluster
+  of flagged businesses spanning several unrelated categories all cleared the surprise threshold
+  together, in the same direction -- a pattern that fits something about that stretch of blocks
+  much better than it fits anything the businesses have in common. This is also the motivation
+  for the spatially-smoothed local-income feature described above: averaging the income context
+  of nearby venues, not just a venue's own census block, is a direct test of whether some of this
+  spatial clustering is really just uncaptured neighborhood income context. Adding it modestly
+  reduced, but didn't eliminate, both the spatial autocorrelation and the Cobble Hill cluster's
+  average surprise score (about 9% smaller in absolute z-score terms). The practical takeaway
+  this project draws from all of this: a corridor-level or neighborhood-level pattern is real and
+  worth flagging, but pinning it on an individual named business is a much weaker claim than the
+  data supports, and isn't one this project intends to make.
+
+  Two checks were run to make sure this wasn't an artifact of the wrong level of categorization
+  or of the vendor's category labels themselves. First, granularity: category's explanatory power
+  was tested at three resolutions -- the pipeline's own coarse `encounter_type` grouping (3
+  buckets), the vendor's `top_category` (24 groups), and its `sub_category` (62 groups) -- and it
+  moves almost exactly the way you'd expect if the category signal is genuinely weak rather than
+  mismeasured: it collapses going coarser (`encounter_type` explains under 0.3% of raw variance)
+  and is essentially flat going finer (`top_category` and `sub_category` both sit around 2.9%).
+  If a more predictive category boundary existed at some level between these, finer categories
+  should have explained meaningfully more than coarser ones; instead the relationship saturates
+  almost immediately, which argues against "we haven't sliced business type finely enough" as the
+  explanation. Second, mislabeling specifically between public institutions and commercial
+  venues -- the two categories furthest apart in character, and the pairing most likely to
+  distort this finding if the vendor's tagging confused them. Cross-checking venue names against
+  category assignments found the crossover rate is low in both directions (0.7% of civic-tagged
+  venues have food/drink-sounding names, 0.08% of commercial-tagged venues have civic-sounding
+  names), and most of even those turned out to be correctly tagged businesses whose names are
+  simply misleading (Fraunces Tavern is genuinely a museum; Washington Market Park is genuinely a
+  park). Two real errors did surface -- Castle Hill Branch Library tagged as a grocery store
+  (already noted above) and Bar-Ilan University tagged as a drinking establishment, apparently
+  from automated tagging catching the substring "Bar" in the name -- both worth correcting, but
+  at roughly two confirmed errors across the full eligible universe, mislabeling isn't a
+  plausible explanation for category's weak showing overall. Taken together: business category,
+  checked at multiple resolutions and cross-referenced against name-based sanity checks,
+  consistently explains only a small share of why a venue reads as more or less mixed than
+  expected -- far less than location does. This isn't a measurement artifact; it's a real feature
+  of the data.
+- **POI fragmentation, now corrected with a general citywide pass rather than a one-off fix**: a
+  handful of physical locations are represented by more than one catalog entry sharing the same
+  footprint but different names -- most notably the Jacob Riis Park/beach complex in the
+  Rockaways. An earlier version of this section fixed that one case by hand; `consolidate_fragments.py`
+  now does this citywide and systematically, so the same correction applies everywhere it occurs,
+  not just where we happened to look. It groups venues by THREE conditions together: within 75ft
+  (~23m) of each other spatially, name-token Jaccard similarity >=0.4 after stripping stopwords
+  (including street-suffix words like "street"/"ave"/"blvd" -- added after an early version of
+  this check nearly merged "Knapp Street Pizza" with the unrelated "Knapp Street Bagel Cafe" on
+  shared street-name tokens alone), AND the same vendor `top_category`. Run across the union of
+  all four months' eligible venues (33,767 placekeys), this finds 250 fragment groups (504
+  placekeys merged down to 250 entities); 43 of those groups are flagged separately as
+  exact-name matches (e.g. two "Starbucks" entries, two "The Salvation Army" entries) -- a real
+  chain/franchise sitting twice in the same spot is plausible, but so is a genuine chain having
+  two nearby-but-distinct locations, so these 43 are listed in `fragment_groups_report.csv` for a
+  manual glance rather than auto-merged with full confidence.
+
+  Merging a confirmed fragment group recomputes its merged `income_mixing_score` from the summed
+  q1-q5 device counts of whichever fragments are present that month, and sets its merged
+  "expected" reference as a device-count-weighted average of each fragment's OWN already-fitted
+  `expected_mixing_cv` -- a combination rule over existing fitted predictions, explicitly NOT a
+  full model refit on merged covariates, stated plainly as a real limit of the quick-turnaround
+  approach rather than overclaimed rigor. The merged entity then gets its own visitor-sampling
+  bootstrap and is pooled across months exactly like any other venue (see the persistence bullet
+  above).
+
+  For the Jacob Riis complex specifically: the correct group is 4 fragments -- "Riis Park Visitor
+  Center," "Jacob Riis Park," "The People's Beach at Jacob Riis Park," and a "Jacob Riis Beach"
+  entry that IS part of the real Rockaways cluster -- all within the 75ft threshold, same
+  category, name-Jaccard above 0.4. Pooled: `mu_re`=+0.119, 95% CI [0.064, 0.174], `I2`=96.4%
+  (see the persistence bullet above for what that means here, including the conditional-CI and
+  point-estimate-correction caveats). Critically, this is NOT the same
+  "Jacob Riis Beach" originally flagged in passing conversation as "tagged Brooklyn instead of
+  Queens, clearly a mis-assignment" -- that was a misreading of the data, not a data bug. There is
+  a genuinely separate, different "Jacob Riis Beach" catalog entry, 14.6km away in Brooklyn
+  (confirmed by haversine distance, a different `cbg_geoid`, a much smaller footprint, and no
+  spatial or name-similarity edge to the Rockaways group under this consolidation's rule), which
+  correctly stays its own unmerged singleton entity. It happens to also pool to a statistically
+  significant, small positive effect (`mu_re`=+0.023, 95% CI [0.014, 0.032]) -- entirely on its
+  own, unrelated merits -- and must not be cited as part of, or against, the real Jacob Riis
+  finding; see the persistence bullet above for both numbers side by side.
+- **Most observed venues never reach the model, and now there's a precise, per-venue-month
+  accounting of why**: `presence_bookkeeping.py` compares the FULL raw vendor export (88k-94k
+  venues/month, before ANY filtering) against what actually reaches the pooled persistence table,
+  for every consolidated entity and month, and assigns one of six statuses: `pooled`,
+  `present_ineligible` (under the 50-device floor), `present_eligible_excluded_by_category`,
+  `present_eligible_no_income_data`, `present_eligible_fragment_rescue_not_fitted`, or `absent`
+  (zero devices observed that month -- see the caveat below). Investigating an initially huge,
+  undifferentiated "present and eligible but not pooled" count (20,000+ venues/month) found it's
+  fully explained by three specific, now-documented mechanisms, not a mystery gap:
+  1. **The `encounter_type` category filter** (`build_features_2026_0X.py`, previously
+     undocumented at this level of detail): a venue only enters the model at all if its
+     `top_category` falls into `public_civic`/`commercial_social`/`personal_social` --
+     categories like auto dealers, gas stations, contractors, and most retail unrelated to
+     public/social space (`mobility`/`work_private`/`other`) are excluded regardless of device
+     count, before the 50-device floor is even applied. This is a real, intentional design
+     choice -- not a bug -- but it means the ~27,000-30,000-establishment universe this project
+     reports is restricted to specific encounter categories by construction, not simply "every
+     actively-visited NYC establishment," and that should be stated plainly wherever that
+     establishment count is cited (see the pitch document). Accounts for ~96% of the gap
+     (20,730-21,908 venues/month, varying slightly by month).
+  2. **CBG-income match failure**: a venue's spatial geocode to a Census block group can succeed
+     while that specific block group still has no income record at all in the ACS extract --
+     consistent with mostly-unpopulated block groups (parks, cemeteries, industrial land).
+     Accounts for the remaining ~4% (878-1,017 venues/month).
+  3. **Fragment-rescue groups that clear the combined floor but were never individually fitted**:
+     a handful of consolidation groups (8 venue-months total, across all four months, all 2-fragment
+     groups) where the COMBINED income-known-device count clears the 50-device floor but neither
+     individual fragment did on its own in the ORIGINAL (pre-consolidation) pipeline run -- so
+     neither fragment ever got its own `expected_mixing_cv` fit that month, and the merge step
+     (a weighted average of fragments' own fitted predictions, see POI fragmentation above) has
+     nothing to combine. These are correctly-identified "rescued" cases the pipeline still can't
+     pool, not a new unexplained mechanism; after separating out all three mechanisms above, the
+     residual `present_eligible_unexplained` status is confirmed at exactly zero in every month --
+     i.e., nothing is left over that these three don't account for.
+
+  Stated caveat, carried over from the module's own docstring: the raw vendor export itself
+  requires >=1 observed device to produce a row at all, so "absent" here means "zero devices
+  observed that month," not necessarily "not a real place that could have been visited" --
+  distinguishing those two would need the full places catalog (not part of this pipeline), and
+  that gap is flagged rather than quietly elided. Separately, this same bookkeeping surfaced a
+  related, structural limitation worth stating plainly: fragment consolidation (see POI
+  fragmentation above) runs on `model_ready`, which is already filtered to individually-eligible
+  venues, so case 3 above (fragment-rescue) is a genuine, unresolved gap in the current pipeline,
+  not fully fixed by consolidation alone -- quantified here rather than left as an assumption.
+
+## Pre-specified criteria for adding a new month (locked 2026-10-03, before March)
+
+This project runs discovery and confirmation as two separate steps, and this section exists so
+the confirmation step's rule is written down and dated BEFORE the next month of data (March
+2026) is added -- not adjusted afterward to fit whatever March happens to show. **Discovery**
+(which venues get a first look at all) is the top/bottom 0.5%-per-borough percentile rule
+described in "What the model does." **Confirmation** (which of those are reported as a real,
+persistent finding, not noise) is the pooling rule below. A venue is only named as a persistent
+finding if it clears the confirmation rule -- clearing the discovery screen alone is not
+sufficient, and is not how any venue in this writeup is described.
+
+The confirmation rule, exactly as currently implemented and not to be changed retroactively once
+March's residuals exist:
+
+1. **Eligibility**: a venue-month enters the pool only if it clears `income_known_devices >= 50`
+   (the eligibility floor already used throughout) AND falls in an `encounter_type` of
+   `public_civic`/`commercial_social`/`personal_social` AND has a CBG income match -- see
+   `presence_bookkeeping.py` in Known limitations for exactly which venue-months this excludes
+   and why.
+2. **Per-venue-month residual**: `improbable_copresence_cv` (the OBSERVED spatial-CV residual --
+   actual score minus the FIXED out-of-fold expectation) as the point estimate, with
+   `resid_vs_var` (the 500-draw visitor-sampling bootstrap's variance against that same fixed
+   expectation) as its pooling weight -- see "What the model does" and the point-estimate-correction
+   note under Known limitations for why the point estimate is the observed residual, not the
+   bootstrap mean.
+3. **Pooling**: DerSimonian-Laird random-effects meta-analysis across a venue's eligible months,
+   producing `mu_re`, a 95% CI, `tau2`, and `I2` (`pool_persistence.py` / `consolidate_fragments.py`).
+4. **Tested family**: only venues with `n_months >= 2` are tested for persistence at all (a
+   single month has no replication to test against, and is never reported as "confirmed" no
+   matter how large its one-month residual).
+5. **Significance bar**: Benjamini-Hochberg FDR correction across that entire tested family,
+   threshold `q_bh <= 0.05`. This is applied citywide, across every eligible venue, not just the
+   handful already named in the pitch -- so adding March and re-running this step can only ever
+   ADD or REMOVE venues from the confirmed set by this same rule, never by hand-picking a
+   different threshold because a particular venue's March number looks interesting or disappointing.
+6. **Fragment consolidation**: the 75ft / name-Jaccard>=0.4 / same-`top_category` grouping rule
+   in `consolidate_fragments.py` runs before pooling, on the union of eligible placekeys across
+   ALL months including March once it's added -- so a fragment group's membership is decided by
+   geometry and naming, not by which specific months happen to need a merge.
+
+Any change to these specific numbers (50-device floor, 500 draws, 75ft, 0.4 Jaccard, `n_months>=2`,
+`q_bh<=0.05`) after March's data exists should be logged here with a date and a stated reason
+unrelated to March's own results (e.g. "raising the floor to reduce finite-sample bias," not
+"because Amenazel's March number came in weaker than expected") -- the whole point of writing
+this down now is so that kind of change is visible rather than quietly absorbed into a rerun.
+
+**Change log:**
+- 2026-10-03, same day as the lock above, before March exists and for a reason that has nothing
+  to do with any month's results: an external methodological review caught that item 2's point
+  estimate had been implemented backwards (the bootstrap mean standing in for the observed
+  residual, which is a biased estimator of it -- see Known limitations). Corrected to the version
+  recorded above. Flagged here rather than quietly fixed, exactly per this section's own rule.
+
+## Environment
+
+Python 3 with `pandas`, `numpy`, `scikit-learn`, `duckdb`, and `pyarrow` (for the raw-parquet
+steps in the notebook only — the standalone `.py` scripts only need CSV/pickle I/O plus
+`pandas`/`numpy`/`scikit-learn`).
