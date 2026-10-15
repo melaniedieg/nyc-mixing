@@ -20,11 +20,13 @@ Method: resample grid CELLS (not venues) with replacement -- same spatial-block 
 sensitivity_spatial_block_bootstrap.py, which fixed the OTHER model-refit bootstrap defect this
 same external review caught (fit_mixing_model_2026_0X.py's "model-refit stability" check; see
 that script and the README bullet above this one). Each replicate reruns the real grid-cell-
-blocked GroupKFold(5) so every out-of-fold prediction stays genuinely held out, then records
-every venue's predicted value that replicate (averaged across a cell's occurrences if its cell
-was drawn more than once). The variance of those predictions across replicates is the empirical
-model-refit/prediction-uncertainty estimate for that venue-month, in the same units as
-resid_vs_var so the two can be summed directly.
+blocked, BUFFERED GroupKFold(5) (Note 7 fix -- same BUFFER_FT=1500 spatial buffer as
+fit_mixing_model_2026_0X.py's own PRIMARY CV; see that script's docstring and the README's "No
+spatial buffer between CV folds" for the full derivation) so every out-of-fold prediction stays
+genuinely held out, then records every venue's predicted value that replicate (averaged across a
+cell's occurrences if its cell was drawn more than once). The variance of those predictions
+across replicates is the empirical model-refit/prediction-uncertainty estimate for that
+venue-month, in the same units as resid_vs_var so the two can be summed directly.
 
 Compute cost, stated plainly: this reruns the full grid-cell-blocked GroupKFold(5) N_BOOT times
 (15 by default -- 5x the model fits of a single published CV run), ~10-15 minutes per month on
@@ -50,6 +52,7 @@ import time
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+from scipy.spatial import cKDTree
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
@@ -59,6 +62,7 @@ from sklearn.model_selection import GroupKFold
 MONTH = os.environ["MONTH"]  #e.g. "2026_07" or "2025_12" -- no default, this always runs per-month
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./output")
 GRID_CELL_FT = 2000  #same spatial block size as fit_mixing_model_2026_0X.py's own CV
+BUFFER_FT = 1500  #Note 7 fix -- same spatial buffer as fit_mixing_model_2026_0X.py's PRIMARY CV
 N_BOOT = int(os.environ.get("N_BOOT", "15"))
 
 t0 = time.time()
@@ -108,13 +112,28 @@ for b in range(N_BOOT):
                                               #sensitivity_spatial_block_bootstrap.py docstring
                                               #for why this matters)
 
+    #Note 7 fix: same spatial buffer as fit_mixing_model_2026_0X.py's PRIMARY CV, applied fresh
+    #to this replicate's own (resampled, possibly duplicated) rows -- a cell drawn more than
+    #once still needs its buffer computed against this replicate's actual row positions.
+    _bgdf = gpd.GeoDataFrame(
+        boot_df, geometry=gpd.points_from_xy(boot_df["longitude"], boot_df["latitude"]), crs="EPSG:4326"
+    ).to_crs(epsg=2263)
+    _bxy = np.column_stack([_bgdf.geometry.x.to_numpy(), _bgdf.geometry.y.to_numpy()])
+    _btree = cKDTree(_bxy)
+
     n_groups_b = len(np.unique(groups_b))
     gkf = GroupKFold(n_splits=min(5, n_groups_b))
     y_pred_boot = np.full(len(boot_df), np.nan)
     for tr_idx, te_idx in gkf.split(Xb, yb, groups=groups_b):
+        _test_tree = cKDTree(_bxy[te_idx])
+        _near_test = _test_tree.query_ball_tree(_btree, r=BUFFER_FT)
+        _near_test_idx = set()
+        for _lst in _near_test:
+            _near_test_idx.update(_lst)
+        tr_idx_buf = np.array([i for i in tr_idx if i not in _near_test_idx])
         pipe = Pipeline([("pre", pre), ("reg", RandomForestRegressor(
             n_estimators=100, max_depth=8, min_samples_leaf=20, random_state=b, n_jobs=-1))])
-        pipe.fit(Xb.iloc[tr_idx], yb.iloc[tr_idx], reg__sample_weight=wb[tr_idx])
+        pipe.fit(Xb.iloc[tr_idx_buf], yb.iloc[tr_idx_buf], reg__sample_weight=wb[tr_idx_buf])
         y_pred_boot[te_idx] = pipe.predict(Xb.iloc[te_idx])
 
     boot_df = boot_df.assign(_pred=y_pred_boot)

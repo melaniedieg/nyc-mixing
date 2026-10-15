@@ -52,21 +52,25 @@ A RandomForest model is fit against that context to produce an expected score pe
 residual (actual minus expected) is z-scored **within borough** (so venues are compared to
 similar peers, not citywide) to flag statistical outliers.
 
-That residual comes from a spatially-blocked cross-validation, not a random one. Nearby venues'
-residuals are correlated (documented below under **Known limitations**, r≈0.52-0.61 among near
-neighbors) — a random row-level K-fold split lets a venue's own physical neighbors leak into its
-training fold, inflating validation R² relative to genuine generalization to an unseen
+That residual comes from a spatially-blocked, BUFFERED cross-validation, not a random one.
+Nearby venues' residuals are correlated (documented below under **Known limitations**, r≈0.52-0.61
+among near neighbors) — a random row-level K-fold split lets a venue's own physical neighbors leak
+into its training fold, inflating validation R² relative to genuine generalization to an unseen
 neighborhood. Venues are grouped into ~2000ft (610m) grid cells (projected to NY State Plane
-feet) and 5-fold cross-validation is grouped by cell (`GroupKFold`), so a whole neighborhood-scale
-cluster stays on one side of each split. This grid-cell R² (0.69-0.73, device-count weighted,
-across the four months tested) is the PRIMARY number and the one that feeds the residuals,
-z-scores, and outlier flagging described below; the original random row-level K-fold R²
-(0.74-0.77) is still fit and reported alongside it as a secondary comparison figure only. April's
-primary R² (0.69) runs a bit below May/June/July's (0.72-0.73) -- every data-quality check that
-caught the July-2025 extract's problem (full vs. pre-filtered export, neighbor-density coverage,
-eligible-venue count) came back clean for April, so this reads as genuine month-to-month
-variation rather than a data issue, but it's a real difference worth knowing about rather than
-rounding away.
+feet) and 5-fold cross-validation is grouped by cell (`GroupKFold`); on top of that, a 1500ft
+spatial BUFFER additionally excludes any training venue within 1500ft of a test-fold venue, not
+just venues sharing its own cell (Note 7, a fifth round of external review -- see "No spatial
+buffer between CV folds" under Known limitations for the full derivation and why grid-cell
+grouping alone wasn't enough). This grid-cell, buffered R² (0.496-0.665 across the current 8
+periods, Dec 2025-Jul 2026, device-count weighted) is the PRIMARY number and the one that feeds
+the residuals, z-scores, and outlier flagging described below; the original random row-level
+K-fold R² (0.76-0.77) is still fit and reported alongside it as a secondary comparison figure
+only, as is the un-buffered grid-cell R² (0.55-0.73, the PRIMARY number before Note 7 -- see that
+bullet). December's buffered R² (0.496) is the lowest of the 8 periods -- it's also by far the
+smallest period (10,048 eligible venues, under half of July's 26,662), so a 1500ft buffer excludes
+a larger share of an already-small, sparser training set; every data-quality check run on
+December came back clean, so this reads as a real small-N effect of the buffer rather than a data
+issue, but it's worth knowing about rather than rounding away.
 
 Outliers are flagged as the top/bottom
 0.5% of venues **within each borough** (not a flat citywide count): a fixed citywide number of
@@ -180,6 +184,17 @@ own within-month 0.69; the three summer months cluster the same way). No evidenc
 overfit to a specific month once venue overlap is actually blocked rather than ignored. See
 `geo_temporal_holdout_validation.py` and `geo_temporal_holdout_results.csv`.
 
+**Known follow-up, stated plainly rather than silently left inconsistent:** the R² figures in
+this subsection (mean weighted 0.78 unblocked / 0.7263 blocked, and the "April's doubly-held-out
+0.698 against its own within-month 0.69" comparison) all predate Note 7's spatial-buffer fix to
+the within-month CV below -- they were computed against the unbuffered `results_mixing_<MONTH>.pkl`
+outputs. April's own within-month figure is now 0.620, not 0.69, under the buffered CV (see "No
+spatial buffer between CV folds" under Known limitations), so the "close to and consistent with"
+comparison above needs rechecking against the buffered numbers, and the cross-month holdout itself
+arguably needs the same spatial buffer applied to its own train/predict split, not just the
+within-month CV. Neither has been rebuilt yet; this is flagged as a follow-up, not yet scoped or
+confirmed.
+
 **How much do the two consolidation thresholds (75ft, name-token Jaccard≥0.4) and the 50-device
 eligibility floor, each picked somewhat by eye, actually drive the results?** Checked both.
 
@@ -280,7 +295,13 @@ fit_mixing_model_2026_0{4,5,6,7}.py   Fits the final model against income_mixing
                                      (model-refit resampling and visitor-sampling resampling of
                                      each venue's own q1-q5 device counts -- see Known
                                      limitations), saves stable top/bottom-0.5%-per-borough
-                                     lists with both stability figures attached.
+                                     lists with both stability figures attached. FIXED (Note 7,
+                                     a fifth round of external review -- see Known limitations,
+                                     No spatial buffer between CV folds): the PRIMARY CV now
+                                     excludes, from each fold's training set, any point within
+                                     BUFFER_FT=1500ft of that fold's test points -- not just
+                                     points sharing a test point's own grid cell -- to close the
+                                     near-boundary leakage the plain grid-cell blocking left open.
 
 fit_balance_model_2026_0{4,5,6,7}.py  Fits the same feature set against balance_score as a
                                      robustness check (see Known limitations -- this score
@@ -329,7 +350,11 @@ estimate_model_prediction_variance.py  REQUIRED pipeline step (promoted from a o
                                  GroupKFold(5) 15 times). Run once per period via MONTH env var,
                                  BEFORE pool_persistence.py/consolidate_fragments.py for that period.
                                  Reads model_ready_<MONTH>.pkl; produces
-                                 model_prediction_variance_<MONTH>.csv.
+                                 model_prediction_variance_<MONTH>.csv. FIXED (Note 7): each
+                                 replicate's GroupKFold(5) now applies the same BUFFER_FT=1500
+                                 spatial buffer as fit_mixing_model_2026_0X.py's PRIMARY CV,
+                                 recomputed fresh per replicate since the block bootstrap can
+                                 duplicate a cell's rows.
 
 pool_persistence.py             Pools each venue's per-month residual (the fixed-reference point
                                  estimate from fit_mixing_model_2026_0X.py above, pooled against an
@@ -602,27 +627,34 @@ data licenses restrict redistribution even of aggregated results.
   and a direct measure of how much of its apparent month-to-month movement is genuine
   (`tau2_reml`) rather than visitor-sampling noise, then run through a Benjamini-Hochberg FDR
   correction across every venue tested in 2+ months (31,652 such venues citywide, current
-  8-period pooling Dec 2025-Jul 2026; **4,502** survive the ADOPTED REML+Hartung-Knapp FDR control
-  at q<=0.05 over `var_combined` (overdispersion-corrected sampling variance + model-refit variance
-  -- see "Model prediction variance" and "The overdispersion check's independence assumption" in
-  Known limitations), versus 13,471 under the DerSimonian-Laird diagnostic (also lower than before,
-  for the same reason -- see below). This breaks down as THREE separate, independently-measured
+  8-period pooling Dec 2025-Jul 2026; **4,871** survive the ADOPTED REML+Hartung-Knapp FDR control
+  at q<=0.05 over `var_combined` (overdispersion-corrected sampling variance + model-refit variance,
+  both now also corrected for the spatial-buffer fix below -- see "Model prediction variance", "The
+  overdispersion check's independence assumption", and "No spatial buffer between CV folds" in
+  Known limitations), versus 14,123 under the DerSimonian-Laird diagnostic (also lower than before,
+  for the same reason -- see below). This breaks down as FIVE separate, independently-measured
   effects, not one: switching DL->Hartung-Knapp alone (still over the original plain-multinomial
   sampling variance) dropped survivors to 6,961 (the DerSimonian-Laird-optimism gap the caveat below
   warns about); folding in model-refit variance on top of that dropped it further to 5,498 (a real,
   separately-quantified source of previously-omitted uncertainty -- see "Model prediction variance"
   below); correcting the sampling variance itself for real extra-multinomial clustering (Note 5 --
   see "The overdispersion check's independence assumption" below) dropped it further still, to
-  **4,502** (an 18% reduction on top of the already-adopted 5,498, concentrated almost entirely in
-  large, high-traffic venues -- see that bullet for why). UPDATE (Note 6, a fourth round of
-  external review -- see "The merged-group score's Jensen's-inequality asymmetry" below): fixing
-  a separate, unrelated bias in how `consolidate_fragments.py` combines MERGED fragment groups'
-  observed scores leaves this **4,502** total unchanged, but flips two individual merged groups'
-  own FDR call right at the boundary -- Osteria Brooklyn (`GRP00207`) moves from surviving
-  (`q_bh_hk`=0.0384) to not (`q_bh_hk`=0.0597), and John & Joe's Pizzeria (`GRP00172`) moves from
-  not surviving (`q_bh_hk`=0.0550) to surviving (`q_bh_hk`=0.0499); neither was previously named or
-  cited in this README. Of the four NAMED venue bullets below, only Jacob Riis is a merged group --
-  its own (already non-significant) number moved slightly; see its bullet below for the update.
+  4,502 (an 18% reduction on top of the already-adopted 5,498, concentrated almost entirely in
+  large, high-traffic venues -- see that bullet for why); fixing a separate, unrelated bias in how
+  `consolidate_fragments.py` combines MERGED fragment groups' observed scores (Note 6 -- see "The
+  merged-group score's Jensen's-inequality asymmetry" below) left that 4,502 total unchanged, but
+  flipped two individual merged groups' own FDR call right at the boundary at the time (Osteria
+  Brooklyn and John & Joe's Pizzeria -- neither previously named or cited in this README); and
+  finally, removing the CV's missing spatial buffer (Note 7, a fifth round of external review --
+  see "No spatial buffer between CV folds" below) moved it to the current **4,871** (a real
+  increase this time, +8.2% -- see that bullet for the full per-period R² impact and why it goes
+  up rather than down). UPDATE: Note 7's rebuild also supersedes Note 6's two boundary flips above
+  -- under the final buffered numbers, BOTH Osteria Brooklyn (`q_bh_hk`=0.074) and John & Joe's
+  Pizzeria (`q_bh_hk`=0.054) are now non-significant; Note 6's own fix and its isolated effect
+  (described above) are still correct as measured at the time, just superseded by this later
+  rebuild, same as Note 5's isolated numbers were by Note 6's. Of the four NAMED venue bullets
+  below, Jacob Riis is a merged group and Chens Fresh Food Market's own significance call is the
+  one Note 7 actually overturns -- see those bullets below for the real, current numbers.
 
   **Point-estimate correction (external review caught this):** an earlier version of this script
   used the MEAN of the 500 visitor-sampling bootstrap draws (`resid_vs_mean`) as each month's point
@@ -744,65 +776,75 @@ data licenses restrict redistribution even of aggregated results.
   annual claim. DerSimonian-Laird's `mu_re`/`q_bh` are given alongside for comparison, but
   `mu_hk`/`q_bh_hk` are what's reported:
   - **Amenazel Organic** (Bronx specialty food store), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.2735, 95% CI [0.206, 0.341], `tau2_reml`~=0 --
-    no heterogeneity detected, `q_bh_hk`=0.0106 (was 0.0081 before Note 5's overdispersion
-    correction, 0.0023 before folding model-refit variance into the pooling weight -- see Known
-    limitations). Still survives the adopted bar comfortably; DL agrees (`mu_re`=+0.276,
-    `q_bh`<0.0001). Still the cleanest of the four results.
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.2025, 95% CI [0.111, 0.294], `tau2_reml`~=0 --
+    no heterogeneity detected, `q_bh_hk`=0.0317 (was 0.0106 before Note 7's spatial-buffer fix,
+    0.0081 before Note 5's overdispersion correction, 0.0023 before folding model-refit variance
+    into the pooling weight -- see Known limitations). Still survives the adopted bar, though the
+    margin has thinned considerably across these successive corrections (effect size itself is
+    about 26% smaller post-buffer: `mu_hk` 0.274→0.202); DL agrees (`mu_re`=+0.203, `q_bh`<0.0001).
+    Still the cleanest of the four results, but no longer by as wide a margin.
   - **Chens Fresh Food Market** (Brooklyn grocery), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=-0.2788, 95% CI [-0.373, -0.184], `tau2_reml`~=0,
-    `q_bh_hk`=0.0189 (was 0.0141 before Note 5, 0.0087 before model-refit variance). Still survives
-    the adopted bar; DL agrees (`mu_re`=-0.280, `q_bh`<0.0001).
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=-0.2166, 95% CI [-0.398, -0.035], `tau2_reml`=0.0128,
+    `q_bh_hk`=0.1138 (was 0.0189 before Note 7's spatial-buffer fix, 0.0141 before Note 5, 0.0087
+    before model-refit variance). **This is now the one named venue where Note 7 changes the
+    finding**: Chens no longer clears the adopted bar, even though DL's diagnostic still would
+    (`mu_re`=-0.219, `q_bh`=0.0020) and the pooled effect itself is barely smaller than before
+    (`mu_hk` -0.279→-0.217, still clearly negative and directionally identical). Read this the
+    same way Jacob Riis has been read since Note 5: a real, consistent effect that no longer
+    clears a bar that keeps getting more honest, not a finding that turned out to be fake -- see
+    "No spatial buffer between CV folds" below for why the buffer moves some venues' residuals
+    enough to matter even when the effect itself barely changes.
   - **Jacob Riis Park / beach complex** (the 3-fragment Rockaways cluster, now consolidated into
     one entity -- see POI fragmentation below), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.0908, 95% CI [0.0061, 0.1755], `tau2_reml`=0.0028
-    (DL's diagnostic `I2`=94.3% -- real period-to-period movement, not sampling noise, accounts
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.0725, 95% CI [0.0041, 0.1409], `tau2_reml`=0.0011
+    (DL's diagnostic `I2`=87.2% -- real period-to-period movement, not sampling noise, accounts
     for almost all the apparent variation here, consistent with a warm-weather-linked pattern
     rather than a flat one across the year). **This remains the one named venue where the method
-    switch changes the finding, and both Note 5's overdispersion correction and Note 6's
-    merged-group-score fix push it further the same direction**: `q_bh_hk`=0.1424 (was 0.1168 before
-    Note 6, 0.1094 before Note 5, 0.0665 before folding in model-refit variance, itself already
-    above the bar under the HK method switch alone), versus `q_bh`=0.0012 under the DL diagnostic.
-    Jacob Riis is both the kind of large, high-traffic venue Note 5's correction hits hardest (see
-    that bullet below -- a venue this size sees its visitor-sampling variance roughly double) AND
-    the only named venue that's a merged fragment group, so it's also the only one of the four
-    directly affected by Note 6's fix (see "The merged-group score's Jensen's-inequality asymmetry"
-    below) -- its old, pooled-entropy `merged_score` was mechanically inflated relative to the
-    device-weighted average of its 3 fragments' own scores, so correcting it was always going to
-    push the point estimate down a little, not up. The pooled effect is still clearly positive and
-    directionally identical under every method tried -- what's changed, cumulatively, is whether it
-    clears a strict multiple-testing bar once the between-period variance is estimated by REML
-    instead of DL's more optimistic closed-form estimator, the CI widened by Hartung-Knapp, the
-    pooling weight widened by real model-refit uncertainty, the sampling variance itself corrected
-    for real extra-multinomial clustering, and now the merged score itself corrected for the
-    pooling-combination bias. Read this as a real, persistent, but no-longer-formally-confirmed
-    effect under the stricter standard -- not as a venue that stopped being unusual.
+    switch changes the finding**, though Note 7's spatial-buffer fix barely moves it further (unlike
+    Note 5 and Note 6, which each pushed it the same direction): `q_bh_hk`=0.1406 (was 0.1424 before
+    Note 7, 0.1168 before Note 6, 0.1094 before Note 5, 0.0665 before folding in model-refit
+    variance, itself already above the bar under the HK method switch alone), versus `q_bh`=0.00002
+    under the DL diagnostic. Jacob Riis is both the kind of large, high-traffic venue Note 5's
+    correction hits hardest (see that bullet below -- a venue this size sees its visitor-sampling
+    variance roughly double) AND the only named venue that's a merged fragment group, so it was
+    also the only one of the four directly affected by Note 6's fix -- its old, pooled-entropy
+    `merged_score` was mechanically inflated relative to the device-weighted average of its 3
+    fragments' own scores. The pooled effect is still clearly positive and directionally identical
+    under every method tried -- what's changed, cumulatively, is whether it clears a strict
+    multiple-testing bar once the between-period variance is estimated by REML instead of DL's more
+    optimistic closed-form estimator, the CI widened by Hartung-Knapp, the pooling weight widened by
+    real model-refit uncertainty, the sampling variance itself corrected for real extra-multinomial
+    clustering, the merged score corrected for the pooling-combination bias, and now the CV itself
+    corrected for the missing spatial buffer. Read this as a real, persistent, but
+    no-longer-formally-confirmed effect under the stricter standard -- not as a venue that stopped
+    being unusual.
   - **Hunts Point Floating Pier** only clears the eligibility floor in 2 of the current 8 periods
     (June and July 2026) -- see `presence_bookkeeping_2026.csv` for exactly why it's
     absent/ineligible the others. `persistence_tier`=`repeated_evidence`: pooled across those 2
-    adjacent periods, `mu_hk`=+0.322, 95% CI [-0.067, 0.711] (wide, since Hartung-Knapp's
-    t-distribution has only 1 degree of freedom at n=2, widened further by model-refit variance and
-    again by Note 5's overdispersion correction -- Hunts Point is another high-traffic venue, hit by
-    the same size-dependent effect as Jacob Riis), `q_bh_hk`=0.1816 (was 0.1699 before Note 5, 0.117
-    before folding in model-refit variance), versus `q_bh`<0.0001 under the DL diagnostic (whose
-    normal-approximation CI is much narrower at this same sample size -- exactly the DL optimism
-    problem this switch was meant to correct for). A real, precisely-estimated-looking effect that,
-    assessed honestly under a method built for few observations and now a properly corrected
-    sampling variance, isn't yet distinguishable from chance at only 2 eligible periods -- not
-    evidence it's wrong, but a reminder that 2-period pooling is the thinnest evidence this project
-    produces.
+    adjacent periods, `mu_hk`=+0.268, 95% CI [-0.149, 0.685] (wide, since Hartung-Knapp's
+    t-distribution has only 1 degree of freedom at n=2, widened further by model-refit variance,
+    Note 5's overdispersion correction, and now Note 7's spatial-buffer fix -- Hunts Point is
+    another high-traffic venue, hit by the same size-dependent effect as Jacob Riis),
+    `q_bh_hk`=0.2037 (was 0.1816 before Note 7, 0.1699 before Note 5, 0.117 before folding in
+    model-refit variance), versus `q_bh`<0.0001 under the DL diagnostic (whose normal-approximation
+    CI is much narrower at this same sample size -- exactly the DL optimism problem this switch was
+    meant to correct for). A real, precisely-estimated-looking effect that, assessed honestly under
+    a method built for few observations and now a properly corrected sampling variance and CV,
+    isn't yet distinguishable from chance at only 2 eligible periods -- not evidence it's wrong,
+    but a reminder that 2-period pooling is the thinnest evidence this project produces.
 
   Separately -- and this is the correction that prompted building the citywide consolidation pass
   in the first place -- the Brooklyn "Jacob Riis Beach" catalog entry, 14.6km from the real
   Rockaways complex and confirmed to be a different, unrelated venue that merely shares part of
-  its name (see POI fragmentation below), pools to `mu_hk`=+0.024 across its 3 eligible periods
-  (`persistence_tier`=`provisional_persistence`), 95% CI [-0.005, 0.053], `q_bh_hk`=0.2017 (was
-  0.1730 before Note 5, 0.117 before model-refit variance) -- same as Hunts Point, this does not
-  clear the adopted bar (DL's diagnostic `q_bh`=0.00004 would have called it significant), a much
-  smaller effect than the real Jacob Riis complex regardless of method, and should never be cited
-  as evidence for, or against, the Jacob Riis finding. Unlike its Rockaways namesake, this is a
-  small, low-traffic venue, so Note 5's correction barely moved it -- the small shift here is
-  mostly ordinary Monte Carlo noise from a fresh 500-draw bootstrap, not a real overdispersion
+  its name (see POI fragmentation below), pools to `mu_hk`=+0.0247 across its 3 eligible periods
+  (`persistence_tier`=`provisional_persistence`), 95% CI [-0.004, 0.054], `q_bh_hk`=0.1859 (was
+  0.2017 before Note 7, 0.1730 before Note 5, 0.117 before model-refit variance) -- same as Hunts
+  Point, this does not clear the adopted bar (DL's diagnostic `q_bh`=0.00001 would have called it
+  significant), a much smaller effect than the real Jacob Riis complex regardless of method, and
+  should never be cited as evidence for, or against, the Jacob Riis finding. Unlike its Rockaways
+  namesake, this is a small, low-traffic venue, so neither Note 5's nor Note 7's correction moved
+  it by much -- the small shifts here are mostly ordinary noise from a fresh bootstrap/refit, not a
+  real overdispersion or buffer
   effect.
 
   **The overdispersion check's independence assumption -- FIXED (Note 5, a third round of
@@ -903,6 +945,67 @@ data licenses restrict redistribution even of aggregated results.
   `q_bh_hk` moved from 0.1168 to 0.1424, since its old `merged_score` was inflated by this same
   mechanism). `fragment_groups_report.csv`'s 265 groups themselves are unaffected -- this fix
   changes how a merged group's score is computed, not which fragments get grouped together.
+
+  **No spatial buffer between CV folds -- FIXED (Note 7, a fifth round of external review):**
+  grid-cell `GroupKFold` keeps a whole ~2000ft cell on one side of a fold, but says nothing about
+  cells on OPPOSITE sides of a fold boundary -- they sit directly adjacent with a 0ft gap, even
+  though residuals are measurably autocorrelated well past one cell width (see "Location vs.
+  category" below, r≈0.52-0.61 among near neighbors). A correlogram on real residuals -- checked
+  on 4 periods spanning the full window, not just one, after this exact question was raised --
+  confirms it's not an artifact of any single month:
+
+  | distance | Dec 2025 | Feb 2026 | Apr 2026 | Jul 2026 |
+  |---|---|---|---|---|
+  | 0-250ft | 0.50 | 0.50 | 0.56 | 0.56 |
+  | 250-500ft | 0.39 | 0.40 | 0.43 | 0.48 |
+  | 500-1000ft | 0.27 | 0.28 | 0.34 | 0.41 |
+  | 1000-1500ft | 0.18 | 0.20 | 0.20 | 0.31 |
+  | 1500-2000ft | 0.14 | 0.16 | 0.16 | 0.21 |
+  | 2000-3000ft | 0.12 | 0.10 | 0.11 | 0.18 |
+  | 3000-5000ft | 0.05 | 0.05 | 0.08 | 0.13 |
+
+  The shape is consistent across periods (July runs a bit "stickier" at every distance, consistent
+  with the warm-weather clustering already documented under "Serial correlation" above) and decays
+  smoothly rather than hitting zero at any clean cutoff -- there is no single obviously-correct
+  buffer distance, only a bias/variance tradeoff, so this was checked directly rather than guessed.
+
+  ADOPTED FIX: `fit_mixing_model_2026_0X.py`'s PRIMARY CV and `estimate_model_prediction_
+  variance.py`'s own resampled refits now additionally exclude any training-candidate venue within
+  `BUFFER_FT`=1500 of ANY test-fold venue (standard "buffered CV" -- Roberts et al. 2017), not just
+  venues sharing its own cell. 1500ft was picked over a larger buffer for a concrete, checked
+  reason: at this venue density, a buffer wide enough to clear the correlogram's tail (3000ft+)
+  excludes 85-90%+ of each fold's training venues and starts starving individual boroughs
+  entirely -- checked directly on April (min per-borough training count collapses to 122-337
+  venues at 3000ft, against 772+ at 1500ft). 1500ft keeps a workable training set while still
+  cutting the near-boundary correlation roughly in half relative to no buffer at all.
+
+  Effect, measured across all 8 periods, not estimated from one: the PRIMARY (buffered) CV R²
+  drops in every period -- 0.552→0.496 (Dec), 0.643→0.585 (Jan), 0.680→0.641 (Feb), 0.662→0.604
+  (Mar), 0.693→0.620 (Apr), 0.730→0.665 (May), 0.720→0.650 (Jun), 0.719→0.660 (Jul) -- confirming
+  the un-buffered design was genuinely optimistic, not just in the one month first checked.
+  `model_pred_var` (see that bullet above) rises correspondingly (medians roughly 1.3-1.8x higher
+  per period), since a buffered refit is a noisier estimate of the same prediction. Propagated
+  through the full pipeline -- `pool_persistence.py`/`consolidate_fragments.py` rerun on the
+  buffered `expected_mixing_cv` and `model_pred_var`, for real, not approximated -- the ADOPTED
+  REML+Hartung-Knapp FDR survivor count moves from **4,502 to 4,871** (+8.2%). Of the four named
+  venues: Amenazel Organic still survives, but its margin thins (`mu_hk` 0.274→0.202, `q_bh_hk`
+  0.0106→0.0317); Hunts Point Floating Pier and the Jacob Riis complex both stay non-significant,
+  essentially unmoved (`q_bh_hk` 0.182→0.204 and 0.142→0.141 respectively); and **Chens Fresh Food
+  Market flips from surviving (`q_bh_hk`=0.0190) to not surviving (`q_bh_hk`=0.114)** -- the one
+  previously "clean" named finding this fix actually overturns. Read Chens the same way Jacob Riis
+  has been read since Note 5: a real, directionally consistent effect (`mu_hk` still -0.217) that
+  no longer clears the stricter, now-more-honest bar, not a finding that turned out to be fake.
+
+  Known follow-ups, stated plainly rather than silently left inconsistent: (1)
+  `sensitivity_spatial_block_bootstrap.py`'s July reference-stability table (the "Amenazel 100%→
+  61.5%" finding under "Model-refit stability bootstrap" above) was computed against the
+  PRE-Note-7 flagged-venue set and has not yet been rerun under the buffer -- its specific
+  per-venue percentages predate this fix. (2) `geo_temporal_holdout_validation.py`'s cross-month
+  comparison (under "Does the model generalize across TIME" above, April's "0.698 against its own
+  within-month 0.69") also predates this fix and compares against the un-buffered April R² --
+  a matching buffered rebuild hasn't been done. Neither changes the ADOPTED persistence/FDR
+  numbers above, which already reflect the full buffered pipeline; both are secondary/diagnostic
+  artifacts that would need their own rerun for internal consistency, not yet done as of this fix.
 - **`balance_score` is a robustness check, not independent confirmation**: an earlier draft of
   this methodology treated a venue's also being extreme under `balance_score` as a third,
   independent bar alongside bootstrap stability and cross-month replication. Directly checking

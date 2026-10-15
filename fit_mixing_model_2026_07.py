@@ -20,6 +20,14 @@ neighborhood. The original random KFold(5, shuffle=True, random_state=42) is sti
 and reported as a SECONDARY comparison number only -- it does not feed expected_mixing_cv,
 residuals, z-scores, or flagging anywhere below.
 
+FIXED (Note 7, a fifth round of external review -- see README Known limitations, "No spatial
+buffer between CV folds"): grid-cell blocking alone says nothing about cells on OPPOSITE sides
+of a fold boundary sitting directly adjacent with a 0ft gap, and residuals are measurably
+autocorrelated well past one cell width. The PRIMARY CV below now also enforces BUFFER_FT, a
+spatial buffer between train and test within each fold -- see the long comment at that block
+for the full derivation, the real correlogram numbers, and why BUFFER_FT=1500 (not larger) was
+adopted.
+
 Outlier flagging uses a borough-proportional rule: the top/bottom PCT% of venues
 WITHIN EACH BOROUGH (by residual z-score), rather than a flat top/bottom-N citywide.
 A flat citywide count doesn't scale with borough size (Staten Island and Manhattan
@@ -68,6 +76,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold, GroupKFold
 from sklearn.metrics import r2_score
+from scipy.spatial import cKDTree
 
 DATA_DIR = os.environ.get("DATA_DIR", "./data")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./output")
@@ -75,6 +84,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 PCT = 0.5  #top/bottom 0.5% of venues, computed separately within each borough
 GRID_CELL_FT = 2000  #~610m -- spatial block size for GroupKFold (see docstring)
+BUFFER_FT = 1500  #Note 7 fix -- spatial buffer between train/test in the PRIMARY CV (see below)
 
 pd.set_option("display.width", 160)
 t0 = time.time()
@@ -116,23 +126,55 @@ grid_cell = (_gx + "_" + _gy).values
 print(f"[{time.time()-t0:.0f}s] grid cells: {len(np.unique(grid_cell))} distinct "
       f"{GRID_CELL_FT}ft cells for {len(df)} venues")
 
+#Note 7 fix: a spatial buffer, on top of grid-cell grouping -- see the module docstring and
+#README Known limitations ("No spatial buffer between CV folds") for the full background.
+#Grid-cell GroupKFold keeps a whole cell on one side of a fold, but cells on OPPOSITE sides of
+#a fold boundary sit directly adjacent with a 0ft gap, and residuals are measurably
+#autocorrelated well past one cell width -- a correlogram on real April 2026 residuals: r=0.56
+#at 0-250ft, 0.44 at 250-500ft, 0.33 at 500-1000ft, 0.25 at 1000-1500ft, 0.23 at 1500-2000ft,
+#0.16 at 2000-3000ft, fading to 0.07 by 3000-5000ft (see README for the full table). BUFFER_FT
+#additionally excludes any training-candidate venue within BUFFER_FT of ANY test-fold venue --
+#standard "buffered CV" (Roberts et al. 2017) -- rather than just excluding the test cell's own
+#venues as before.
+#
+#BUFFER_FT=1500 is a deliberate compromise, not the distance where autocorrelation fully
+#vanishes, stated plainly: at this venue density, a buffer wide enough to clear the
+#correlogram's tail (3000ft+) excludes 85-90%+ of each fold's training venues and starts
+#starving individual boroughs (Bronx, Staten Island) of training data entirely -- checked
+#directly (per-borough training counts collapse to 122-337 venues at 3000ft, against 772+ at
+#1500ft). 1500ft keeps a workable training set while still cutting the near-boundary
+#correlation roughly in half relative to no buffer at all (0.25 at the fold edge vs. 0.56 at
+#true proximity).
+#
 #Fit manually per fold (rather than via cross_val_score/cross_val_predict) so sample_weight
 #can be split the same way X and y are for each fold.
 #
-#PRIMARY: grid-cell-blocked GroupKFold. This is what feeds expected_mixing_cv, residuals,
-#z-scores, and outlier flagging below.
+#PRIMARY: grid-cell-blocked, BUFFERED GroupKFold. This is what feeds expected_mixing_cv,
+#residuals, z-scores, and outlier flagging below.
+_xy_all = np.column_stack([_gdf.geometry.x.to_numpy(), _gdf.geometry.y.to_numpy()])
+_tree_all = cKDTree(_xy_all)
 gkf_main = GroupKFold(n_splits=5, shuffle=True, random_state=42)
 y_pred_cv = np.full(len(df), np.nan)
 fold_r2 = []
+fold_n_excluded = []
 for tr_idx, te_idx in gkf_main.split(X_full, y, groups=grid_cell):
+    _test_tree = cKDTree(_xy_all[te_idx])
+    _near_test = _test_tree.query_ball_tree(_tree_all, r=BUFFER_FT)
+    _near_test_idx = set()
+    for _lst in _near_test:
+        _near_test_idx.update(_lst)
+    tr_idx_buf = np.array([i for i in tr_idx if i not in _near_test_idx])
+    fold_n_excluded.append(len(tr_idx) - len(tr_idx_buf))
     fold_pipe = Pipeline([("pre", pre), ("reg", RandomForestRegressor(n_estimators=300, max_depth=8, min_samples_leaf=20, random_state=42, n_jobs=-1))])
-    fold_pipe.fit(X_full.iloc[tr_idx], y.iloc[tr_idx], reg__sample_weight=sample_weight_full[tr_idx])
+    fold_pipe.fit(X_full.iloc[tr_idx_buf], y.iloc[tr_idx_buf], reg__sample_weight=sample_weight_full[tr_idx_buf])
     pred = fold_pipe.predict(X_full.iloc[te_idx])
     y_pred_cv[te_idx] = pred
     fold_r2.append(r2_score(y.iloc[te_idx], pred, sample_weight=sample_weight_full[te_idx]))
 cv_full = np.array(fold_r2)
-print(f"\n[{time.time()-t0:.0f}s] PRIMARY (grid-cell GroupKFold) CV R2={cv_full.mean():.4f} "
-      f"(+/-{cv_full.std():.4f}) [device-count weighted, spatially blocked]")
+print(f"[{time.time()-t0:.0f}s] buffer={BUFFER_FT}ft: mean train venues excluded per fold = "
+      f"{np.mean(fold_n_excluded):.0f} ({np.mean(fold_n_excluded)/len(df)*100:.0f}% of n)")
+print(f"\n[{time.time()-t0:.0f}s] PRIMARY (grid-cell, buffered GroupKFold) CV R2={cv_full.mean():.4f} "
+      f"(+/-{cv_full.std():.4f}) [device-count weighted, spatially blocked + buffered]")
 
 #SECONDARY, reported for comparison only -- NOT used for residuals/z-scores/flagging.
 #This is the original random row-level KFold; it can overstate out-of-sample R^2 because
