@@ -1014,11 +1014,12 @@ data licenses restrict redistribution even of aggregated results.
   (including street-suffix words like "street"/"ave"/"blvd" -- added after an early version of
   this check nearly merged "Knapp Street Pizza" with the unrelated "Knapp Street Bagel Cafe" on
   shared street-name tokens alone), AND the same vendor `top_category`. Run across the union of
-  all four months' eligible venues (33,767 placekeys), this finds 250 fragment groups (504
-  placekeys merged down to 250 entities); 43 of those groups are flagged separately as
+  all 8 periods' eligible venues (34,943 placekeys -- this grows each time a new period is folded
+  in, since it's a union across periods, not a fixed catalog size), this finds 265 fragment groups
+  (534 placekeys merged down to 265 entities); 46 of those groups are flagged separately as
   exact-name matches (e.g. two "Starbucks" entries, two "The Salvation Army" entries) -- a real
   chain/franchise sitting twice in the same spot is plausible, but so is a genuine chain having
-  two nearby-but-distinct locations, so these 43 are listed in `fragment_groups_report.csv` for a
+  two nearby-but-distinct locations, so these 46 are listed in `fragment_groups_report.csv` for a
   manual glance rather than auto-merged with full confidence.
 
   Merging a confirmed fragment group sets its merged `income_mixing_score` as a device-count-
@@ -1036,18 +1037,19 @@ data licenses restrict redistribution even of aggregated results.
   For the Jacob Riis complex specifically: the correct group is 4 fragments -- "Riis Park Visitor
   Center," "Jacob Riis Park," "The People's Beach at Jacob Riis Park," and a "Jacob Riis Beach"
   entry that IS part of the real Rockaways cluster -- all within the 75ft threshold, same
-  category, name-Jaccard above 0.4. Pooled: `mu_re`=+0.119, 95% CI [0.064, 0.174], `I2`=96.4%
-  (see the persistence bullet above for what that means here, including the conditional-CI and
-  point-estimate-correction caveats). Critically, this is NOT the same
-  "Jacob Riis Beach" originally flagged in passing conversation as "tagged Brooklyn instead of
-  Queens, clearly a mis-assignment" -- that was a misreading of the data, not a data bug. There is
-  a genuinely separate, different "Jacob Riis Beach" catalog entry, 14.6km away in Brooklyn
-  (confirmed by haversine distance, a different `cbg_geoid`, a much smaller footprint, and no
-  spatial or name-similarity edge to the Rockaways group under this consolidation's rule), which
-  correctly stays its own unmerged singleton entity. It happens to also pool to a statistically
-  significant, small positive effect (`mu_re`=+0.023, 95% CI [0.014, 0.032]) -- entirely on its
-  own, unrelated merits -- and must not be cited as part of, or against, the real Jacob Riis
-  finding; see the persistence bullet above for both numbers side by side.
+  category, name-Jaccard above 0.4. (The current pooled estimate -- `mu_hk`, CI, `q_bh_hk` -- is
+  reported in exactly one place, the "Jacob Riis Park / beach complex" bullet under "Persistent
+  across months" above, rather than repeated here where an earlier draft's copy had drifted out of
+  sync with it; see that bullet for the real numbers and every method-change caveat.) Critically,
+  this is NOT the same "Jacob Riis Beach" originally flagged in passing conversation as "tagged
+  Brooklyn instead of Queens, clearly a mis-assignment" -- that was a misreading of the data, not a
+  data bug. There is a genuinely separate, different "Jacob Riis Beach" catalog entry, 14.6km away
+  in Brooklyn (confirmed by haversine distance, a different `cbg_geoid`, a much smaller footprint,
+  and no spatial or name-similarity edge to the Rockaways group under this consolidation's rule),
+  which correctly stays its own unmerged singleton entity, pooling to a small positive effect that
+  does NOT clear the adopted FDR bar (see the "Separately..." paragraph right after that same
+  bullet above for its current numbers) -- entirely on its own, unrelated merits, and must not be
+  cited as part of, or against, the real Jacob Riis finding.
 - **Most observed venues never reach the model, and now there's a precise, per-venue-month
   accounting of why**: `presence_bookkeeping.py` compares the FULL raw vendor export (88k-94k
   venues/month, before ANY filtering) against what actually reaches the pooled persistence table,
