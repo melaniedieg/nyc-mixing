@@ -13,8 +13,8 @@ that happen to be nearby or share a name.
 
 Method:
   1. Pull static attributes (location_name, top_category, latitude, longitude) for
-     every placekey that was ELIGIBLE in at least one of the four months (the union
-     of each month's model_ready.pkl) -- consolidation only matters for venues that
+     every placekey that was ELIGIBLE in at least one of the eight periods (the union
+     of each period's model_ready.pkl) -- consolidation only matters for venues that
      actually enter the pooled analysis.
   2. Project to EPSG:2263 (NY State Plane feet, same projection already used for the
      grid-cell spatial CV blocking) and build a KD-tree; find all pairs within
@@ -27,38 +27,51 @@ Method:
      case).
   4. Connected components over the surviving edges = consolidated venue groups.
      Singletons pass through unchanged.
-  5. For each month, re-derive EVERY consolidated group's quintile counts by summing
+  5. For each period, re-derive EVERY consolidated group's quintile counts by summing
      its present fragments' q1..q5_devices (from model_ready), recompute its merged
      income_mixing_score from the vendor entropy formula, and set its "expected"
      reference as the device-count-weighted average of its fragments' own
-     expected_mixing_cv (from results_full).
+     expected_mixing_cv (from results_full). Its model-refit/prediction variance
+     (model_pred_var, see pool_persistence.py and estimate_model_prediction_variance.py)
+     is combined the same way -- a device-count-weighted average of its fragments' own
+     model_pred_var, matching the combination rule already used for expected_mixing_cv.
      CAVEAT, stated plainly: this is a combination rule over each fragment's ALREADY
-     FITTED prediction, not a full model refit on a merged covariate row. A true
-     refit would require rebuilding density/local-income-context features for the
-     merged entity (which also changes its *neighbors'* density features, since two
-     fewer POIs now occupy that footprint) -- a much bigger undertaking than this
-     pass. This combination rule is reasonable for seeing whether consolidation
-     changes the persistence picture, but isn't a substitute for a future full refit
-     on consolidated features.
+     FITTED prediction (and its already-estimated model_pred_var), not a full model
+     refit on a merged covariate row. A true refit would require rebuilding
+     density/local-income-context features for the merged entity (which also changes
+     its *neighbors'* density features, since two fewer POIs now occupy that
+     footprint) -- a much bigger undertaking than this pass. This combination rule is
+     reasonable for seeing whether consolidation changes the persistence picture, but
+     isn't a substitute for a future full refit on consolidated features.
   6. Bootstrap the merged group's OWN visitor-sampling uncertainty (500 multinomial
      draws on the merged quintile counts, residual against the merged fixed
      expected_cv) -- the same method as the per-venue bootstrap, just applied to the
      combined counts.
-  7. Replace the fragment rows with one merged row per group per month, and re-run
-     the exact same pooling + Benjamini-Hochberg logic from pool_persistence.py.
+  7. Replace the fragment rows with one merged row per group per period, and re-run
+     the exact same pooling + Benjamini-Hochberg logic from pool_persistence.py,
+     including its ADOPTED var_combined = resid_vs_var + model_pred_var weight (see
+     that script's docstring for the full external-review background).
 
 Output: OUTPUT_DIR/consolidated_pooled_persistence_2026.{pkl,csv}, plus a fragment-group report
         (group_id, n_fragments, member placekeys/names, distances) for inspection. Set
         OUTPUT_DIR to the same directory build_features_2026_0X.py / fit_mixing_model_2026_0X.py
-        wrote their per-month outputs to; default ./output.
+        wrote their per-period outputs to; default ./output.
 
 POINT ESTIMATE, fixed after external review (see pool_persistence.py's docstring for the full
 explanation): both the merged-group and singleton point estimates below are the OBSERVED
 residual (score - expected_mixing_cv), not the visitor-sampling bootstrap mean -- the bootstrap
 mean is a biased estimator of the point estimate (concave entropy -> Jensen's-inequality bias),
 even though it's exactly right for estimating variance, which is still what resid_vs_var feeds
-into the pooling weight below. The pooled CIs here are CONDITIONAL on the fitted model, same
-caveat as pool_persistence.py -- they do not yet include model-refit/retraining uncertainty.
+into the pooling weight below.
+
+POOLING VARIANCE, fixed after a second round of external review (see pool_persistence.py's
+docstring for the full explanation): the pooling weight used to be resid_vs_var (visitor-sampling
+variance) ALONE, which never captured uncertainty in the fitted prediction itself. ADOPTED FIX,
+same as pool_persistence.py: var_combined = resid_vs_var + model_pred_var. The CIs below are
+still CONDITIONAL on the fitted contextual model being exactly right, and (same open caveat as
+pool_persistence.py) still treat each period as an independent replicate even though adjacent
+periods show real excess positive correlation beyond that assumption -- see pool_persistence.py's
+docstring and the README for both caveats' full detail and real numbers.
 """
 import math
 import os
@@ -80,6 +93,11 @@ MODEL_READY_PATHS = {
 }
 RESULTS_FULL_PATHS = {
     mm: os.path.join(OUTPUT_DIR, f"results_mixing_{mm}.pkl") for mm in PERIODS
+}
+#Model-refit/prediction variance, one file per period -- see estimate_model_prediction_variance.py
+#and pool_persistence.py's docstring for why this is now part of the pooling weight.
+MODEL_VAR_PATHS = {
+    mm: os.path.join(OUTPUT_DIR, f"model_prediction_variance_{mm}.csv") for mm in PERIODS
 }
 QCOLS = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 DIST_THRESHOLD_FT = 75.0  #~23m
@@ -131,7 +149,8 @@ def persistence_tier(n_months):
 
 #ADOPTED METHOD, same as pool_persistence.py -- see that script for the full explanation.
 #mu_re/var_re/ci_re/tau2/I2/q_bh below are retained only as a DerSimonian-Laird
-#diagnostic/comparison -- mu_hk/var_hk/ci_hk/q_bh_hk are the numbers of record.
+#diagnostic/comparison (over resid_vs_var alone) -- mu_hk/var_hk/ci_hk/q_bh_hk (over
+#var_combined) are the numbers of record.
 def reml_tau2(r, v):
     def neg_restricted_loglik(tau2):
         w = 1.0 / (v + tau2)
@@ -156,9 +175,10 @@ def hartung_knapp(r, v, tau2_reml):
     return mu_hk, var_hk
 
 
-#---- Step 1: static attributes, union across all 4 months' eligible venues ----
+#---- Step 1: static attributes, union across all 8 periods' eligible venues ----
 static_frames = []
 model_ready = {}
+model_var = {mm: pd.read_csv(MODEL_VAR_PATHS[mm])[["placekey", "model_pred_var"]] for mm in PERIODS}
 for mm, path in MODEL_READY_PATHS.items():
     df = pd.read_pickle(path)
     model_ready[mm] = df
@@ -238,10 +258,11 @@ print("\nJacob Riis sanity check -- group assignment per placekey:")
 for pk in jr_pks:
     print(f"  {pk}: group={pk_to_group.get(pk, 'UNGROUPED (singleton)')}")
 
-#---- Step 5/6: for each month, merge grouped fragments' quintile counts, recompute the
-#merged score/residual, and bootstrap the merged entity's own visitor-sampling uncertainty.
-#Ungrouped (singleton) venues pass through with their already-computed resid_vs_mean/var
-#unchanged -- no need to redo work that consolidation doesn't touch. ----
+#---- Step 5/6: for each period, merge grouped fragments' quintile counts, recompute the
+#merged score/residual, combine model_pred_var, and bootstrap the merged entity's own
+#visitor-sampling uncertainty. Ungrouped (singleton) venues pass through with their
+#already-computed resid_vs_mean/var/model_pred_var unchanged -- no need to redo work that
+#consolidation doesn't touch. ----
 LOG5 = np.log(5)
 rng_merge = np.random.RandomState(7)
 long_rows = []
@@ -250,7 +271,7 @@ for mm in MODEL_READY_PATHS:
     mr = model_ready[mm][["placekey", "location_name", "top_category"] + QCOLS + ["income_known_devices"]].copy()
     rfull = pd.read_pickle(RESULTS_FULL_PATHS[mm])["results_full"][["placekey", "borough", "expected_mixing_cv",
                                                                      "improbable_copresence_cv", "resid_vs_var"]]
-    merged_in = mr.merge(rfull, on="placekey", how="inner")
+    merged_in = mr.merge(rfull, on="placekey", how="inner").merge(model_var[mm], on="placekey", how="left")
     merged_in["group_id"] = merged_in["placekey"].map(pk_to_group)
 
     grouped_part = merged_in[merged_in["group_id"].notna()]
@@ -268,12 +289,19 @@ for mm in MODEL_READY_PATHS:
         p = merged_q / q_total
         p_clipped = np.clip(p, 1e-12, None)
         merged_score = -(p_clipped * np.log(p_clipped)).sum() / LOG5
-        #merged "expected" reference: device-count-weighted average of each present fragment's
-        #OWN already-fitted expected_mixing_cv (see module docstring -- a combination rule
-        #over existing predictions, not a refit on a merged covariate row)
+        #merged "expected" reference, and merged model-refit/prediction variance: both a
+        #device-count-weighted average of each present fragment's OWN already-fitted value
+        #(see module docstring -- a combination rule over existing predictions, not a refit
+        #on a merged covariate row).
         w = g["income_known_devices"].to_numpy(dtype=float)
         merged_expected_cv = np.average(g["expected_mixing_cv"].to_numpy(), weights=w)
         merged_resid = merged_score - merged_expected_cv
+        mpv = g["model_pred_var"].to_numpy(dtype=float)
+        if np.isnan(mpv).all():
+            merged_model_pred_var = np.nan
+        else:
+            valid = ~np.isnan(mpv)
+            merged_model_pred_var = np.average(mpv[valid], weights=w[valid])
 
         #bootstrap the merged entity's own visitor-sampling uncertainty, same method as the
         #per-venue bootstrap: resample the COMBINED quintile counts, hold merged_expected_cv
@@ -293,7 +321,8 @@ for mm in MODEL_READY_PATHS:
             #applied here. draws.mean()/var() below is kept only as a bias diagnostic; var(ddof=1)
             #is still the right visitor-sampling variance to pool with.
             "resid_observed": merged_resid, "resid_vs_mean_bootstrap_diagnostic": draws.mean(),
-            "resid_vs_var": draws.var(ddof=1), "n_fragments_this_month": len(g),
+            "resid_vs_var": draws.var(ddof=1), "model_pred_var": merged_model_pred_var,
+            "n_fragments_this_month": len(g),
         })
 
     for _, row in singleton_part.iterrows():
@@ -301,20 +330,27 @@ for mm in MODEL_READY_PATHS:
             "placekey": row["out_id"], "location_name": row["location_name"], "borough": row["borough"],
             "top_category": row["top_category"], "month": mm,
             "resid_observed": row["improbable_copresence_cv"],
-            "resid_vs_var": row["resid_vs_var"], "n_fragments_this_month": 1,
+            "resid_vs_var": row["resid_vs_var"], "model_pred_var": row["model_pred_var"],
+            "n_fragments_this_month": 1,
         })
     print(f"month {mm}: {len(grouped_part.groupby('group_id'))} merged groups present, "
           f"{len(singleton_part)} singleton venues")
 
 long = pd.DataFrame(long_rows)
 long = long[long["resid_vs_var"] > 0].copy()
+#ADOPTED pooling variance, same as pool_persistence.py: visitor-sampling + model-refit/
+#prediction, falling back to sampling-only for the rare entity-period missing the latter.
+long["var_combined"] = long["resid_vs_var"] + long["model_pred_var"].fillna(0.0)
 long["w"] = 1.0 / long["resid_vs_var"]
 print(f"\nconsolidated venue-months: {len(long)}, distinct entities: {long['placekey'].nunique()} "
       f"(was 33767 distinct placekeys before consolidation)")
+print(f"median inflation factor (var_combined / resid_vs_var): "
+      f"{(long['var_combined'] / long['resid_vs_var']).median():.3f}")
 
 
 #---- Step 7: same pooling + Benjamini-Hochberg logic as pool_persistence.py, now run on the
-#consolidated entity set instead of raw placekeys. ----
+#consolidated entity set instead of raw placekeys, and over var_combined for the ADOPTED
+#(HK) result. ----
 def benjamini_hochberg(pvals, alpha=0.05):
     pvals = np.asarray(pvals, dtype=float)
     m = len(pvals)
@@ -334,7 +370,8 @@ static = long.groupby("placekey")[static_cols].first()
 records = []
 for pk, g in long.groupby("placekey"):
     r = g["resid_observed"].to_numpy()
-    v = g["resid_vs_var"].to_numpy()
+    v = g["resid_vs_var"].to_numpy()  #DIAGNOSTIC weight (DL columns below only)
+    v_combined = g["var_combined"].to_numpy()  #ADOPTED weight (REML+HK below)
     w = g["w"].to_numpy()
     m = len(g)
 
@@ -362,11 +399,11 @@ for pk, g in long.groupby("placekey"):
     prob_positive_re = 1.0 - 0.5 * (1 + math.erf(-z_re / np.sqrt(2)))
     p_re = 2.0 * (1.0 - 0.5 * (1 + math.erf(abs(z_re) / np.sqrt(2))))
 
-    #ADOPTED pooling result -- see note above reml_tau2/hartung_knapp.
+    #ADOPTED pooling result -- see note above reml_tau2/hartung_knapp, over var_combined.
     tau2_reml = mu_hk = var_hk = ci_hk_lo = ci_hk_hi = p_hk = pred_lo = pred_hi = np.nan
     if m >= 2:
-        tau2_reml = reml_tau2(r, v)
-        mu_hk, var_hk = hartung_knapp(r, v, tau2_reml)
+        tau2_reml = reml_tau2(r, v_combined)
+        mu_hk, var_hk = hartung_knapp(r, v_combined, tau2_reml)
         t_crit_ci = t_dist.ppf(0.975, df=m - 1)
         ci_hk_lo, ci_hk_hi = mu_hk - t_crit_ci * np.sqrt(var_hk), mu_hk + t_crit_ci * np.sqrt(var_hk)
         t_stat_hk = mu_hk / np.sqrt(var_hk)
@@ -382,12 +419,13 @@ for pk, g in long.groupby("placekey"):
         "mu_fe": mu_fe, "var_fe": var_fe, "Q": Q, "tau2": tau2, "I2": I2,
         "mu_re": mu_re, "var_re": var_re, "ci_re_lo": ci_re[0], "ci_re_hi": ci_re[1],
         "p_re": p_re, "prob_positive_re": prob_positive_re,
+        "model_pred_var": np.nanmean(g["model_pred_var"].to_numpy()),
         "tau2_reml": tau2_reml, "mu_hk": mu_hk, "var_hk": var_hk,
         "ci_hk_lo": ci_hk_lo, "ci_hk_hi": ci_hk_hi, "p_hk": p_hk,
         "pred_lo": pred_lo, "pred_hi": pred_hi,
     })
 
-pooled = pd.DataFrame(records).set_index("placekey").join(static).reset_index().sort_values("mu_re", ascending=False)
+pooled = pd.DataFrame(records).set_index("placekey").join(static).reset_index().sort_values("mu_hk", ascending=False)
 family_mask = (pooled["n_months"] >= 2).to_numpy()
 pooled["q_bh"] = np.nan
 q_vals, _ = benjamini_hochberg(pooled.loc[family_mask, "p_re"].to_numpy(), alpha=0.05)
@@ -395,14 +433,16 @@ pooled.loc[family_mask, "q_bh"] = q_vals
 pooled["fdr_sig_05"] = pooled["q_bh"] <= 0.05
 pooled["is_consolidated_group"] = pooled["placekey"].str.startswith("GRP")
 
-#ADOPTED FDR call: same BH correction on the Hartung-Knapp p-values. q_bh_hk/fdr_sig_05_hk
-#are the numbers of record; q_bh/fdr_sig_05 (DL-based) above are diagnostic/comparison only.
+#ADOPTED FDR call: same BH correction on the Hartung-Knapp p-values (over var_combined).
+#q_bh_hk/fdr_sig_05_hk are the numbers of record; q_bh/fdr_sig_05 (DL-based, over
+#resid_vs_var alone) above are diagnostic/comparison only.
 pooled["q_bh_hk"] = np.nan
 q_vals_hk, _ = benjamini_hochberg(pooled.loc[family_mask, "p_hk"].to_numpy(), alpha=0.05)
 pooled.loc[family_mask, "q_bh_hk"] = q_vals_hk
 pooled["fdr_sig_05_hk"] = pooled["q_bh_hk"] <= 0.05
-print(f"[diagnostic/comparison only] DL survivors: {pooled['fdr_sig_05'].sum()} vs. the ADOPTED "
-      f"REML+Hartung-Knapp survivors: {pooled['fdr_sig_05_hk'].sum()} (same {family_mask.sum()}-entity family).")
+print(f"[diagnostic/comparison only] DL over resid_vs_var alone survivors: {pooled['fdr_sig_05'].sum()} "
+      f"vs. the ADOPTED REML+Hartung-Knapp over var_combined survivors: {pooled['fdr_sig_05_hk'].sum()} "
+      f"(same {family_mask.sum()}-entity family).")
 
 print(f"\n{len(pooled)} consolidated entities pooled ({pooled['is_consolidated_group'].sum()} are "
       f"merged fragment groups, {(~pooled['is_consolidated_group']).sum()} are untouched singletons).")
@@ -417,10 +457,11 @@ print(f"\nsaved {OUTPUT_DIR}/consolidated_pooled_persistence_2026.{{pkl,csv}}")
 jr_group_id = pk_to_group.get("zzy-222@627-wgg-sbk")  #looked up dynamically: nx component
 #numbering isn't stable across runs, so a hardcoded "GRP#####" here would silently point at
 #whatever group happened to land on that id in THIS run (bit us once already -- see git history).
-print("\n--- Jacob Riis, consolidated (HK columns = numbers of record, ADOPTED; DL = comparison only) ---")
+print("\n--- Jacob Riis, consolidated (HK columns over var_combined = numbers of record, ADOPTED; "
+      "DL over resid_vs_var alone = comparison only) ---")
 jr_cols = ["placekey", "location_name", "borough", "n_months", "persistence_tier", "months",
            "mu_hk", "tau2_reml", "q_bh_hk", "ci_hk_lo", "ci_hk_hi", "pred_lo", "pred_hi",
-           "mu_re", "tau2", "I2", "q_bh", "ci_re_lo", "ci_re_hi"]
+           "model_pred_var", "mu_re", "tau2", "I2", "q_bh", "ci_re_lo", "ci_re_hi"]
 print(pooled[pooled["placekey"] == jr_group_id][jr_cols].to_string(index=False))
 print("\n(the Brooklyn 'Jacob Riis Beach' is now just its own unaffected singleton entity:)")
 print(pooled[pooled["placekey"] == "zzy-223@627-s92-gc5"][jr_cols].to_string(index=False))
