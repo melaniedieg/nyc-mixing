@@ -73,8 +73,8 @@ DATA_DIR = os.environ.get("DATA_DIR", "./data")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-PCT = 0.5  # top/bottom 0.5% of venues, computed separately within each borough
-GRID_CELL_FT = 2000  # ~610m -- spatial block size for GroupKFold (see docstring)
+PCT = 0.5  #top/bottom 0.5% of venues, computed separately within each borough
+GRID_CELL_FT = 2000  #~610m -- spatial block size for GroupKFold (see docstring)
 
 pd.set_option("display.width", 160)
 t0 = time.time()
@@ -89,10 +89,10 @@ feats_num_full = feats_num_race + [
     "log_dist_nearest_subway_m", "log_subway_count_500m", "log_subway_count_800m",
     "log_tourist_density_500m", "log_tourist_density_800m",
     "log_chain_density_500m", "log_chain_density_800m",
-    # Spatially-smoothed local income context (see build_features_2026_02.py) -- unlike
-    # income_proxy_v2, which comes from one administrative CBG, these describe the average
-    # income_proxy_v2 of nearby venues' own assigned CBGs within 250m/500m, so a corridor that
-    # straddles or draws from several CBGs isn't reduced to just the one it happens to sit in.
+    #Spatially-smoothed local income context (see build_features_2026_02.py) -- unlike
+    #income_proxy_v2, which comes from one administrative CBG, these describe the average
+    #income_proxy_v2 of nearby venues' own assigned CBGs within 250m/500m, so a corridor that
+    #straddles or draws from several CBGs isn't reduced to just the one it happens to sit in.
     "local_income_proxy_250m", "local_income_proxy_500m",
 ]
 feats_cat = ["top_category", "borough"]
@@ -104,9 +104,9 @@ rf_pipe = Pipeline([("pre", pre), ("reg", RandomForestRegressor(n_estimators=300
 
 sample_weight_full = df["income_known_devices"].values
 
-# Grid-cell spatial blocking: project to NY State Plane feet, bucket into GRID_CELL_FT
-# cells, so nearby venues (whose residuals are correlated) land in the same fold instead
-# of splitting across train/test.
+#Grid-cell spatial blocking: project to NY State Plane feet, bucket into GRID_CELL_FT
+#cells, so nearby venues (whose residuals are correlated) land in the same fold instead
+#of splitting across train/test.
 _gdf = gpd.GeoDataFrame(
     df, geometry=gpd.points_from_xy(df["longitude"], df["latitude"]), crs="EPSG:4326"
 ).to_crs(epsg=2263)
@@ -116,11 +116,11 @@ grid_cell = (_gx + "_" + _gy).values
 print(f"[{time.time()-t0:.0f}s] grid cells: {len(np.unique(grid_cell))} distinct "
       f"{GRID_CELL_FT}ft cells for {len(df)} venues")
 
-# Fit manually per fold (rather than via cross_val_score/cross_val_predict) so sample_weight
-# can be split the same way X and y are for each fold.
+#Fit manually per fold (rather than via cross_val_score/cross_val_predict) so sample_weight
+#can be split the same way X and y are for each fold.
 #
-# PRIMARY: grid-cell-blocked GroupKFold. This is what feeds expected_mixing_cv, residuals,
-# z-scores, and outlier flagging below.
+#PRIMARY: grid-cell-blocked GroupKFold. This is what feeds expected_mixing_cv, residuals,
+#z-scores, and outlier flagging below.
 gkf_main = GroupKFold(n_splits=5, shuffle=True, random_state=42)
 y_pred_cv = np.full(len(df), np.nan)
 fold_r2 = []
@@ -134,9 +134,9 @@ cv_full = np.array(fold_r2)
 print(f"\n[{time.time()-t0:.0f}s] PRIMARY (grid-cell GroupKFold) CV R2={cv_full.mean():.4f} "
       f"(+/-{cv_full.std():.4f}) [device-count weighted, spatially blocked]")
 
-# SECONDARY, reported for comparison only -- NOT used for residuals/z-scores/flagging.
-# This is the original random row-level KFold; it can overstate out-of-sample R^2 because
-# spatially/residually-correlated neighbor venues can split across its train/test folds.
+#SECONDARY, reported for comparison only -- NOT used for residuals/z-scores/flagging.
+#This is the original random row-level KFold; it can overstate out-of-sample R^2 because
+#spatially/residually-correlated neighbor venues can split across its train/test folds.
 kf_random = KFold(5, shuffle=True, random_state=42)
 fold_r2_random = []
 for tr_idx, te_idx in kf_random.split(X_full):
@@ -162,8 +162,8 @@ imp_df = pd.DataFrame({"feature": names, "importance": imps}).sort_values("impor
 print(f"\n[{time.time()-t0:.0f}s] top 20 feature importances:")
 print(imp_df.head(20).to_string(index=False))
 
-# residuals are z-scored WITHIN borough so venues are compared to similar peers, not
-# citywide (otherwise every venue in a borough with a different baseline looks "unusual")
+#residuals are z-scored WITHIN borough so venues are compared to similar peers, not
+#citywide (otherwise every venue in a borough with a different baseline looks "unusual")
 results_cv["improbable_copresence_z"] = (
     results_cv.groupby("borough")["improbable_copresence_cv"]
     .transform(lambda s: (s - s.mean()) / s.std())
@@ -193,12 +193,12 @@ print("Bottom borough counts:", results_cv.loc[bottom_mask_ref, "borough"].value
 cols = ["placekey", "location_name", "borough", "top_category", "income_known_devices",
         "income_mixing_score", "expected_mixing_cv", "improbable_copresence_cv", "improbable_copresence_z"]
 
-# ---- BOOTSTRAP 1/2, model-refit stability: resample venues (rows) with replacement, refit,
-# re-normalize per iteration (borough-renormalized), and re-apply the SAME borough-proportional
-# rule to see how often each reference flagged venue re-appears. This tests whether the MODEL's
-# ranking is stable under refitting on different training rows -- it does NOT test whether a
-# given venue's own score would look different under a different sample of its own visitors
-# (see BOOTSTRAP 2/2 below for that). ----
+#---- BOOTSTRAP 1/2, model-refit stability: resample venues (rows) with replacement, refit,
+#re-normalize per iteration (borough-renormalized), and re-apply the SAME borough-proportional
+#rule to see how often each reference flagged venue re-appears. This tests whether the MODEL's
+#ranking is stable under refitting on different training rows -- it does NOT test whether a
+#given venue's own score would look different under a different sample of its own visitors
+#(see BOOTSTRAP 2/2 below for that). ----
 N_BOOT = 30
 top_ref = results_cv.loc[top_mask_ref, "placekey"].tolist()
 bottom_ref = results_cv.loc[bottom_mask_ref, "placekey"].tolist()
@@ -236,43 +236,43 @@ results_cv["stability_pct"] = np.nan
 for pk, c in {**top_counts, **bottom_counts}.items():
     results_cv.loc[results_cv["placekey"] == pk, "stability_pct"] = c / N_BOOT * 100
 
-# ---- BOOTSTRAP 2/2, visitor-sampling stability: each venue's own income_mixing_score comes
-# from a finite sample of visiting devices (as few as 50, the eligibility floor) sorted into
-# 5 income quintiles. The bootstrap above never varies that -- it resamples WHICH VENUES go
-# into the training set, but every venue keeps its own exact, fixed score throughout. This
-# block instead asks: if this same venue had drawn a different, equally-likely sample of
-# income_known_devices visitors from the same underlying population, would its score -- and
-# therefore its flagged status -- look the same?
+#---- BOOTSTRAP 2/2, visitor-sampling stability: each venue's own income_mixing_score comes
+#from a finite sample of visiting devices (as few as 50, the eligibility floor) sorted into
+#5 income quintiles. The bootstrap above never varies that -- it resamples WHICH VENUES go
+#into the training set, but every venue keeps its own exact, fixed score throughout. This
+#block instead asks: if this same venue had drawn a different, equally-likely sample of
+#income_known_devices visitors from the same underlying population, would its score -- and
+#therefore its flagged status -- look the same?
 #
-# For each iteration, every venue's quintile counts are redrawn as
-# Multinomial(n=income_known_devices, p=its own observed q1_pct..q5_pct), treating the
-# observed shares as the true population rate (the standard nonparametric bootstrap assumption
-# for categorical/compositional count data -- equivalent to resampling that venue's own
-# devices' quintile labels with replacement). Each venue's income_mixing_score is then
-# recomputed from the resampled shares using the vendor's own formula -- normalized Shannon
-# entropy of the quintile shares -- verified byte-for-bit against the real column before this
-# was written (agreement to <1e-10 on real June 2026 data), not re-derived or approximated.
+#For each iteration, every venue's quintile counts are redrawn as
+#Multinomial(n=income_known_devices, p=its own observed q1_pct..q5_pct), treating the
+#observed shares as the true population rate (the standard nonparametric bootstrap assumption
+#for categorical/compositional count data -- equivalent to resampling that venue's own
+#devices' quintile labels with replacement). Each venue's income_mixing_score is then
+#recomputed from the resampled shares using the vendor's own formula -- normalized Shannon
+#entropy of the quintile shares -- verified byte-for-bit against the real column before this
+#was written (agreement to <1e-10 on real June 2026 data), not re-derived or approximated.
 #
-# Each draw's residual is taken against expected_cv_arr -- the SAME fixed, out-of-fold,
-# spatially-cross-validated prediction used for the published headline residual
-# (expected_mixing_cv) -- NOT a freshly refit model's in-sample prediction of that same
-# resampled draw. An earlier version of this block refit a new RandomForest on
-# (X_full, resampled_y) and predicted on that same X_full, which (a) let the model see each
-# draw's own resampled answer while "grading" it -- an easier, different estimand than the real
-# out-of-fold CV residual -- and (b) only ever kept an aggregated stability percentage,
-# discarding the per-draw residuals a real confidence interval needs. Holding expected_mixing_cv
-# fixed and only re-measuring y isolates pure visitor-sampling noise around the actual published
-# residual. It also means this block no longer needs a RandomForest refit per draw, which is
-# why N_BOOT_VS below is far larger than the model-refit bootstrap's N_BOOT.
+#Each draw's residual is taken against expected_cv_arr -- the SAME fixed, out-of-fold,
+#spatially-cross-validated prediction used for the published headline residual
+#(expected_mixing_cv) -- NOT a freshly refit model's in-sample prediction of that same
+#resampled draw. An earlier version of this block refit a new RandomForest on
+#(X_full, resampled_y) and predicted on that same X_full, which (a) let the model see each
+#draw's own resampled answer while "grading" it -- an easier, different estimand than the real
+#out-of-fold CV residual -- and (b) only ever kept an aggregated stability percentage,
+#discarding the per-draw residuals a real confidence interval needs. Holding expected_mixing_cv
+#fixed and only re-measuring y isolates pure visitor-sampling noise around the actual published
+#residual. It also means this block no longer needs a RandomForest refit per draw, which is
+#why N_BOOT_VS below is far larger than the model-refit bootstrap's N_BOOT.
 #
-# Caveat, stated plainly: this assumes each income-known device's home-quintile draw is i.i.d.
-# given the venue's observed rate. If visits cluster -- multiple devices from the same
-# household, workplace, or tour group visiting together -- true sampling variance would run
-# higher than a plain multinomial implies, and this would understate it.
-# estimate_overdispersion.py checked this directly against real repeat-venue data across
-# May/June/July 2026 and found VIF_obs=0.91 -- no detectable clustering at a level that would
-# change this conclusion -- so these numbers are read as a reasonable measure of
-# visitor-sampling uncertainty, not just a floor on it.
+#Caveat, stated plainly: this assumes each income-known device's home-quintile draw is i.i.d.
+#given the venue's observed rate. If visits cluster -- multiple devices from the same
+#household, workplace, or tour group visiting together -- true sampling variance would run
+#higher than a plain multinomial implies, and this would understate it.
+#estimate_overdispersion.py checked this directly against real repeat-venue data across
+#May/June/July 2026 and found VIF_obs=0.91 -- no detectable clustering at a level that would
+#change this conclusion -- so these numbers are read as a reasonable measure of
+#visitor-sampling uncertainty, not just a floor on it.
 quintile_cols = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 q_counts = df[quintile_cols].to_numpy(dtype=float)
 q_totals = q_counts.sum(axis=1)
@@ -285,9 +285,9 @@ with np.errstate(invalid="ignore", divide="ignore"):
     q_pvals = np.where(q_totals[:, None] > 0, q_counts / np.where(q_totals[:, None] == 0, 1, q_totals[:, None]), 0.2)
 LOG5 = np.log(5)
 
-N_BOOT_VS = 500  # cheap now that it doesn't refit a RandomForest per draw -- see note above
-expected_cv_arr = results_cv["expected_mixing_cv"].to_numpy()  # FIXED across every draw
-resid_vs_draws = np.full((len(df), N_BOOT_VS), np.nan)  # [venue, draw], full venue universe
+N_BOOT_VS = 500  #cheap now that it doesn't refit a RandomForest per draw -- see note above
+expected_cv_arr = results_cv["expected_mixing_cv"].to_numpy()  #FIXED across every draw
+resid_vs_draws = np.full((len(df), N_BOOT_VS), np.nan)  #[venue, draw], full venue universe
 top_counts_vs = {pk: 0 for pk in top_ref}
 bottom_counts_vs = {pk: 0 for pk in bottom_ref}
 rng2 = np.random.RandomState(1)
@@ -307,7 +307,7 @@ for b in range(N_BOOT_VS):
     entropy = -(resampled_props_clipped * np.log(resampled_props_clipped)).sum(axis=1)
     y_vs = entropy / LOG5
 
-    resid_vs = y_vs - expected_cv_arr  # against the FIXED cv expectation, not a per-draw refit
+    resid_vs = y_vs - expected_cv_arr  #against the FIXED cv expectation, not a per-draw refit
     resid_vs_draws[:, b] = resid_vs
 
     resid_z_vs = np.empty_like(resid_vs)
@@ -331,10 +331,10 @@ results_cv["stability_pct_visitor_sampling"] = np.nan
 for pk, c in {**top_counts_vs, **bottom_counts_vs}.items():
     results_cv.loc[results_cv["placekey"] == pk, "stability_pct_visitor_sampling"] = c / N_BOOT_VS * 100
 
-# Full-universe visitor-sampling summary stats -- saved for EVERY venue, not just the flagged
-# subset, so a venue flagged in some months but not others still has a comparable mean/variance
-# in every month. resid_vs_var (the variance of resid_vs across the N_BOOT_VS draws) is the
-# per-venue-month sampling variance a later inverse-variance pooling step needs.
+#Full-universe visitor-sampling summary stats -- saved for EVERY venue, not just the flagged
+#subset, so a venue flagged in some months but not others still has a comparable mean/variance
+#in every month. resid_vs_var (the variance of resid_vs across the N_BOOT_VS draws) is the
+#per-venue-month sampling variance a later inverse-variance pooling step needs.
 results_cv["resid_vs_mean"] = resid_vs_draws.mean(axis=1)
 results_cv["resid_vs_var"] = resid_vs_draws.var(axis=1, ddof=1)
 results_cv["n_boot_vs"] = N_BOOT_VS

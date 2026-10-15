@@ -34,7 +34,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold, GroupKFold
 from sklearn.metrics import r2_score
 
-GRID_CELL_FT = 2000  # ~610m -- same spatial block size as fit_mixing_model_2026_04.py
+GRID_CELL_FT = 2000  #~610m -- same spatial block size as fit_mixing_model_2026_04.py
 
 DATA_DIR = os.environ.get("DATA_DIR", "./data")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./output")
@@ -52,10 +52,10 @@ feats_num_full = feats_num_race + [
     "log_dist_nearest_subway_m", "log_subway_count_500m", "log_subway_count_800m",
     "log_tourist_density_500m", "log_tourist_density_800m",
     "log_chain_density_500m", "log_chain_density_800m",
-    # Spatially-smoothed local income context (see build_features_2026_04.py) -- unlike
-    # income_proxy_v2, which comes from one administrative CBG, these describe the average
-    # income_proxy_v2 of nearby venues' own assigned CBGs within 250m/500m, so a corridor that
-    # straddles or draws from several CBGs isn't reduced to just the one it happens to sit in.
+    #Spatially-smoothed local income context (see build_features_2026_04.py) -- unlike
+    #income_proxy_v2, which comes from one administrative CBG, these describe the average
+    #income_proxy_v2 of nearby venues' own assigned CBGs within 250m/500m, so a corridor that
+    #straddles or draws from several CBGs isn't reduced to just the one it happens to sit in.
     "local_income_proxy_250m", "local_income_proxy_500m",
 ]
 feats_cat = ["top_category", "borough"]
@@ -74,7 +74,7 @@ _gx = (_gdf.geometry.x // GRID_CELL_FT).astype(int).astype(str)
 _gy = (_gdf.geometry.y // GRID_CELL_FT).astype(int).astype(str)
 grid_cell = (_gx + "_" + _gy).values
 
-# PRIMARY: grid-cell-blocked GroupKFold. Feeds resid_bal / z_balance / cross_metric_corr below.
+#PRIMARY: grid-cell-blocked GroupKFold. Feeds resid_bal / z_balance / cross_metric_corr below.
 gkf_main = GroupKFold(n_splits=5, shuffle=True, random_state=42)
 pred_bal = np.full(len(df), np.nan)
 fold_r2 = []
@@ -88,7 +88,7 @@ cv_bal = np.array(fold_r2)
 print(f"[{time.time()-t0:.0f}s] PRIMARY (grid-cell GroupKFold) BALANCE-TARGET CV R2={cv_bal.mean():.4f} "
       f"(+/-{cv_bal.std():.4f}) [device-count weighted, spatially blocked]")
 
-# SECONDARY, reported for comparison only -- not used for resid_bal/z_balance below.
+#SECONDARY, reported for comparison only -- not used for resid_bal/z_balance below.
 kf_random = KFold(5, shuffle=True, random_state=42)
 fold_r2_random = []
 for tr_idx, te_idx in kf_random.split(X_full):
@@ -116,10 +116,10 @@ results_bal = df[["placekey", "location_name", "borough", "top_category", "balan
 results_bal["expected_balance_cv"] = pred_bal
 results_bal["z_balance"] = z_bal
 
-# ---- the actual cross-metric check: correlate this model's residual z with the mixing
-# model's residual z, among venues the mixing model flagged. This is what "cross-metric
-# confirmed" means in practice -- see the docstring above and README's Known limitations for
-# why it isn't treated as an independent bar. ----
+#---- the actual cross-metric check: correlate this model's residual z with the mixing
+#model's residual z, among venues the mixing model flagged. This is what "cross-metric
+#confirmed" means in practice -- see the docstring above and README's Known limitations for
+#why it isn't treated as an independent bar. ----
 mixing_path = os.path.join(OUTPUT_DIR, "results_mixing_2026_04.pkl")
 cross_metric_corr = None
 if os.path.exists(mixing_path):

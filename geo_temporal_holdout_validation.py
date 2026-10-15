@@ -71,8 +71,8 @@ for mm, path in MODEL_READY_PATHS.items():
     d["month"] = mm
     frames[mm] = d
 
-# one lat/long per distinct placekey (first occurrence across months -- same physical venue,
-# coordinates don't move between months) -> grid cell -> one of 5 venue-level groups
+#one lat/long per distinct placekey (first occurrence across months -- same physical venue,
+#coordinates don't move between months) -> grid cell -> one of 5 venue-level groups
 all_rows = pd.concat(frames.values(), ignore_index=True)
 venue_loc = all_rows.drop_duplicates(subset="placekey", keep="first")[["placekey", "latitude", "longitude"]]
 gdf = gpd.GeoDataFrame(venue_loc, geometry=gpd.points_from_xy(venue_loc["longitude"], venue_loc["latitude"]),
@@ -96,7 +96,7 @@ for mm in frames:
     frames[mm]["venue_group"] = frames[mm]["placekey"].map(pk_to_group)
 
 all_months = list(MODEL_READY_PATHS.keys())
-HELD_OUT_VENUE_GROUP = 0  # test venues: this group, in the held-out month only
+HELD_OUT_VENUE_GROUP = 0  #test venues: this group, in the held-out month only
 results = []
 
 for held_out in all_months:

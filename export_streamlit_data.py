@@ -17,7 +17,7 @@ Rebuilds the streamlit_app/data CSVs from the CURRENT, most-defensible pipeline 
     that only ever covered May-July 2026.
   - fragment-grouped venues (e.g. Jacob Riis Park's several POI records across months) are
     looked up via fragment_groups_report.csv's placekey->group_id membership, since
-    consolidated_pooled_persistence_2026.csv keys a grouped venue by its GRP##### id, not by any
+    consolidated_pooled_persistence_2026.csv keys a grouped venue by its GRP#####id, not by any
     one fragment's own placekey. Verified 100% join coverage against every period's own venue list.
   - a group's several fragments can ALL be present in the same period (confirmed: Jacob Riis
     Park's 3 fragments were all present in both April and July 2026) -- left unmerged, that's one
@@ -52,7 +52,7 @@ def period_key(p):
     return f"{y}-{m}"
 
 
-# --- fragment placekey -> group_id lookup -----------------------------------------------------
+#--- fragment placekey -> group_id lookup -----------------------------------------------------
 fg = pd.read_csv(f"{SHARED}/fragment_groups_report.csv")
 frag_to_group = {}
 for _, row in fg.iterrows():
@@ -60,13 +60,13 @@ for _, row in fg.iterrows():
     for pk in str(row["placekeys"]).split(","):
         frag_to_group[pk.strip()] = gid
 
-# --- consolidated persistence / significance table, keyed by placekey-or-group_id -------------
+#--- consolidated persistence / significance table, keyed by placekey-or-group_id -------------
 cp = pd.read_csv(f"{SHARED}/consolidated_pooled_persistence_2026.csv")
 cp_tier_cols = ["placekey", "location_name", "n_months", "persistence_tier", "months",
                 "mu_hk", "q_bh_hk", "fdr_sig_05_hk"]
 cp_lookup = cp[cp_tier_cols].set_index("placekey")
 
-# known, verified mislabeling: this top_category is 91% nature parks by sub_category, not museums
+#known, verified mislabeling: this top_category is 91% nature parks by sub_category, not museums
 MUSEUM_PARK_TOP = "Museums, Historical Sites, and Similar Institutions"
 MUSEUM_PARK_SUB = "Nature Parks and Other Similar Institutions"
 MUSEUM_PARK_DISPLAY = 'Parks & Nature Sites (filed under "Museums, Historical Sites")'
@@ -93,10 +93,10 @@ for period in PERIODS:
         "improbable_copresence_z": "mixing_residual_z",
     })
 
-    # sub_category fallback to top_category (matches the ~7% missing note in the app's README)
+    #sub_category fallback to top_category (matches the ~7% missing note in the app's README)
     out["sub_category"] = out["sub_category"].fillna(out["top_category"])
 
-    # redirect fragment-member placekeys to their group's consolidated row
+    #redirect fragment-member placekeys to their group's consolidated row
     out["join_key"] = out["placekey"].map(lambda pk: frag_to_group.get(pk, pk))
     tiers = cp_lookup.reindex(out["join_key"].values).reset_index(drop=True)
 
@@ -106,23 +106,23 @@ for period in PERIODS:
     out["mu_hk"] = tiers["mu_hk"].values
     out["q_bh_hk"] = tiers["q_bh_hk"].values
     out["fdr_sig_05_hk"] = tiers["fdr_sig_05_hk"].fillna(False).astype(bool).values
-    # canonical display name -- for a grouped venue this is already the combined
-    # "A / B / C" name consolidate_fragments.py built; for a singleton it's just
-    # that venue's own name, so it's safe to use unconditionally. Overwrite in
-    # place (not a separate column renamed in later) -- a rename alongside an
-    # existing same-named column produces two columns both called
-    # "location_name"/"placekey", and a plain column selection on that silently
-    # keeps the ORIGINAL (per-fragment) one instead of the one just computed.
+    #canonical display name -- for a grouped venue this is already the combined
+    #"A / B / C" name consolidate_fragments.py built; for a singleton it's just
+    #that venue's own name, so it's safe to use unconditionally. Overwrite in
+    #place (not a separate column renamed in later) -- a rename alongside an
+    #existing same-named column produces two columns both called
+    #"location_name"/"placekey", and a plain column selection on that silently
+    #keeps the ORIGINAL (per-fragment) one instead of the one just computed.
     out["location_name"] = tiers["location_name"].fillna(out["location_name"]).values
 
     n_before = len(out)
     group_sizes = out.groupby("join_key")["placekey"].transform("size")
     n_groups_affected = out.loc[group_sizes > 1, "join_key"].nunique()
 
-    # one row per join_key: devices sum (genuinely additive); every other
-    # per-period number/location comes from the single fragment with the most
-    # devices that period ("primary"), not a blended average -- see module
-    # docstring for why.
+    #one row per join_key: devices sum (genuinely additive); every other
+    #per-period number/location comes from the single fragment with the most
+    #devices that period ("primary"), not a blended average -- see module
+    #docstring for why.
     out = out.sort_values("income_known_devices", ascending=False)
     primary = out.groupby("join_key", as_index=False).first()
     devices_sum = out.groupby("join_key")["income_known_devices"].sum()
@@ -138,7 +138,7 @@ for period in PERIODS:
         MUSEUM_PARK_DISPLAY,
     )
 
-    out["placekey"] = out["join_key"]  # overwrite in place -- see comment above
+    out["placekey"] = out["join_key"]  #overwrite in place -- see comment above
     out = out[["placekey", "location_name", "top_category", "display_category", "sub_category",
                "borough", "lon", "lat", "income_known_devices", "income_mixing_score",
                "expected_mixing_score", "balance_score", "mixing_residual_z",

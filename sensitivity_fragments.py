@@ -72,7 +72,7 @@ pk_idx = {pk: i for i, pk in enumerate(pks)}
 DIST_GRID = [40.0, 50.0, 60.0, 75.0, 100.0, 125.0, 150.0]
 JAC_GRID = [0.25, 0.3, 0.35, 0.4, 0.5, 0.6]
 
-# widest distance needed, build the KD-tree pairs once at the max radius, then filter down
+#widest distance needed, build the KD-tree pairs once at the max radius, then filter down
 tree = cKDTree(xy)
 max_pairs = tree.query_pairs(r=max(DIST_GRID), output_type="ndarray")
 dists = np.hypot(xy[max_pairs[:, 0], 0] - xy[max_pairs[:, 1], 0],
@@ -97,8 +97,8 @@ for dist_thresh in DIST_GRID:
         n_groups = len(components)
         n_merged_pks = sum(len(c) for c in components)
 
-        # Jacob Riis sanity check: do all 4 real Rockaway fragments land in ONE group, and is
-        # the Brooklyn entry excluded from it?
+        #Jacob Riis sanity check: do all 4 real Rockaway fragments land in ONE group, and is
+        #the Brooklyn entry excluded from it?
         pk_to_comp = {}
         for ci, c in enumerate(components):
             for pk in c:

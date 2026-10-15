@@ -34,7 +34,7 @@ from sklearn.neighbors import BallTree
 
 DATA_DIR = os.environ.get("DATA_DIR", "./data")
 EARTH_R_M = 6_371_000.0
-MATCH_RADIUS_M = 10  # tight on purpose -- see module docstring
+MATCH_RADIUS_M = 10  #tight on purpose -- see module docstring
 
 
 def load_library_tree(path: str) -> tuple[BallTree, pd.DataFrame]:
@@ -53,9 +53,9 @@ def check_month(venues_path: str, tree: BallTree, libs: pd.DataFrame) -> None:
 
     near = df["dist_to_real_library_m"] <= MATCH_RADIUS_M
     tagged = df["sub_category"] == "Libraries and Archives"
-    # Catching Washington Square Library required this too: it's tagged
-    # "Museums," not "Libraries and Archives," so it's invisible to the
-    # category-tag checks below on its own -- the name is what gives it away.
+    #Catching Washington Square Library required this too: it's tagged
+    #"Museums," not "Libraries and Archives," so it's invisible to the
+    #category-tag checks below on its own -- the name is what gives it away.
     named_library = df["location_name"].str.contains("library", case=False, na=False)
 
     print(f"  within {MATCH_RADIUS_M}m of a real library: {near.sum()}")
@@ -68,20 +68,20 @@ def check_month(venues_path: str, tree: BallTree, libs: pd.DataFrame) -> None:
         print(f"\n  near a real library but NOT tagged as one (n={len(missed)}) -- likely miscategorized:")
         print(missed[["location_name", "sub_category", "dist_to_real_library_m"]].to_string(index=False))
 
-    # tagged as a library but far from any of the 216 official NYPL/BPL/QPL
-    # points is NOT automatically an error -- academic, law, and private
-    # libraries are real libraries that just aren't in this reference file.
-    # Anything under ~50m is almost certainly the same branch with a small
-    # geocoding offset; only look hard at the larger distances.
+    #tagged as a library but far from any of the 216 official NYPL/BPL/QPL
+    #points is NOT automatically an error -- academic, law, and private
+    #libraries are real libraries that just aren't in this reference file.
+    #Anything under ~50m is almost certainly the same branch with a small
+    #geocoding offset; only look hard at the larger distances.
     far_tagged = df[tagged & (df["dist_to_real_library_m"] > 200)].sort_values("dist_to_real_library_m")
     if len(far_tagged):
         print(f"\n  tagged as a library but >200m from any official branch (n={len(far_tagged)}) -- "
               f"could be a real non-public library, or could be miscategorized/mislocated, check by hand:")
         print(far_tagged[["location_name", "dist_to_real_library_m", "nearest_lib_name", "borough"]].to_string(index=False))
 
-    # named like a library, NOT tagged as one, AND far from a real one -- the
-    # riskiest bucket: could be a genuinely mislocated/fabricated POI entry.
-    # This is how Washington Square Library turned up.
+    #named like a library, NOT tagged as one, AND far from a real one -- the
+    #riskiest bucket: could be a genuinely mislocated/fabricated POI entry.
+    #This is how Washington Square Library turned up.
     suspect = df[named_library & ~tagged & (df["dist_to_real_library_m"] > 100)].sort_values("dist_to_real_library_m")
     if len(suspect):
         print(f"\n  named like a library, not tagged as one, and >100m from any official branch "

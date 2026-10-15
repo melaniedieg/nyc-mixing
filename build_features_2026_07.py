@@ -38,13 +38,13 @@ pd.set_option("display.width", 160)
 t0 = time.time()
 EARTH_R_M = 6_371_000.0
 
-# ---- venue-level aggregates for the month ----
+#---- venue-level aggregates for the month ----
 poi = pd.read_csv(os.path.join(DATA_DIR, "analysis_pois_2026_07_slim.csv"), low_memory=False)
 print("analysis_pois shape:", poi.shape)
 
-# ---- real per-quintile device counts, from the FULL export (the slim export drops these) --
-# needed for the visitor-sampling bootstrap in fit_mixing_model_2026_07.py, which resamples
-# each venue's own quintile composition rather than only resampling rows.
+#---- real per-quintile device counts, from the FULL export (the slim export drops these) --
+#needed for the visitor-sampling bootstrap in fit_mixing_model_2026_07.py, which resamples
+#each venue's own quintile composition rather than only resampling rows.
 quintile_cols = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 poi_quintiles = pd.read_csv(
     os.path.join(DATA_DIR, "analysis_pois_2026_07.csv"),
@@ -58,12 +58,12 @@ print(f"[{time.time()-t0:.0f}s] merged q1-q5 device counts, "
       f"{mismatch.sum()} where q1..q5 sum disagrees with income_known_devices by >1 "
       f"(expected: 0 -- these would be excluded from the visitor-sampling bootstrap)")
 
-# ---- attach each venue's own geographic block group (from geocode_venues_to_cbg.py) ----
+#---- attach each venue's own geographic block group (from geocode_venues_to_cbg.py) ----
 cbg = pd.read_csv(os.path.join(DATA_DIR, "cbg_geoid_2026_07.csv"), dtype={"cbg_geoid": "string"})
 poi = poi.merge(cbg[["placekey", "cbg_geoid"]], on="placekey", how="left")
-# Unmatched rate computed BEFORE stringification-with-zfill below -- astype(str) on a real NaN
-# produces the literal string "nan" (then "000000000nan" after zfill), which .isna() no longer
-# detects, so checking it after that step would always silently report 0% unmatched.
+#Unmatched rate computed BEFORE stringification-with-zfill below -- astype(str) on a real NaN
+#produces the literal string "nan" (then "000000000nan" after zfill), which .isna() no longer
+#detects, so checking it after that step would always silently report 0% unmatched.
 unmatched_rate = poi["cbg_geoid"].isna().mean()
 poi["cbg_geoid"] = poi["cbg_geoid"].astype(str).str.zfill(12)
 poi.loc[~poi["cbg_geoid"].str.fullmatch(r"\d{12}"), "cbg_geoid"] = np.nan
@@ -71,8 +71,8 @@ print(f"[{time.time()-t0:.0f}s] merged geographic cbg, unmatched: {unmatched_rat
       f"(venues with no valid 12-digit cbg_geoid are dropped by the dropna below, same as before, "
       f"but now for a diagnosable reason)")
 
-# ---- local commercial density, over the full mapped POI universe for the month (not just
-# the eligible/modeled subset), so density reflects real physical surroundings ----
+#---- local commercial density, over the full mapped POI universe for the month (not just
+#the eligible/modeled subset), so density reflects real physical surroundings ----
 full = poi.dropna(subset=["latitude", "longitude"]).copy()
 coords_rad = np.radians(full[["latitude", "longitude"]].values)
 tree = BallTree(coords_rad, metric="haversine")
@@ -87,7 +87,7 @@ same_cat = np.array([np.sum(cat[n] == cat[i]) - 1 for i, n in enumerate(ind250)]
 full["same_category_density_250m"] = same_cat
 print(f"[{time.time()-t0:.0f}s] commercial density computed")
 
-# ---- tourist-draw and chain density, same radius logic ----
+#---- tourist-draw and chain density, same radius logic ----
 TOURIST_CATEGORIES = {"Museums, Historical Sites, and Similar Institutions", "Traveler Accommodation"}
 full["is_tourist_draw"] = full["top_category"].isin(TOURIST_CATEGORIES)
 full["is_chain_poi"] = full["brands"].fillna("[]") != "[]"
@@ -99,7 +99,7 @@ for radius_m, label in [(500, "500m"), (800, "800m")]:
     full[f"chain_density_{label}"] = [chain_flag[n].sum() - chain_flag[i] for i, n in enumerate(ind)]
 print(f"[{time.time()-t0:.0f}s] tourist/chain density computed")
 
-# ---- subway accessibility ----
+#---- subway accessibility ----
 stations = pd.read_csv(os.path.join(DATA_DIR, "MTA_Subway_Stations.csv"))
 stations = stations.dropna(subset=["GTFS Latitude", "GTFS Longitude"])
 s_tree = BallTree(np.radians(stations[["GTFS Latitude", "GTFS Longitude"]].values), metric="haversine")
@@ -109,21 +109,21 @@ for radius_m, label in [(500, "500m"), (800, "800m")]:
     full[f"subway_count_{label}"] = s_tree.query_radius(coords_rad, r=radius_m / EARTH_R_M, count_only=True)
 print(f"[{time.time()-t0:.0f}s] transit computed")
 
-# ---- local income context: spatially-smoothed income proxy over nearby venues ----
-# income_proxy_v2 (merged in below, on the full POI universe this time) is looked up via each
-# venue's own geographic block group. That's a single administrative unit, and a real
-# commercial corridor can straddle a block-group line, or draw from several adjacent block
-# groups, none of which the venue's own single assigned block group captures. This adds, for
-# every mapped POI, the average income_proxy_v2 of all OTHER mapped POIs within a radius (i.e.
-# what the immediate few blocks actually look like income-wise, using everyone's own geographic
-# block group) alongside the existing single-block-group value, the same way poi_density/
-# tourist_density/chain_density already describe local context rather than relying on one
-# administrative unit.
+#---- local income context: spatially-smoothed income proxy over nearby venues ----
+#income_proxy_v2 (merged in below, on the full POI universe this time) is looked up via each
+#venue's own geographic block group. That's a single administrative unit, and a real
+#commercial corridor can straddle a block-group line, or draw from several adjacent block
+#groups, none of which the venue's own single assigned block group captures. This adds, for
+#every mapped POI, the average income_proxy_v2 of all OTHER mapped POIs within a radius (i.e.
+#what the immediate few blocks actually look like income-wise, using everyone's own geographic
+#block group) alongside the existing single-block-group value, the same way poi_density/
+#tourist_density/chain_density already describe local context rather than relying on one
+#administrative unit.
 #
-# Motivation: a venue's mixing_residual_z correlates with the average residual of its 5-10
-# nearest other venues at r~0.61 (R^2~0.37), while top_category/sub_category explain under 1%
-# of that same variance -- i.e. hyperlocal geography is a far stronger predictor of the
-# "surprise" than what kind of business it is, which is what this feature is meant to capture.
+#Motivation: a venue's mixing_residual_z correlates with the average residual of its 5-10
+#nearest other venues at r~0.61 (R^2~0.37), while top_category/sub_category explain under 1%
+#of that same variance -- i.e. hyperlocal geography is a far stronger predictor of the
+#"surprise" than what kind of business it is, which is what this feature is meant to capture.
 census_new = pd.read_pickle(os.path.join(DATA_DIR, "census_new.pkl"))
 full_econ = full.merge(
     census_new[["geoid", "income_proxy_v2"]],
@@ -137,14 +137,14 @@ for radius_m in [250, 500]:
     local_income = np.full(len(full_econ), np.nan)
     n_neighbors_known = np.zeros(len(full_econ), dtype=int)
     for i, neighbors in enumerate(ind):
-        neighbors = neighbors[neighbors != i]  # exclude self
+        neighbors = neighbors[neighbors != i]  #exclude self
         valid = neighbors[has_income[neighbors]]
         n_neighbors_known[i] = len(valid)
         if len(valid) > 0:
             local_income[i] = income_vals[valid].mean()
-    # Reliability fallback: a venue with no other income-known POI nearby (isolated location,
-    # or a radius too small for this part of the city) falls back to its own single-CBG value
-    # rather than becoming NaN and getting silently dropped from the model later.
+    #Reliability fallback: a venue with no other income-known POI nearby (isolated location,
+    #or a radius too small for this part of the city) falls back to its own single-CBG value
+    #rather than becoming NaN and getting silently dropped from the model later.
     full_econ[f"local_income_proxy_{radius_m}m"] = np.where(
         n_neighbors_known > 0, local_income, income_vals
     )
@@ -170,10 +170,10 @@ for c in ["poi_density_250m", "poi_density_500m", "same_category_density_250m",
           "tourist_density_500m", "tourist_density_800m", "chain_density_500m", "chain_density_800m",
           "dist_nearest_subway_m", "subway_count_500m", "subway_count_800m"]:
     poi[f"log_{c}"] = np.log1p(poi[c])
-# local_income_proxy_* is a level (like income_proxy_v2 itself), not a count, so it isn't
-# log-transformed -- it goes into the model on the same footing as income_proxy_v2.
+#local_income_proxy_* is a level (like income_proxy_v2 itself), not a count, so it isn't
+#log-transformed -- it goes into the model on the same footing as income_proxy_v2.
 
-# ---- encounter-type classification (libraries explicitly routed to public_civic) ----
+#---- encounter-type classification (libraries explicitly routed to public_civic) ----
 public_civic_categories = [
     "Museums, Historical Sites, and Similar Institutions", "Other Amusement and Recreation Industries",
     "Civic and Social Organizations", "Promoters of Performing Arts, Sports, and Similar Events",
@@ -225,7 +225,7 @@ model_df = encounter_df[encounter_df["income_known_devices"] >= INCOME_KNOWN_DEV
 model_df["log_devices"] = np.log1p(model_df["income_known_devices"])
 print("model_df shape:", model_df.shape, "libraries:", (model_df["sub_category"] == "Libraries and Archives").sum())
 
-# ---- block-group income proxy + race composition (see README for how census_new.pkl is built) ----
+#---- block-group income proxy + race composition (see README for how census_new.pkl is built) ----
 census_new = pd.read_pickle(os.path.join(DATA_DIR, "census_new.pkl"))
 model_df = model_df.merge(
     census_new[["geoid", "income_proxy_v2", "pct_white_nh", "pct_black_nh", "pct_hispanic", "pct_asian_nh",

@@ -94,8 +94,8 @@ def run_cv(df, label, t0):
 t0 = time.time()
 results = []
 
-# --- direction 1: RAISE the floor by subsetting the existing floor=50 dataframe (same rows,
-# same features, just a tighter final filter -- no rebuild) ---
+#--- direction 1: RAISE the floor by subsetting the existing floor=50 dataframe (same rows,
+#same features, just a tighter final filter -- no rebuild) ---
 df50 = pd.read_pickle(FLOOR50_PATH)
 print(f"[{time.time()-t0:.0f}s] loaded floor=50 base: n={len(df50)}")
 for floor in (50, 75, 100, 150):
@@ -105,8 +105,8 @@ for floor in (50, 75, 100, 150):
                      "cv_r2_mean": fold_r2.mean(), "cv_r2_std": fold_r2.std(),
                      "cv_r2_min": fold_r2.min(), "cv_r2_max": fold_r2.max()})
 
-# --- direction 2: LOWER the floor using the separately-rebuilt floor=30 dataframe (new venues
-# between 30-49 devices weren't in the floor=50 build at all) ---
+#--- direction 2: LOWER the floor using the separately-rebuilt floor=30 dataframe (new venues
+#between 30-49 devices weren't in the floor=50 build at all) ---
 df30 = pd.read_pickle(FLOOR30_PATH)
 print(f"[{time.time()-t0:.0f}s] loaded floor=30 rebuild: n={len(df30)}")
 fold_r2_30 = run_cv(df30, "floor=30 (separate rebuild)", t0)
