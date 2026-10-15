@@ -71,9 +71,9 @@ from scipy.optimize import minimize_scalar
 from scipy.stats import t as t_dist
 import networkx as nx
 
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./output")  # same dir build_features/fit_mixing wrote to
-# Full "YYYY_MM" period labels -- see the matching comment in pool_persistence.py. Lets a
-# period outside 2026 (e.g. "2025_12") be folded in without assuming every period is "2026_<mm>".
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./output")  #same dir build_features/fit_mixing wrote to
+#Full "YYYY_MM" period labels -- see the matching comment in pool_persistence.py. Lets a
+#period outside 2026 (e.g. "2025_12") be folded in without assuming every period is "2026_<mm>".
 PERIODS = ("2025_12", "2026_01", "2026_02", "2026_03", "2026_04", "2026_05", "2026_06", "2026_07")
 MODEL_READY_PATHS = {
     mm: os.path.join(OUTPUT_DIR, f"model_ready_{mm}.pkl") for mm in PERIODS
@@ -82,21 +82,21 @@ RESULTS_FULL_PATHS = {
     mm: os.path.join(OUTPUT_DIR, f"results_mixing_{mm}.pkl") for mm in PERIODS
 }
 QCOLS = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
-DIST_THRESHOLD_FT = 75.0  # ~23m
+DIST_THRESHOLD_FT = 75.0  #~23m
 NAME_JACCARD_THRESHOLD = 0.4
 N_BOOT_VS = 500
 Z95 = 1.959963984540054
 STOPWORDS = {
     "the", "a", "an", "at", "of", "and", "&", "inc", "llc", "corp", "corporation", "ny", "nyc",
-    # street-type tokens: two DIFFERENT businesses on the same named street (e.g. "Knapp Street
-    # Pizza" vs. "Knapp Street Bagel Cafe") otherwise inflate name-token Jaccard just from
-    # sharing the street name, not from being the same venue.
+    #street-type tokens: two DIFFERENT businesses on the same named street (e.g. "Knapp Street
+    #Pizza" vs. "Knapp Street Bagel Cafe") otherwise inflate name-token Jaccard just from
+    #sharing the street name, not from being the same venue.
     "street", "st", "ave", "avenue", "blvd", "boulevard", "rd", "road", "dr", "drive", "way",
     "pl", "place", "plaza", "court", "ct", "sq", "square", "pkwy", "parkway", "hwy", "highway",
     "ln", "lane",
-    # NOTE: "park" deliberately NOT included here -- it's part of many venues' actual proper
-    # names ("Jacob Riis Park"), unlike a pure street-suffix word, and removing it would have
-    # dropped "Riis Park Visitor Center" out of the Jacob Riis group.
+    #NOTE: "park" deliberately NOT included here -- it's part of many venues' actual proper
+    #names ("Jacob Riis Park"), unlike a pure street-suffix word, and removing it would have
+    #dropped "Riis Park Visitor Center" out of the Jacob Riis group.
 }
 
 
@@ -115,13 +115,13 @@ def jaccard(a, b):
     return inter / union if union else 0.0
 
 
-# Same plain-language persistence tiers as pool_persistence.py -- see that script's docstring
-# for the full rationale. Duplicated rather than imported since these are standalone scripts.
+#Same plain-language persistence tiers as pool_persistence.py -- see that script's docstring
+#for the full rationale. Duplicated rather than imported since these are standalone scripts.
 PERSISTENCE_TIERS = {
     1: "single_month_not_tested",
     2: "repeated_evidence",
     3: "provisional_persistence",
-    4: "current_period_persistence",  # NOT "annual_persistence" -- would need all 4 seasons
+    4: "current_period_persistence",  #NOT "annual_persistence" -- would need all 4 seasons
 }
 
 
@@ -129,8 +129,9 @@ def persistence_tier(n_months):
     return PERSISTENCE_TIERS.get(n_months, "current_period_persistence" if n_months > 4 else "single_month_not_tested")
 
 
-# COMPARISON-ONLY, same as pool_persistence.py -- see that script for the full explanation.
-# mu_re/var_re/ci_re/tau2/I2/q_bh below are UNCHANGED and remain the numbers of record.
+#ADOPTED METHOD, same as pool_persistence.py -- see that script for the full explanation.
+#mu_re/var_re/ci_re/tau2/I2/q_bh below are retained only as a DerSimonian-Laird
+#diagnostic/comparison -- mu_hk/var_hk/ci_hk/q_bh_hk are the numbers of record.
 def reml_tau2(r, v):
     def neg_restricted_loglik(tau2):
         w = 1.0 / (v + tau2)
@@ -155,7 +156,7 @@ def hartung_knapp(r, v, tau2_reml):
     return mu_hk, var_hk
 
 
-# ---- Step 1: static attributes, union across all 4 months' eligible venues ----
+#---- Step 1: static attributes, union across all 4 months' eligible venues ----
 static_frames = []
 model_ready = {}
 for mm, path in MODEL_READY_PATHS.items():
@@ -166,7 +167,7 @@ for mm, path in MODEL_READY_PATHS.items():
 static_all = pd.concat(static_frames, ignore_index=True).drop_duplicates("placekey").reset_index(drop=True)
 print(f"union of eligible placekeys across all {len(PERIODS)} periods ({', '.join(PERIODS)}): {len(static_all)}")
 
-# ---- Step 2: spatial pairs within DIST_THRESHOLD_FT ----
+#---- Step 2: spatial pairs within DIST_THRESHOLD_FT ----
 gdf = gpd.GeoDataFrame(
     static_all, geometry=gpd.points_from_xy(static_all["longitude"], static_all["latitude"]), crs="EPSG:4326"
 ).to_crs(epsg=2263)
@@ -175,7 +176,7 @@ tree = cKDTree(xy)
 pairs = tree.query_pairs(r=DIST_THRESHOLD_FT, output_type="ndarray")
 print(f"candidate spatial pairs within {DIST_THRESHOLD_FT}ft: {len(pairs)}")
 
-# ---- Step 3: filter by same category + name-token Jaccard ----
+#---- Step 3: filter by same category + name-token Jaccard ----
 names_tok = static_all["location_name"].apply(name_tokens).to_numpy()
 cats = static_all["top_category"].to_numpy()
 pks = static_all["placekey"].to_numpy()
@@ -190,7 +191,7 @@ for i, j in pairs:
         edges.append((pks[i], pks[j], jac, d))
 print(f"edges surviving same-category + name-Jaccard>={NAME_JACCARD_THRESHOLD}: {len(edges)}")
 
-# ---- Step 4: connected components ----
+#---- Step 4: connected components ----
 G = nx.Graph()
 G.add_nodes_from(pks)
 for a, b, jac, d in edges:
@@ -207,12 +208,12 @@ for gi, comp in enumerate(components):
     for pk in comp:
         pk_to_group[pk] = gid
     names_list = members["location_name"].tolist()
-    # flag exact-normalized-name matches (e.g. two "Starbucks" 60ft apart) separately --
-    # proximity + identical name is weaker evidence of "same physical venue, duplicate catalog
-    # entry" than it is for a venue with a distinctive multi-word name, since it's also
-    # consistent with two genuinely different branches of the same chain sitting close
-    # together (adjacent subway entrances, across an intersection, etc.). Worth a manual
-    # glance rather than auto-trusting.
+    #flag exact-normalized-name matches (e.g. two "Starbucks" 60ft apart) separately --
+    #proximity + identical name is weaker evidence of "same physical venue, duplicate catalog
+    #entry" than it is for a venue with a distinctive multi-word name, since it's also
+    #consistent with two genuinely different branches of the same chain sitting close
+    #together (adjacent subway entrances, across an intersection, etc.). Worth a manual
+    #glance rather than auto-trusting.
     normalized = {" ".join(sorted(name_tokens(n))) for n in names_list}
     exact_name_match = len(normalized) == 1
     group_rows.append({
@@ -230,17 +231,17 @@ print(f"of {len(group_report)} groups, {group_report['exact_name_match'].sum()} 
       f"separately in the saved report).")
 print(group_report.head(20).to_string(index=False))
 
-# sanity check: did the three real Jacob Riis Rockaway fragments land in one group, and
-# the Brooklyn one get correctly excluded?
+#sanity check: did the three real Jacob Riis Rockaway fragments land in one group, and
+#the Brooklyn one get correctly excluded?
 jr_pks = ["zzy-222@627-wgg-sbk", "zzy-228@627-tmh-49z", "zzy-22f@627-tmh-49z", "zzy-223@627-s92-gc5"]
 print("\nJacob Riis sanity check -- group assignment per placekey:")
 for pk in jr_pks:
     print(f"  {pk}: group={pk_to_group.get(pk, 'UNGROUPED (singleton)')}")
 
-# ---- Step 5/6: for each month, merge grouped fragments' quintile counts, recompute the
-# merged score/residual, and bootstrap the merged entity's own visitor-sampling uncertainty.
-# Ungrouped (singleton) venues pass through with their already-computed resid_vs_mean/var
-# unchanged -- no need to redo work that consolidation doesn't touch. ----
+#---- Step 5/6: for each month, merge grouped fragments' quintile counts, recompute the
+#merged score/residual, and bootstrap the merged entity's own visitor-sampling uncertainty.
+#Ungrouped (singleton) venues pass through with their already-computed resid_vs_mean/var
+#unchanged -- no need to redo work that consolidation doesn't touch. ----
 LOG5 = np.log(5)
 rng_merge = np.random.RandomState(7)
 long_rows = []
@@ -263,20 +264,20 @@ for mm in MODEL_READY_PATHS:
         merged_q = q.sum(axis=0)
         if q_total <= 0:
             continue
-        # merged score from combined counts, vendor entropy formula
+        #merged score from combined counts, vendor entropy formula
         p = merged_q / q_total
         p_clipped = np.clip(p, 1e-12, None)
         merged_score = -(p_clipped * np.log(p_clipped)).sum() / LOG5
-        # merged "expected" reference: device-count-weighted average of each present fragment's
-        # OWN already-fitted expected_mixing_cv (see module docstring -- a combination rule
-        # over existing predictions, not a refit on a merged covariate row)
+        #merged "expected" reference: device-count-weighted average of each present fragment's
+        #OWN already-fitted expected_mixing_cv (see module docstring -- a combination rule
+        #over existing predictions, not a refit on a merged covariate row)
         w = g["income_known_devices"].to_numpy(dtype=float)
         merged_expected_cv = np.average(g["expected_mixing_cv"].to_numpy(), weights=w)
         merged_resid = merged_score - merged_expected_cv
 
-        # bootstrap the merged entity's own visitor-sampling uncertainty, same method as the
-        # per-venue bootstrap: resample the COMBINED quintile counts, hold merged_expected_cv
-        # fixed, recompute the residual each draw.
+        #bootstrap the merged entity's own visitor-sampling uncertainty, same method as the
+        #per-venue bootstrap: resample the COMBINED quintile counts, hold merged_expected_cv
+        #fixed, recompute the residual each draw.
         draws = np.empty(N_BOOT_VS)
         for b in range(N_BOOT_VS):
             resampled = rng_merge.multinomial(int(round(q_total)), p)
@@ -287,10 +288,10 @@ for mm in MODEL_READY_PATHS:
             "placekey": gid, "location_name": " / ".join(sorted(g["location_name"].unique())),
             "borough": g["borough"].mode().iat[0], "top_category": g["top_category"].iloc[0],
             "month": mm,
-            # point estimate = the OBSERVED merged residual (merged_score - merged_expected_cv),
-            # NOT the bootstrap mean -- see pool_persistence.py's point-estimate note, same fix
-            # applied here. draws.mean()/var() below is kept only as a bias diagnostic; var(ddof=1)
-            # is still the right visitor-sampling variance to pool with.
+            #point estimate = the OBSERVED merged residual (merged_score - merged_expected_cv),
+            #NOT the bootstrap mean -- see pool_persistence.py's point-estimate note, same fix
+            #applied here. draws.mean()/var() below is kept only as a bias diagnostic; var(ddof=1)
+            #is still the right visitor-sampling variance to pool with.
             "resid_observed": merged_resid, "resid_vs_mean_bootstrap_diagnostic": draws.mean(),
             "resid_vs_var": draws.var(ddof=1), "n_fragments_this_month": len(g),
         })
@@ -312,8 +313,8 @@ print(f"\nconsolidated venue-months: {len(long)}, distinct entities: {long['plac
       f"(was 33767 distinct placekeys before consolidation)")
 
 
-# ---- Step 7: same pooling + Benjamini-Hochberg logic as pool_persistence.py, now run on the
-# consolidated entity set instead of raw placekeys. ----
+#---- Step 7: same pooling + Benjamini-Hochberg logic as pool_persistence.py, now run on the
+#consolidated entity set instead of raw placekeys. ----
 def benjamini_hochberg(pvals, alpha=0.05):
     pvals = np.asarray(pvals, dtype=float)
     m = len(pvals)
@@ -361,7 +362,7 @@ for pk, g in long.groupby("placekey"):
     prob_positive_re = 1.0 - 0.5 * (1 + math.erf(-z_re / np.sqrt(2)))
     p_re = 2.0 * (1.0 - 0.5 * (1 + math.erf(abs(z_re) / np.sqrt(2))))
 
-    # COMPARISON-ONLY -- see note above reml_tau2/hartung_knapp.
+    #ADOPTED pooling result -- see note above reml_tau2/hartung_knapp.
     tau2_reml = mu_hk = var_hk = ci_hk_lo = ci_hk_hi = p_hk = pred_lo = pred_hi = np.nan
     if m >= 2:
         tau2_reml = reml_tau2(r, v)
@@ -394,31 +395,32 @@ pooled.loc[family_mask, "q_bh"] = q_vals
 pooled["fdr_sig_05"] = pooled["q_bh"] <= 0.05
 pooled["is_consolidated_group"] = pooled["placekey"].str.startswith("GRP")
 
-# comparison-only: same BH correction on the Hartung-Knapp p-values. q_bh/fdr_sig_05 above
-# remain the numbers of record.
+#ADOPTED FDR call: same BH correction on the Hartung-Knapp p-values. q_bh_hk/fdr_sig_05_hk
+#are the numbers of record; q_bh/fdr_sig_05 (DL-based) above are diagnostic/comparison only.
 pooled["q_bh_hk"] = np.nan
 q_vals_hk, _ = benjamini_hochberg(pooled.loc[family_mask, "p_hk"].to_numpy(), alpha=0.05)
 pooled.loc[family_mask, "q_bh_hk"] = q_vals_hk
 pooled["fdr_sig_05_hk"] = pooled["q_bh_hk"] <= 0.05
-print(f"[comparison only, not adopted] DL survivors: {pooled['fdr_sig_05'].sum()} vs. "
+print(f"[diagnostic/comparison only] DL survivors: {pooled['fdr_sig_05'].sum()} vs. the ADOPTED "
       f"REML+Hartung-Knapp survivors: {pooled['fdr_sig_05_hk'].sum()} (same {family_mask.sum()}-entity family).")
 
 print(f"\n{len(pooled)} consolidated entities pooled ({pooled['is_consolidated_group'].sum()} are "
       f"merged fragment groups, {(~pooled['is_consolidated_group']).sum()} are untouched singletons).")
-print(f"Of the {family_mask.sum()} with >=2 eligible months: {pooled['fdr_sig_05'].sum()} survive "
-      f"BH FDR control at q<=0.05.")
+print(f"Of the {family_mask.sum()} with >=2 eligible months: {pooled['fdr_sig_05_hk'].sum()} survive "
+      f"the ADOPTED REML+Hartung-Knapp BH FDR control at q<=0.05 ({pooled['fdr_sig_05'].sum()} survive "
+      f"under the DL diagnostic/comparison).")
 
 pooled.to_pickle(os.path.join(OUTPUT_DIR, "consolidated_pooled_persistence_2026.pkl"))
 pooled.to_csv(os.path.join(OUTPUT_DIR, "consolidated_pooled_persistence_2026.csv"), index=False)
 print(f"\nsaved {OUTPUT_DIR}/consolidated_pooled_persistence_2026.{{pkl,csv}}")
 
-jr_group_id = pk_to_group.get("zzy-222@627-wgg-sbk")  # looked up dynamically: nx component
-# numbering isn't stable across runs, so a hardcoded "GRP#####" here would silently point at
-# whatever group happened to land on that id in THIS run (bit us once already -- see git history).
-print("\n--- Jacob Riis, consolidated (DL columns = numbers of record; _hk/_reml = comparison only) ---")
+jr_group_id = pk_to_group.get("zzy-222@627-wgg-sbk")  #looked up dynamically: nx component
+#numbering isn't stable across runs, so a hardcoded "GRP#####" here would silently point at
+#whatever group happened to land on that id in THIS run (bit us once already -- see git history).
+print("\n--- Jacob Riis, consolidated (HK columns = numbers of record, ADOPTED; DL = comparison only) ---")
 jr_cols = ["placekey", "location_name", "borough", "n_months", "persistence_tier", "months",
-           "mu_re", "tau2", "I2", "q_bh", "ci_re_lo", "ci_re_hi",
-           "tau2_reml", "mu_hk", "ci_hk_lo", "ci_hk_hi", "q_bh_hk", "pred_lo", "pred_hi"]
+           "mu_hk", "tau2_reml", "q_bh_hk", "ci_hk_lo", "ci_hk_hi", "pred_lo", "pred_hi",
+           "mu_re", "tau2", "I2", "q_bh", "ci_re_lo", "ci_re_hi"]
 print(pooled[pooled["placekey"] == jr_group_id][jr_cols].to_string(index=False))
 print("\n(the Brooklyn 'Jacob Riis Beach' is now just its own unaffected singleton entity:)")
 print(pooled[pooled["placekey"] == "zzy-223@627-s92-gc5"][jr_cols].to_string(index=False))
