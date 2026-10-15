@@ -100,7 +100,9 @@ bars:
    Rather than just checking whether a venue gets re-flagged, each venue's per-month OBSERVED
    spatial-CV residual (`improbable_copresence_cv` -- actual score minus the fixed, out-of-fold
    model expectation) is pooled across every month it clears the eligibility floor with a
-   DerSimonian-Laird random-effects meta-analysis, weighted by the inverse of that month's
+   REML + Hartung-Knapp random-effects meta-analysis (the ADOPTED method; see **Known
+   limitations** for why DerSimonian-Laird, kept only as a diagnostic/comparison here, is known
+   to be anti-conservative at this sample size), weighted by the inverse of that month's
    visitor-sampling-bootstrap variance (see **Known limitations** for the real numbers and an
    important correction to how this used to be computed) -- separating genuine month-to-month
    movement in a venue's own mixing from visitor-sampling noise, producing a pooled estimate and
@@ -230,6 +232,28 @@ most sampling-noise-prone venues out of the floor=50 run, roughly 4,500 addition
 venues -- barely moves R² at all. See `sensitivity_eligibility_floor.py` and
 `sensitivity_eligibility_floor_results.csv`.
 
+*Neighborhood income diversity (omitted-variable check).* `sensitivity_neighborhood_diversity.py`
+tests a specific concern raised in external review: the contextual baseline conditions on a block
+group's mean income (`income_proxy_v2`) and racial composition, but not on how spread out that
+income distribution is -- two neighborhoods can share a mean and differ sharply in income
+diversity, and if that spread itself predicts mixing, a venue's residual could partly reflect the
+neighborhood's omitted diversity rather than anything about the venue itself. The predictor
+(`neighborhood_income_diversity_v2`, normalized entropy of a block group's 16 ACS income
+brackets) had already been computed in `census_new.pkl` -- explored early in
+`income_mixing_model.ipynb` but never carried into `build_features_2026_0X.py`'s feature
+selection, so no production model has ever used it. Adding it back in and rerunning the exact
+fit_mixing_model spec/CV for July 2026: CV R² moves from 0.7191 to 0.7193 (smaller than the 0.032
+spread between folds), the new feature ranks 19th of 21 numeric features by RF importance (behind
+even the plain `income_proxy_v2` it refines), and none of the four named venues' residual
+z-scores move by more than 0.03 -- Amenazel +0.011, Chens +0.008, Hunts Point Floating Pier
+-0.0002, both Jacob Riis fragments -0.034. It's moderately correlated with the existing
+local-income features (-0.38 to -0.45, not extreme enough that collinearity alone would explain
+the low importance), consistent with those finer-grained, venue-centered local-income measures
+already absorbing most of what neighborhood-level income spread would add. Tested on July 2026
+only so far -- reassuring, not exhaustive; see `sensitivity_neighborhood_diversity.py` and its
+two output CSVs for the full numbers, and rerun with a different `MONTH` env var to extend the
+check to more periods.
+
 ## Repo structure
 
 ```
@@ -279,8 +303,10 @@ estimate_overdispersion.py      Cross-month check (reads all three months' model
 pool_persistence.py             Pools each venue's per-month visitor-sampling residual (from the
                                  fixed-reference bootstrap in fit_mixing_model_2026_0X.py above)
                                  across however many months it cleared the eligibility floor, via a
-                                 DerSimonian-Laird random-effects meta-analysis, then applies a
-                                 Benjamini-Hochberg FDR correction across venues with 2+ eligible
+                                 REML + Hartung-Knapp random-effects meta-analysis (the ADOPTED
+                                 method; DerSimonian-Laird is kept only as a diagnostic/comparison
+                                 -- see Known limitations), then applies a Benjamini-Hochberg FDR
+                                 correction across venues with 2+ eligible
                                  months -- see Known limitations. Reads every month's
                                  results_mixing_2026_0X.pkl; produces
                                  pooled_persistence_2026.{pkl,csv}. Superseded for most purposes by
@@ -330,6 +356,15 @@ sensitivity_eligibility_floor.py  Stress-tests the 50-device eligibility floor i
                                  comparable to the published baseline. Reads the floor=50
                                  model_ready_2026_04.pkl plus a separately-rebuilt floor=30
                                  version; produces sensitivity_eligibility_floor_results.csv.
+
+sensitivity_neighborhood_diversity.py  Tests whether adding a block group's income-distribution
+                                 diversity (computed in census_new.pkl, but never carried into
+                                 the production feature set) changes CV R² or any named venue's
+                                 residual -- see Validation checks already run above. Reruns the
+                                 exact fit_mixing_model_2026_0X.py model spec/CV with the one
+                                 feature added. Reads model_ready_2026_0X.pkl plus census_new.pkl;
+                                 produces sensitivity_neighborhood_diversity_results.csv and
+                                 sensitivity_neighborhood_diversity_named_venues.csv.
 ```
 
 Run order per month: `geocode_venues_to_cbg.py` -> `build_features_2026_0X.py` ->
@@ -488,11 +523,16 @@ data licenses restrict redistribution even of aggregated results.
   persistent effect was. That's been replaced by the pooling in `pool_persistence.py` /
   `consolidate_fragments.py` (see "What the model does" above): each venue's per-month OBSERVED
   spatial-CV residual, measured against one FIXED out-of-fold expectation, is pooled across its
-  eligible months with a DerSimonian-Laird random-effects meta-analysis into one pooled estimate
-  (`mu_re`), confidence interval, and a direct measure of how much of its apparent month-to-month
-  movement is genuine (`tau2`, `I2`) rather than visitor-sampling noise, then run through a
-  Benjamini-Hochberg FDR correction across every venue tested in 2+ months (29,825 such venues
-  citywide; 11,733 survive at q<=0.05).
+  eligible months with a REML + Hartung-Knapp random-effects meta-analysis (the ADOPTED method;
+  DerSimonian-Laird's `mu_re`/CI/`tau2`/`I2` are kept only as a diagnostic/comparison -- see the
+  DerSimonian-Laird caveat below for why) into one pooled estimate (`mu_hk`), confidence interval,
+  and a direct measure of how much of its apparent month-to-month movement is genuine
+  (`tau2_reml`) rather than visitor-sampling noise, then run through a Benjamini-Hochberg FDR
+  correction across every venue tested in 2+ months (31,652 such venues citywide, current
+  8-period pooling Dec 2025-Jul 2026; 6,961 survive the ADOPTED REML+Hartung-Knapp FDR control at
+  q<=0.05, versus 14,388 under the DerSimonian-Laird diagnostic -- a 52% drop in confirmed
+  findings from switching methods, which is exactly the kind of gap the DerSimonian-Laird caveat
+  below warns about).
 
   **Point-estimate correction (external review caught this):** an earlier version of this script
   used the MEAN of the 500 visitor-sampling bootstrap draws (`resid_vs_mean`) as each month's point
@@ -520,54 +560,73 @@ data licenses restrict redistribution even of aggregated results.
   model-refit variance (an approximate sum of variances, or a full nested bootstrap) is a
   documented next step, not something to read into the numbers as they stand today.
 
-  **DerSimonian-Laird with 2-4 months, read honestly:** `tau2` and `I2` below use the standard
-  moment-based DerSimonian-Laird estimator, which is known to be optimistic (too-narrow intervals,
-  too-eager to call `tau2=0`) with only a handful of observations per group -- a `tau2=0` reading
-  for a venue with 2-4 months usually means the heterogeneity test lacked the power to detect
-  real between-month variation, not that none exists. REML for `tau2`, Hartung-Knapp intervals
-  (which widen the CI to reflect how little data `tau2` itself was estimated from), and a
-  prediction interval for a hypothetical future month are the documented, better-behaved
-  alternative for this few observations -- not yet implemented here, flagged rather than silently
-  assumed away. Read every `tau2`/`I2`/CI pairing below as "no heterogeneity detected under a
+  **DerSimonian-Laird with 2-4 months, read honestly (UPDATE: superseded as the adopted
+  method):** `tau2` and `I2` below use the standard moment-based DerSimonian-Laird estimator,
+  which is known to be optimistic (too-narrow intervals, too-eager to call `tau2=0`) with only a
+  handful of observations per group -- a `tau2=0` reading for a venue with 2-4 months usually
+  means the heterogeneity test lacked the power to detect real between-month variation, not that
+  none exists. REML for `tau2`, Hartung-Knapp intervals (which widen the CI to reflect how little
+  data `tau2` itself was estimated from), and a prediction interval for a hypothetical future
+  month were flagged here as the documented, better-behaved alternative -- that alternative has
+  now been IMPLEMENTED AND ADOPTED (`tau2_reml`/`mu_hk`/`ci_hk_lo`/`ci_hk_hi`/`q_bh_hk`/
+  `fdr_sig_05_hk`, in `pool_persistence.py` and `consolidate_fragments.py`); `tau2`/`I2`/`mu_re`/
+  `ci_re`/`q_bh`/`fdr_sig_05` are retained only as the DerSimonian-Laird diagnostic/comparison,
+  not the reported result. NOTE: the specific counts and named-venue CIs elsewhere in this
+  section were computed before this switch and have not yet been regenerated under HK -- treat
+  this paragraph as the current methodological policy and the figures elsewhere in this section
+  as pending an update to match. Read every `tau2`/`I2`/CI pairing below as "no heterogeneity
+  detected under a
   method known to underpower small samples," not as "heterogeneity ruled out."
 
-  The four named venues, under this corrected point estimate, across all four replicated months
-  (April-July 2026) -- every CI below is the conditional, visitor-sampling-only interval described
-  above, and every `persistence_tier` reflects only how many of the CURRENT four months (all
-  spring/summer) a venue cleared, not a seasonal or annual claim:
+  The four named venues, under this corrected point estimate and the ADOPTED REML+Hartung-Knapp
+  pooling, each span however many of the current 8 periods (Dec 2025-Jul 2026) they individually
+  cleared the eligibility floor in -- not uniformly "four months" now that the pool extends past
+  April-July. Every CI below is the conditional, visitor-sampling-only interval described above,
+  and every `persistence_tier` reflects only how many periods a venue cleared, not a seasonal or
+  annual claim. DerSimonian-Laird's `mu_re`/`q_bh` are given alongside for comparison, but
+  `mu_hk`/`q_bh_hk` are what's reported:
   - **Amenazel Organic** (Bronx specialty food store), `persistence_tier`=`current_period_persistence`
-    (4/4 months): `mu_re`=+0.283, 95% CI [0.249, 0.316], `tau2`=0 (`I2`=0%) -- no heterogeneity
-    detected, `q_bh`<0.0001. The cleanest of the four results.
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.277, 95% CI [0.232, 0.323], `tau2_reml`~=0 --
+    no heterogeneity detected, `q_bh_hk`=0.0023. Survives the adopted bar comfortably; DL agrees
+    (`mu_re`=+0.278, `q_bh`<0.0001). The cleanest of the four results, and unaffected by the
+    method switch.
   - **Chens Fresh Food Market** (Brooklyn grocery), `persistence_tier`=`current_period_persistence`
-    (4/4 months): `mu_re`=-0.283, 95% CI [-0.351, -0.215], `tau2`=0.0003 (`I2`=5.9%, essentially all
-    sampling noise), `q_bh`<0.0001.
-  - **Jacob Riis Park / beach complex** (the 4-fragment Rockaways cluster, now consolidated into
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=-0.279, 95% CI [-0.361, -0.197], `tau2_reml`~=0,
+    `q_bh_hk`=0.0087. Survives the adopted bar; DL agrees (`mu_re`=-0.279, `q_bh`<0.0001).
+  - **Jacob Riis Park / beach complex** (the 3-fragment Rockaways cluster, now consolidated into
     one entity -- see POI fragmentation below), `persistence_tier`=`current_period_persistence`
-    (4/4 months): `mu_re`=+0.119, 95% CI [0.064, 0.174], `tau2`=0.0030, `I2`=96.4%, `q_bh`=0.0001.
-    This is the one headline venue where `I2` says real month-to-month movement, not sampling
-    noise, accounts for almost all the apparent variation -- consistent with a warm-weather-linked
-    pattern across April-July rather than a flat one across those four months, though "seasonal"
-    in the fuller, year-round sense isn't something 4 spring/summer months alone can establish
-    (that needs fall/winter data -- see below). The pooled estimate is still clearly positive and
-    survives FDR correction even with that heterogeneity folded honestly into its (wider)
-    confidence interval -- a more defensible claim than the earlier framing ("confirmed in May and
-    June, ambiguous in July, absent in April"), since the random-effects estimate already accounts
-    for exactly that kind of across-month disagreement rather than requiring a separate, subjective
-    call about which months "count."
-  - **Hunts Point Floating Pier** only clears the eligibility floor in 2 of the 4 months (June,
-    July) -- see `presence_bookkeeping_2026.csv` for exactly why it's absent/ineligible the other
-    two. `persistence_tier`=`repeated_evidence`: pooled across those 2 adjacent months,
-    `mu_re`=+0.328, 95% CI [0.289, 0.367], `tau2`=0, `q_bh`<0.0001 -- a real, precisely-estimated
-    effect across the two months it could be tested in, correctly described as replicated across
-    two observed months, not yet established as persistent beyond that narrow window.
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.105, 95% CI [0.031, 0.178], `tau2_reml`=0.0033
+    (DL's diagnostic `I2`=96.0% -- real period-to-period movement, not sampling noise, accounts
+    for almost all the apparent variation here, consistent with a warm-weather-linked pattern
+    rather than a flat one across the year). **This is the one named venue where the method
+    switch changes the finding**: `q_bh_hk`=0.0665, just above the adopted q<=0.05 bar, versus
+    `q_bh`=0.0003 under the DL diagnostic. The pooled effect is still clearly positive and
+    directionally identical under both methods -- what changed is whether it clears a strict
+    multiple-testing bar once the between-period variance is estimated by REML instead of DL's
+    more optimistic closed-form estimator, with the CI additionally widened by Hartung-Knapp to
+    reflect how little data that variance itself was estimated from. Read this as a real,
+    persistent, but no-longer-formally-confirmed effect under the stricter standard -- not as a
+    venue that stopped being unusual.
+  - **Hunts Point Floating Pier** only clears the eligibility floor in 2 of the current 8 periods
+    (June and July 2026) -- see `presence_bookkeeping_2026.csv` for exactly why it's
+    absent/ineligible the others. `persistence_tier`=`repeated_evidence`: pooled across those 2
+    adjacent periods, `mu_hk`=+0.328, 95% CI [0.076, 0.579] (wide, since Hartung-Knapp's
+    t-distribution has only 1 degree of freedom at n=2), `q_bh_hk`=0.117 -- does not clear the
+    adopted bar, versus `q_bh`<0.0001 under the DL diagnostic (whose normal-approximation CI is
+    much narrower at this same sample size -- exactly the DL optimism problem this switch was
+    meant to correct for). A real, precisely-estimated-looking effect that, assessed honestly
+    under a method built for few observations, isn't yet distinguishable from chance at only 2
+    eligible periods -- not evidence it's wrong, but a reminder that 2-period pooling is the
+    thinnest evidence this project produces.
 
   Separately -- and this is the correction that prompted building the citywide consolidation pass
   in the first place -- the Brooklyn "Jacob Riis Beach" catalog entry, 14.6km from the real
   Rockaways complex and confirmed to be a different, unrelated venue that merely shares part of
-  its name (see POI fragmentation below), pools to `mu_re`=+0.023 across its 3 eligible months
-  (`persistence_tier`=`provisional_persistence`), 95% CI [0.014, 0.032], `tau2`=0, `q_bh`=0.000002:
-  statistically significant on its own terms but a much smaller effect than the real Jacob Riis
-  complex, and should never be cited as evidence for, or against, the Jacob Riis finding.
+  its name (see POI fragmentation below), pools to `mu_hk`=+0.023 across its 3 eligible periods
+  (`persistence_tier`=`provisional_persistence`), 95% CI [0.003, 0.043], `q_bh_hk`=0.117 -- same
+  as Hunts Point, this does not clear the adopted bar (DL's diagnostic `q_bh`=0.000001 would have
+  called it significant), a much smaller effect than the real Jacob Riis complex regardless of
+  method, and should never be cited as evidence for, or against, the Jacob Riis finding.
 
   Caveat on the visitor-sampling bootstrap itself, and a direct test of it: it assumes each
   income-known device's home-quintile draw is independent given the venue's observed rate. If
@@ -805,13 +864,16 @@ March's residuals exist:
    expectation) as its pooling weight -- see "What the model does" and the point-estimate-correction
    note under Known limitations for why the point estimate is the observed residual, not the
    bootstrap mean.
-3. **Pooling**: DerSimonian-Laird random-effects meta-analysis across a venue's eligible months,
-   producing `mu_re`, a 95% CI, `tau2`, and `I2` (`pool_persistence.py` / `consolidate_fragments.py`).
+3. **Pooling**: REML + Hartung-Knapp random-effects meta-analysis across a venue's eligible
+   months (the ADOPTED method), producing `mu_hk`, a 95% CI, `tau2_reml`, and a prediction
+   interval (`pool_persistence.py` / `consolidate_fragments.py`); the same script also reports
+   DerSimonian-Laird's `mu_re`/`tau2`/`I2`/CI as a diagnostic/comparison, not the reported result.
 4. **Tested family**: only venues with `n_months >= 2` are tested for persistence at all (a
    single month has no replication to test against, and is never reported as "confirmed" no
    matter how large its one-month residual).
 5. **Significance bar**: Benjamini-Hochberg FDR correction across that entire tested family,
-   threshold `q_bh <= 0.05`. This is applied citywide, across every eligible venue, not just the
+   threshold `q_bh_hk <= 0.05` (the adopted HK-based q-value; `q_bh` is the DL-based diagnostic).
+   This is applied citywide, across every eligible venue, not just the
    handful already named in the pitch -- so adding March and re-running this step can only ever
    ADD or REMOVE venues from the confirmed set by this same rule, never by hand-picking a
    different threshold because a particular venue's March number looks interesting or disappointing.
