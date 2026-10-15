@@ -357,10 +357,18 @@ consolidate_fragments.py        Citywide pass that groups POI-catalog fragments 
                                  <MM>.csv merge as pool_persistence.py, while merged fragment groups
                                  get their OWN Dirichlet-multinomial bootstrap re-run on their
                                  combined quintile counts (not covered by that per-venue CSV), using
-                                 the same adopted S_hat from overdispersion_estimate.pkl. Produces
-                                 fragment_groups_report.csv (265 groups, 46 flagged as exact-name
-                                 matches worth a manual glance -- the grouping itself is unaffected
-                                 by Note 5, unchanged from the prior commit) and
+                                 the same adopted S_hat from overdispersion_estimate.pkl. A merged
+                                 group's observed score (Note 6 -- see Known limitations, "The
+                                 merged-group score's Jensen's-inequality asymmetry") is now a
+                                 device-weighted average of each fragment's OWN income_mixing_score,
+                                 matching merged_expected_cv's own combination rule, instead of the
+                                 entropy of the fragments' pooled/summed counts; the merged group's
+                                 own bootstrap above was updated to match (resamples each fragment's
+                                 own counts independently and averages their scores, rather than
+                                 pooling counts before scoring). Produces fragment_groups_report.csv
+                                 (265 groups, 46 flagged as exact-name matches worth a manual glance
+                                 -- the grouping itself is unaffected by Note 5 or Note 6, unchanged
+                                 from the prior commit) and
                                  consolidated_pooled_persistence_2026.{pkl,csv} -- this is the
                                  canonical, current persistence table; prefer it over
                                  pooled_persistence_2026.{pkl,csv} above.
@@ -606,7 +614,15 @@ data licenses restrict redistribution even of aggregated results.
   below); correcting the sampling variance itself for real extra-multinomial clustering (Note 5 --
   see "The overdispersion check's independence assumption" below) dropped it further still, to
   **4,502** (an 18% reduction on top of the already-adopted 5,498, concentrated almost entirely in
-  large, high-traffic venues -- see that bullet for why).
+  large, high-traffic venues -- see that bullet for why). UPDATE (Note 6, a fourth round of
+  external review -- see "The merged-group score's Jensen's-inequality asymmetry" below): fixing
+  a separate, unrelated bias in how `consolidate_fragments.py` combines MERGED fragment groups'
+  observed scores leaves this **4,502** total unchanged, but flips two individual merged groups'
+  own FDR call right at the boundary -- Osteria Brooklyn (`GRP00207`) moves from surviving
+  (`q_bh_hk`=0.0384) to not (`q_bh_hk`=0.0597), and John & Joe's Pizzeria (`GRP00172`) moves from
+  not surviving (`q_bh_hk`=0.0550) to surviving (`q_bh_hk`=0.0499); neither was previously named or
+  cited in this README. Of the four NAMED venue bullets below, only Jacob Riis is a merged group --
+  its own (already non-significant) number moved slightly; see its bullet below for the update.
 
   **Point-estimate correction (external review caught this):** an earlier version of this script
   used the MEAN of the 500 visitor-sampling bootstrap draws (`resid_vs_mean`) as each month's point
@@ -739,23 +755,28 @@ data licenses restrict redistribution even of aggregated results.
     the adopted bar; DL agrees (`mu_re`=-0.280, `q_bh`<0.0001).
   - **Jacob Riis Park / beach complex** (the 3-fragment Rockaways cluster, now consolidated into
     one entity -- see POI fragmentation below), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.099, 95% CI [0.016, 0.182], `tau2_reml`=0.0025
-    (DL's diagnostic `I2`=93.0% -- real period-to-period movement, not sampling noise, accounts
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.0908, 95% CI [0.0061, 0.1755], `tau2_reml`=0.0028
+    (DL's diagnostic `I2`=94.3% -- real period-to-period movement, not sampling noise, accounts
     for almost all the apparent variation here, consistent with a warm-weather-linked pattern
     rather than a flat one across the year). **This remains the one named venue where the method
-    switch changes the finding, and Note 5's overdispersion correction pushes it further the same
-    direction**: `q_bh_hk`=0.1168 (was 0.1094 before Note 5, 0.0665 before folding in model-refit
-    variance, itself already above the bar under the HK method switch alone), versus `q_bh`=0.0002
-    under the DL diagnostic. Jacob Riis is exactly the kind of large, high-traffic venue Note 5's
-    correction hits hardest (see that bullet below -- a venue this size sees its visitor-sampling
-    variance roughly double), so this direction of movement is expected, not a surprise. The pooled
-    effect is still clearly positive and directionally identical under every method tried -- what's
-    changed, cumulatively, is whether it clears a strict multiple-testing bar once the
-    between-period variance is estimated by REML instead of DL's more optimistic closed-form
-    estimator, the CI widened by Hartung-Knapp, the pooling weight widened by real model-refit
-    uncertainty, and now the sampling variance itself corrected for real extra-multinomial
-    clustering. Read this as a real, persistent, but no-longer-formally-confirmed effect under the
-    stricter standard -- not as a venue that stopped being unusual.
+    switch changes the finding, and both Note 5's overdispersion correction and Note 6's
+    merged-group-score fix push it further the same direction**: `q_bh_hk`=0.1424 (was 0.1168 before
+    Note 6, 0.1094 before Note 5, 0.0665 before folding in model-refit variance, itself already
+    above the bar under the HK method switch alone), versus `q_bh`=0.0012 under the DL diagnostic.
+    Jacob Riis is both the kind of large, high-traffic venue Note 5's correction hits hardest (see
+    that bullet below -- a venue this size sees its visitor-sampling variance roughly double) AND
+    the only named venue that's a merged fragment group, so it's also the only one of the four
+    directly affected by Note 6's fix (see "The merged-group score's Jensen's-inequality asymmetry"
+    below) -- its old, pooled-entropy `merged_score` was mechanically inflated relative to the
+    device-weighted average of its 3 fragments' own scores, so correcting it was always going to
+    push the point estimate down a little, not up. The pooled effect is still clearly positive and
+    directionally identical under every method tried -- what's changed, cumulatively, is whether it
+    clears a strict multiple-testing bar once the between-period variance is estimated by REML
+    instead of DL's more optimistic closed-form estimator, the CI widened by Hartung-Knapp, the
+    pooling weight widened by real model-refit uncertainty, the sampling variance itself corrected
+    for real extra-multinomial clustering, and now the merged score itself corrected for the
+    pooling-combination bias. Read this as a real, persistent, but no-longer-formally-confirmed
+    effect under the stricter standard -- not as a venue that stopped being unusual.
   - **Hunts Point Floating Pier** only clears the eligibility floor in 2 of the current 8 periods
     (June and July 2026) -- see `presence_bookkeeping_2026.csv` for exactly why it's
     absent/ineligible the others. `persistence_tier`=`repeated_evidence`: pooled across those 2
@@ -841,6 +862,47 @@ data licenses restrict redistribution even of aggregated results.
   show up as "more cross-period movement than plain sampling predicts," and this check doesn't
   cleanly distinguish them. Read the correction as a real, data-driven improvement over assuming
   independence outright, not as a precisely-calibrated final answer.
+
+  **The merged-group score's Jensen's-inequality asymmetry -- FIXED (Note 6, a fourth round of
+  external review):** this one applies only to the 265 merged fragment groups in
+  `consolidate_fragments.py` (see POI fragmentation below) -- singleton venues (the other 34,409
+  consolidated entities) were never affected. A merged group's observed score, `merged_score`, used
+  to be computed as the entropy of its fragments' SUMMED quintile counts -- equivalent to H(the
+  device-weighted average of each fragment's own quintile shares). Normalized entropy H is concave,
+  so by Jensen's inequality H(weighted avg of shares) >= weighted avg of H(shares), ALWAYS, as a
+  mathematical fact, not an empirical one -- confirmed computationally across all 1,706 real
+  (group, period) observations in this project's own data, zero exceptions, median gap 0, mean
+  0.0013, max 0.027. `merged_expected_cv` (the baseline/"expected" side of the same residual) got no
+  equivalent treatment: it was already a plain device-weighted AVERAGE of each fragment's own
+  already-fitted `expected_mixing_cv`, not an entropy-of-pooled quantity. So the two sides of every
+  merged group's residual were being combined by two different, inconsistent rules -- mechanically
+  inflating `merged_score` (and therefore the residual) relative to a method that matches
+  `merged_expected_cv`'s own combination rule, with no necessary connection to whether the merged
+  venue is actually more mixed in any real sense. The effect is small in absolute terms and
+  concentrated in multi-fragment groups, and before fixing it, quantifying it first showed it
+  changed no reported/cited finding's sign or survival call.
+
+  ADOPTED FIX: `merged_score` is now a device-weighted average of each fragment's OWN
+  `income_mixing_score` (same vendor entropy formula, applied to each fragment's own shares, THEN
+  averaged) -- exactly mirroring `merged_expected_cv`'s own combination rule, so both sides of the
+  residual are now built the same way. The merged group's own Dirichlet-multinomial bootstrap (see
+  Note 5 above) was updated to match: each of its 500 draws now resamples every fragment's OWN
+  quintile counts independently (own `alpha_i = S_hat * own quintile shares`), scores each
+  fragment's own draw, and takes the same device-weighted average across fragments -- rather than
+  pooling fragments' counts into one draw and scoring the pool -- so the bootstrap variance stays
+  consistent with what the point estimate is actually averaging.
+
+  Effect on the full consolidated table: the total ADOPTED REML+Hartung-Knapp FDR survivor count is
+  completely unchanged at **4,502** (see "Persistent across months" above), but two individual
+  merged groups' own FDR call flip right at the q<=0.05 boundary -- Osteria Brooklyn (`GRP00207`,
+  Brooklyn) moves from surviving (`q_bh_hk`=0.0384) to not (`q_bh_hk`=0.0597), and John & Joe's
+  Pizzeria (`GRP00172`, Bronx) moves from not surviving (`q_bh_hk`=0.0550) to surviving
+  (`q_bh_hk`=0.0499); neither was previously named or cited anywhere else in this README. Of the
+  four named venues discussed above, only Jacob Riis is a merged group, so it's the only one this
+  fix touches directly -- see its bullet above for the updated numbers (its already non-significant
+  `q_bh_hk` moved from 0.1168 to 0.1424, since its old `merged_score` was inflated by this same
+  mechanism). `fragment_groups_report.csv`'s 265 groups themselves are unaffected -- this fix
+  changes how a merged group's score is computed, not which fragments get grouped together.
 - **`balance_score` is a robustness check, not independent confirmation**: an earlier draft of
   this methodology treated a venue's also being extreme under `balance_score` as a third,
   independent bar alongside bootstrap stability and cross-month replication. Directly checking
@@ -959,14 +1021,17 @@ data licenses restrict redistribution even of aggregated results.
   two nearby-but-distinct locations, so these 43 are listed in `fragment_groups_report.csv` for a
   manual glance rather than auto-merged with full confidence.
 
-  Merging a confirmed fragment group recomputes its merged `income_mixing_score` from the summed
-  q1-q5 device counts of whichever fragments are present that month, and sets its merged
-  "expected" reference as a device-count-weighted average of each fragment's OWN already-fitted
-  `expected_mixing_cv` -- a combination rule over existing fitted predictions, explicitly NOT a
-  full model refit on merged covariates, stated plainly as a real limit of the quick-turnaround
-  approach rather than overclaimed rigor. The merged entity then gets its own visitor-sampling
-  bootstrap and is pooled across months exactly like any other venue (see the persistence bullet
-  above).
+  Merging a confirmed fragment group sets its merged `income_mixing_score` as a device-count-
+  weighted average of each PRESENT fragment's OWN `income_mixing_score` that month (UPDATE, Note 6
+  -- see "The merged-group score's Jensen's-inequality asymmetry" above: an earlier version of this
+  pass instead took the entropy of the fragments' summed q1-q5 device counts, which is mechanically
+  biased upward relative to this by Jensen's inequality, for reasons unrelated to real mixing), and
+  sets its merged "expected" reference as the same device-count-weighted average of each fragment's
+  OWN already-fitted `expected_mixing_cv` -- a combination rule over existing fitted predictions,
+  explicitly NOT a full model refit on merged covariates, stated plainly as a real limit of the
+  quick-turnaround approach rather than overclaimed rigor. The merged entity then gets its own
+  visitor-sampling bootstrap (also updated for Note 6 to match this combination rule -- see above)
+  and is pooled across months exactly like any other venue (see the persistence bullet above).
 
   For the Jacob Riis complex specifically: the correct group is 4 fragments -- "Riis Park Visitor
   Center," "Jacob Riis Park," "The People's Beach at Jacob Riis Park," and a "Jacob Riis Beach"

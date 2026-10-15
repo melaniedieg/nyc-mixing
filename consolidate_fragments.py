@@ -83,6 +83,30 @@ variance_dm.py's per-period CSV, same as pool_persistence.py. Merged fragment gr
 OWN bootstrap re-run below (Step 6) using the same Dirichlet-multinomial two-stage draw and the
 same adopted S_hat, since a merged group's combined quintile counts are specific to this script
 and were never covered by estimate_visitor_sampling_variance_dm.py's per-venue output.
+
+POINT ESTIMATE, fixed AGAIN after a FOURTH round of external review (Note 6): merged_score (the
+merged group's OBSERVED side of the residual) used to be computed as the entropy of fragments'
+SUMMED quintile counts -- equivalent to H(device-weighted average of each fragment's own quintile
+shares). Entropy is concave, so by Jensen's inequality H(weighted avg of p_i) >= weighted avg of
+H(p_i), ALWAYS, as a mathematical fact -- confirmed computationally across all 1,706 real
+(group, period) observations in this project's own data, zero exceptions. merged_expected_cv got
+no equivalent treatment: it was already a plain device-weighted AVERAGE of each fragment's own
+expected_mixing_cv, not an entropy-of-pooled quantity. So the two sides of the merged residual
+were being combined by two different, inconsistent rules -- mechanically inflating merged_score
+(and therefore merged_resid) relative to a method that matches merged_expected_cv's own
+combination rule, with no necessary connection to whether the merged venue is actually more mixed
+in any real sense -- purely an artifact of pooling fragments together before taking entropy,
+rather than after. ADOPTED FIX: merged_score is now a device-weighted average of each fragment's
+OWN income_mixing_score (same vendor entropy formula, applied to each fragment's own shares,
+THEN averaged) -- exactly mirroring merged_expected_cv's own combination rule, so both sides of
+the residual are now built the same way. The merged group's own bootstrap (Step 6 below) is
+updated to match: each draw now resamples every fragment's OWN quintile counts independently
+(Dirichlet-multinomial, same adopted S_hat), scores each fragment's own draw with the vendor
+entropy formula, and takes the same device-weighted average across fragments -- rather than
+pooling fragments' counts into one draw and scoring the pool -- so the bootstrap variance stays
+consistent with what the point estimate is actually averaging. See the README's "Note 6" bullet
+for the real numbers (magnitude, which named venues are affected, and confirmation this changes
+no FDR-survival call).
 """
 import math
 import os
@@ -296,7 +320,8 @@ rng_merge = np.random.RandomState(7)
 long_rows = []
 
 for mm in MODEL_READY_PATHS:
-    mr = model_ready[mm][["placekey", "location_name", "top_category"] + QCOLS + ["income_known_devices"]].copy()
+    mr = model_ready[mm][["placekey", "location_name", "top_category"] + QCOLS
+                         + ["income_known_devices", "income_mixing_score"]].copy()
     rfull = pd.read_pickle(RESULTS_FULL_PATHS[mm])["results_full"][["placekey", "borough", "expected_mixing_cv",
                                                                      "improbable_copresence_cv"]]
     #Note 5 fix: resid_vs_var for singletons now comes from the Dirichlet-multinomial-corrected
@@ -314,18 +339,19 @@ for mm in MODEL_READY_PATHS:
     for gid, g in grouped_part.groupby("group_id"):
         q = g[QCOLS].to_numpy(dtype=float)
         q_total = q.sum()
-        merged_q = q.sum(axis=0)
         if q_total <= 0:
             continue
-        #merged score from combined counts, vendor entropy formula
-        p = merged_q / q_total
-        p_clipped = np.clip(p, 1e-12, None)
-        merged_score = -(p_clipped * np.log(p_clipped)).sum() / LOG5
+        #Note 6 fix: merged_score is now a device-weighted average of each fragment's OWN
+        #income_mixing_score (same vendor entropy formula, applied to each fragment's own
+        #shares, THEN averaged) -- consistent with how merged_expected_cv is combined below,
+        #instead of the old pooled-entropy-of-summed-counts rule (see module docstring for the
+        #Jensen's-inequality derivation of why that was mechanically biased).
+        w = g["income_known_devices"].to_numpy(dtype=float)
+        merged_score = np.average(g["income_mixing_score"].to_numpy(), weights=w)
         #merged "expected" reference, and merged model-refit/prediction variance: both a
         #device-count-weighted average of each present fragment's OWN already-fitted value
         #(see module docstring -- a combination rule over existing predictions, not a refit
         #on a merged covariate row).
-        w = g["income_known_devices"].to_numpy(dtype=float)
         merged_expected_cv = np.average(g["expected_mixing_cv"].to_numpy(), weights=w)
         merged_resid = merged_score - merged_expected_cv
         mpv = g["model_pred_var"].to_numpy(dtype=float)
@@ -335,19 +361,34 @@ for mm in MODEL_READY_PATHS:
             valid = ~np.isnan(mpv)
             merged_model_pred_var = np.average(mpv[valid], weights=w[valid])
 
-        #bootstrap the merged entity's own visitor-sampling uncertainty, same method as the
-        #per-venue bootstrap: resample the COMBINED quintile counts, hold merged_expected_cv
-        #fixed, recompute the residual each draw. Note 5 fix: Dirichlet-multinomial-corrected
-        #two-stage draw (same S_HAT as estimate_visitor_sampling_variance_dm.py), not plain
-        #multinomial -- a merged group's combined counts aren't in that per-venue CSV, so this
-        #bootstrap has to be re-run here rather than merged in.
-        alpha_merge = np.clip(S_HAT * p, 1e-6, None)
+        #bootstrap the merged entity's own visitor-sampling uncertainty. Note 5 fix:
+        #Dirichlet-multinomial-corrected two-stage draw (same S_HAT as
+        #estimate_visitor_sampling_variance_dm.py), not plain multinomial -- a merged group's
+        #counts aren't in that per-venue CSV, so this bootstrap has to be re-run here rather
+        #than merged in. Note 6 fix: each draw now resamples every fragment's OWN quintile
+        #counts INDEPENDENTLY (own alpha_i = S_HAT * own quintile shares) and scores each
+        #fragment's own draw, then takes the same device-weighted average across fragments used
+        #for merged_score above -- rather than pooling fragments' counts into one draw and
+        #scoring the pool -- so the bootstrap variance stays consistent with what the point
+        #estimate is actually averaging.
+        row_totals = q.sum(axis=1)
+        row_totals_safe = np.where(row_totals > 0, row_totals, 1.0)
+        q_shares = q / row_totals_safe[:, None]
+        alphas = np.clip(S_HAT * q_shares, 1e-6, None)
+        has_devices = row_totals > 0
         draws = np.empty(N_BOOT_VS)
+        frag_scores = np.empty(len(g))
         for b in range(N_BOOT_VS):
-            p_tilde = rng_merge.dirichlet(alpha_merge)
-            resampled = rng_merge.multinomial(int(round(q_total)), p_tilde)
-            rp = np.clip(resampled / q_total, 1e-12, None)
-            draws[b] = -(rp * np.log(rp)).sum() / LOG5 - merged_expected_cv
+            for fi in range(len(g)):
+                if not has_devices[fi]:
+                    frag_scores[fi] = np.nan
+                    continue
+                p_tilde = rng_merge.dirichlet(alphas[fi])
+                resampled = rng_merge.multinomial(int(round(row_totals[fi])), p_tilde)
+                rp = np.clip(resampled / row_totals[fi], 1e-12, None)
+                frag_scores[fi] = -(rp * np.log(rp)).sum() / LOG5
+            valid = ~np.isnan(frag_scores)
+            draws[b] = np.average(frag_scores[valid], weights=w[valid]) - merged_expected_cv
 
         long_rows.append({
             "placekey": gid, "location_name": " / ".join(sorted(g["location_name"].unique())),
