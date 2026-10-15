@@ -61,6 +61,23 @@ model with something that has an explicit serial-correlation structure across
 months -- a bigger, more experimental change than combining in model_pred_var was,
 and not attempted here; see README for the real numbers and why.
 
+POOLING VARIANCE, fixed again after a THIRD round of external review (Note 5 -- see README
+"Known limitations" -- the overdispersion check's independence assumption): resid_vs_var itself
+used to come from fit_mixing_model_2026_0X.py's plain-multinomial visitor-sampling bootstrap,
+read as a reasonable estimate because the original 3-month overdispersion check (May/June/July
+2026 only) found VIF_obs=0.91 -- no detectable extra-multinomial clustering. That check's own
+independence assumption (that a venue's different months are uncorrelated once you've accounted
+for its fitted mean) turned out to be false once all 8 periods were available to test it on
+directly: the corrected VIF on the full 8-period balanced panel is ~1.48 (real evidence FOR
+clustering, reversing the old read -- see estimate_overdispersion.py's revised docstring for the
+full derivation and the honest sensitivity range). ADOPTED FIX: resid_vs_var/resid_vs_mean now
+come from estimate_visitor_sampling_variance_dm.py's Dirichlet-multinomial-corrected bootstrap
+(same fixed expected_mixing_cv design as before, just with overdispersion-corrected draws) instead
+of fit_mixing_model_2026_0X.py's plain-multinomial one. This correction is strongly size-dependent
+-- it barely moves small, floor-eligible venues but can multiply variance several-fold for large,
+high-traffic ones -- see that script's docstring. var_combined's formula (resid_vs_var +
+model_pred_var) is unchanged; only what resid_vs_var itself measures has been corrected.
+
 Per venue, reports:
   - n_months: how many months it cleared the eligibility floor (results_full
     only has rows for eligible venue-months -- a venue absent some month is
@@ -117,6 +134,10 @@ Input:  OUTPUT_DIR/results_mixing_<PERIOD>.pkl, one per period (must be from the
         OUTPUT_DIR/model_prediction_variance_<PERIOD>.csv, one per period (from
         estimate_model_prediction_variance.py -- now a REQUIRED step, not optional;
         run it for every period in PERIODS below before running this script).
+        OUTPUT_DIR/visitor_sampling_variance_dm_<PERIOD>.csv, one per period (from
+        estimate_visitor_sampling_variance_dm.py -- also REQUIRED since the Note 5 fix;
+        supplies the overdispersion-corrected resid_vs_mean/resid_vs_var used below in
+        place of results_mixing_<PERIOD>.pkl's plain-multinomial columns).
         Set OUTPUT_DIR to wherever build_features_2026_0X.py /
         fit_mixing_model_2026_0X.py wrote their outputs (same OUTPUT_DIR each
         period -- see those scripts' docstrings); default ./output.
@@ -143,6 +164,12 @@ MONTH_PATHS = {
 #Model-refit/prediction variance, one file per period -- see estimate_model_prediction_variance.py.
 MODEL_VAR_PATHS = {
     mm: os.path.join(OUTPUT_DIR, f"model_prediction_variance_{mm}.csv") for mm in PERIODS
+}
+#Overdispersion-corrected visitor-sampling variance, one file per period -- see
+#estimate_visitor_sampling_variance_dm.py (Note 5 fix). Replaces results_mixing_<PERIOD>.pkl's
+#plain-multinomial resid_vs_mean/resid_vs_var below.
+VS_VAR_PATHS = {
+    mm: os.path.join(OUTPUT_DIR, f"visitor_sampling_variance_dm_{mm}.csv") for mm in PERIODS
 }
 Z95 = 1.959963984540054
 
@@ -210,6 +237,18 @@ for mm, path in MONTH_PATHS.items():
     d = pd.read_pickle(path)
     rf = d["results_full"].copy()
     rf["month"] = mm
+    #Note 5 fix: drop the plain-multinomial resid_vs_mean/resid_vs_var results_full shipped with,
+    #and replace with the Dirichlet-multinomial-corrected versions -- see module docstring and
+    #estimate_visitor_sampling_variance_dm.py.
+    rf = rf.drop(columns=["resid_vs_mean", "resid_vs_var"])
+    vs = pd.read_csv(VS_VAR_PATHS[mm])[["placekey", "resid_vs_mean_dm", "resid_vs_var_dm"]]
+    vs = vs.rename(columns={"resid_vs_mean_dm": "resid_vs_mean", "resid_vs_var_dm": "resid_vs_var"})
+    rf = rf.merge(vs, on="placekey", how="left")
+    n_missing_vs = rf["resid_vs_var"].isna().sum()
+    if n_missing_vs:
+        print(f"{mm}: WARNING {n_missing_vs} venues missing DM-corrected resid_vs_var "
+              f"(unexpected -- every eligible venue is resampled every DM bootstrap draw, "
+              f"unlike the grid-cell-block model_pred_var bootstrap)")
     mv = pd.read_csv(MODEL_VAR_PATHS[mm])[["placekey", "model_pred_var"]]
     rf = rf.merge(mv, on="placekey", how="left")
     n_missing = rf["model_pred_var"].isna().sum()

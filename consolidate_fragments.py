@@ -72,6 +72,17 @@ still CONDITIONAL on the fitted contextual model being exactly right, and (same 
 pool_persistence.py) still treat each period as an independent replicate even though adjacent
 periods show real excess positive correlation beyond that assumption -- see pool_persistence.py's
 docstring and the README for both caveats' full detail and real numbers.
+
+POOLING VARIANCE, fixed AGAIN after a third round of external review (Note 5, see
+pool_persistence.py's docstring for the full explanation): resid_vs_var itself -- for both
+singleton venues and merged fragment groups' own bootstrap below -- now comes from a
+Dirichlet-multinomial-corrected draw (estimate_overdispersion.py/estimate_visitor_sampling_
+variance_dm.py), not the plain-multinomial draw this script and fit_mixing_model_2026_0X.py used
+before. Singletons pick up the correction via a merge against estimate_visitor_sampling_
+variance_dm.py's per-period CSV, same as pool_persistence.py. Merged fragment groups get their
+OWN bootstrap re-run below (Step 6) using the same Dirichlet-multinomial two-stage draw and the
+same adopted S_hat, since a merged group's combined quintile counts are specific to this script
+and were never covered by estimate_visitor_sampling_variance_dm.py's per-venue output.
 """
 import math
 import os
@@ -99,6 +110,17 @@ RESULTS_FULL_PATHS = {
 MODEL_VAR_PATHS = {
     mm: os.path.join(OUTPUT_DIR, f"model_prediction_variance_{mm}.csv") for mm in PERIODS
 }
+#Overdispersion-corrected visitor-sampling variance, one file per period -- see
+#estimate_visitor_sampling_variance_dm.py (Note 5 fix). Covers singleton venues; merged fragment
+#groups get their own Dirichlet-multinomial bootstrap re-run below (Step 6), using the same
+#adopted S_hat, since their combined quintile counts don't exist in that per-venue CSV.
+VS_VAR_PATHS = {
+    mm: os.path.join(OUTPUT_DIR, f"visitor_sampling_variance_dm_{mm}.csv") for mm in PERIODS
+}
+#Adopted Dirichlet-multinomial concentration parameter, same source Step 6's merged-group
+#bootstrap uses -- see estimate_overdispersion.py.
+S_HAT = float(os.environ.get("S_HAT", pd.read_pickle(
+    os.path.join(OUTPUT_DIR, "overdispersion_estimate.pkl"))["S_hat"]))
 QCOLS = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 DIST_THRESHOLD_FT = 75.0  #~23m
 NAME_JACCARD_THRESHOLD = 0.4
@@ -179,6 +201,12 @@ def hartung_knapp(r, v, tau2_reml):
 static_frames = []
 model_ready = {}
 model_var = {mm: pd.read_csv(MODEL_VAR_PATHS[mm])[["placekey", "model_pred_var"]] for mm in PERIODS}
+#Note 5 fix: overdispersion-corrected visitor-sampling variance, per period -- covers singletons;
+#merged groups get their own re-run bootstrap in Step 6 below.
+vs_var_dm = {
+    mm: pd.read_csv(VS_VAR_PATHS[mm])[["placekey", "resid_vs_mean_dm", "resid_vs_var_dm"]]
+    for mm in PERIODS
+}
 for mm, path in MODEL_READY_PATHS.items():
     df = pd.read_pickle(path)
     model_ready[mm] = df
@@ -270,8 +298,12 @@ long_rows = []
 for mm in MODEL_READY_PATHS:
     mr = model_ready[mm][["placekey", "location_name", "top_category"] + QCOLS + ["income_known_devices"]].copy()
     rfull = pd.read_pickle(RESULTS_FULL_PATHS[mm])["results_full"][["placekey", "borough", "expected_mixing_cv",
-                                                                     "improbable_copresence_cv", "resid_vs_var"]]
-    merged_in = mr.merge(rfull, on="placekey", how="inner").merge(model_var[mm], on="placekey", how="left")
+                                                                     "improbable_copresence_cv"]]
+    #Note 5 fix: resid_vs_var for singletons now comes from the Dirichlet-multinomial-corrected
+    #CSV, not results_full's plain-multinomial column (dropped above, replaced by this merge).
+    vs = vs_var_dm[mm][["placekey", "resid_vs_var_dm"]].rename(columns={"resid_vs_var_dm": "resid_vs_var"})
+    merged_in = mr.merge(rfull, on="placekey", how="inner").merge(vs, on="placekey", how="left") \
+                  .merge(model_var[mm], on="placekey", how="left")
     merged_in["group_id"] = merged_in["placekey"].map(pk_to_group)
 
     grouped_part = merged_in[merged_in["group_id"].notna()]
@@ -305,10 +337,15 @@ for mm in MODEL_READY_PATHS:
 
         #bootstrap the merged entity's own visitor-sampling uncertainty, same method as the
         #per-venue bootstrap: resample the COMBINED quintile counts, hold merged_expected_cv
-        #fixed, recompute the residual each draw.
+        #fixed, recompute the residual each draw. Note 5 fix: Dirichlet-multinomial-corrected
+        #two-stage draw (same S_HAT as estimate_visitor_sampling_variance_dm.py), not plain
+        #multinomial -- a merged group's combined counts aren't in that per-venue CSV, so this
+        #bootstrap has to be re-run here rather than merged in.
+        alpha_merge = np.clip(S_HAT * p, 1e-6, None)
         draws = np.empty(N_BOOT_VS)
         for b in range(N_BOOT_VS):
-            resampled = rng_merge.multinomial(int(round(q_total)), p)
+            p_tilde = rng_merge.dirichlet(alpha_merge)
+            resampled = rng_merge.multinomial(int(round(q_total)), p_tilde)
             rp = np.clip(resampled / q_total, 1e-12, None)
             draws[b] = -(rp * np.log(rp)).sum() / LOG5 - merged_expected_cv
 

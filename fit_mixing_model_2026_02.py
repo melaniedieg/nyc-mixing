@@ -269,10 +269,18 @@ for pk, c in {**top_counts, **bottom_counts}.items():
 #given the venue's observed rate. If visits cluster -- multiple devices from the same
 #household, workplace, or tour group visiting together -- true sampling variance would run
 #higher than a plain multinomial implies, and this would understate it.
-#estimate_overdispersion.py checked this directly against real repeat-venue data across
-#May/June/July 2026 and found VIF_obs=0.91 -- no detectable clustering at a level that would
-#change this conclusion -- so these numbers are read as a reasonable measure of
-#visitor-sampling uncertainty, not just a floor on it.
+#SUPERSEDED (Note 5, a third round of external review -- see README Known limitations, "The
+#overdispersion check's independence assumption"): estimate_overdispersion.py's original 3-month
+#check (May/June/July 2026 only) found VIF_obs=0.91 and read that as no detectable clustering --
+#but that check never tested whether a venue's different months are independent of each other,
+#an assumption that turned out to be false once all 8 periods existed to test it on. The
+#corrected finding is VIF~1.48 (real evidence FOR clustering, reversing the old read). This
+#block's plain-multinomial draws below are UNCHANGED and still produce resid_vs_mean/resid_vs_var
+#in results_full, but pool_persistence.py/consolidate_fragments.py no longer read those columns --
+#they now use estimate_visitor_sampling_variance_dm.py's Dirichlet-multinomial-corrected bootstrap
+#instead (same fixed expected_mixing_cv design, just with the overdispersion correction applied).
+#This block was left as-is rather than edited in place since nothing downstream still depends on
+#its output; see the README bullet above for the full derivation and real numbers.
 quintile_cols = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 q_counts = df[quintile_cols].to_numpy(dtype=float)
 q_totals = q_counts.sum(axis=1)

@@ -293,12 +293,30 @@ verify_library_categories.py    Spot-checks vendor-tagged "library" venues again
                                  NYC_Library_Locations.csv plus a venues_2026_0X_slim.csv-style
                                  export; prints matches/mismatches, doesn't change any file.
 
-estimate_overdispersion.py      Cross-month check (reads all three months' model_ready_2026_0X.pkl
-                                 at once, not per-month) of the independence assumption behind the
-                                 visitor-sampling bootstrap -- see Known limitations. Prints the
-                                 result, doesn't change any model output; the visitor-sampling
-                                 bootstrap is not given a Dirichlet-multinomial correction, since
-                                 this check doesn't find evidence to support one.
+estimate_overdispersion.py      REVISED after a third round of external review (Note 5 -- see
+                                 Known limitations): cross-period check, now over all 8 periods
+                                 instead of the original 3, of the independence assumption behind
+                                 the visitor-sampling bootstrap. Finds real evidence FOR
+                                 extra-multinomial clustering (corrected VIF~1.48, reversing the old
+                                 3-month 0.91 reading) and now saves an ADOPTED S_hat/rho_hat (plus
+                                 its honest sensitivity range) to overdispersion_estimate.pkl for
+                                 estimate_visitor_sampling_variance_dm.py to use -- no longer just a
+                                 print-and-stop diagnostic. Run once all 8 periods'
+                                 model_ready_<PERIOD>.pkl files exist (needs the full balanced panel
+                                 to measure serial correlation honestly).
+
+estimate_visitor_sampling_variance_dm.py  REQUIRED pipeline step (Note 5 fix): re-estimates every
+                                 eligible venue's visitor-sampling variance using a Dirichlet-
+                                 multinomial-corrected bootstrap instead of fit_mixing_model_2026_0X.
+                                 py's plain-multinomial one, using estimate_overdispersion.py's
+                                 adopted S_hat. Cheap (~1-2 minutes per period -- no model refit,
+                                 just resampling). Run once per period via MONTH env var, AFTER
+                                 estimate_overdispersion.py and BEFORE pool_persistence.py/
+                                 consolidate_fragments.py, which now read resid_vs_mean/resid_vs_var
+                                 from here instead of from fit_mixing_model_2026_0X.py's output.
+                                 Reads model_ready_<MONTH>.pkl, results_mixing_<MONTH>.pkl, and
+                                 overdispersion_estimate.pkl; produces
+                                 visitor_sampling_variance_dm_<MONTH>.csv.
 
 estimate_model_prediction_variance.py  REQUIRED pipeline step (promoted from a one-off
                                  sensitivity check after external review -- see Known limitations,
@@ -313,27 +331,36 @@ estimate_model_prediction_variance.py  REQUIRED pipeline step (promoted from a o
                                  Reads model_ready_<MONTH>.pkl; produces
                                  model_prediction_variance_<MONTH>.csv.
 
-pool_persistence.py             Pools each venue's per-month residual (from the fixed-reference
-                                 bootstrap in fit_mixing_model_2026_0X.py above) across however many
-                                 months it cleared the eligibility floor, via a REML + Hartung-Knapp
-                                 random-effects meta-analysis over var_combined = visitor-sampling +
-                                 model-refit variance (the ADOPTED method and weight; DerSimonian-
-                                 Laird and sampling-variance-alone are kept only as a diagnostic/
-                                 comparison -- see Known limitations), then applies a
-                                 Benjamini-Hochberg FDR correction across venues with 2+ eligible
-                                 months -- see Known limitations. Reads every month's
-                                 results_mixing_2026_0X.pkl and model_prediction_variance_<MM>.csv;
-                                 produces pooled_persistence_2026.{pkl,csv}. Superseded for most
-                                 purposes by consolidate_fragments.py below, which reruns this same
-                                 pooling on fragment-consolidated entities -- kept because it's also
-                                 the pre-consolidation sanity check referenced in Known limitations.
+pool_persistence.py             Pools each venue's per-month residual (the fixed-reference point
+                                 estimate from fit_mixing_model_2026_0X.py above, pooled against an
+                                 overdispersion-corrected sampling variance -- Note 5) across however
+                                 many months it cleared the eligibility floor, via a REML +
+                                 Hartung-Knapp random-effects meta-analysis over var_combined =
+                                 visitor-sampling + model-refit variance (the ADOPTED method and
+                                 weight; DerSimonian-Laird is kept only as a diagnostic/comparison --
+                                 see Known limitations), then applies a Benjamini-Hochberg FDR
+                                 correction across venues with 2+ eligible months -- see Known
+                                 limitations. Reads every month's results_mixing_2026_0X.pkl,
+                                 model_prediction_variance_<MM>.csv, and (Note 5)
+                                 visitor_sampling_variance_dm_<MM>.csv; produces
+                                 pooled_persistence_2026.{pkl,csv}. Superseded for most purposes by
+                                 consolidate_fragments.py below, which reruns this same pooling on
+                                 fragment-consolidated entities -- kept because it's also the
+                                 pre-consolidation sanity check referenced in Known limitations.
 
 consolidate_fragments.py        Citywide pass that groups POI-catalog fragments representing the
                                  same real place (spatial proximity within 75ft + name-token
                                  Jaccard similarity + same top_category; see Known limitations --
                                  POI fragmentation) and reruns the persistence pooling above on the
-                                 merged entities. Produces fragment_groups_report.csv (250 groups,
-                                 43 flagged as exact-name matches worth a manual glance) and
+                                 merged entities, including Note 5's overdispersion correction --
+                                 singletons pick it up via the same visitor_sampling_variance_dm_
+                                 <MM>.csv merge as pool_persistence.py, while merged fragment groups
+                                 get their OWN Dirichlet-multinomial bootstrap re-run on their
+                                 combined quintile counts (not covered by that per-venue CSV), using
+                                 the same adopted S_hat from overdispersion_estimate.pkl. Produces
+                                 fragment_groups_report.csv (265 groups, 46 flagged as exact-name
+                                 matches worth a manual glance -- the grouping itself is unaffected
+                                 by Note 5, unchanged from the prior commit) and
                                  consolidated_pooled_persistence_2026.{pkl,csv} -- this is the
                                  canonical, current persistence table; prefer it over
                                  pooled_persistence_2026.{pkl,csv} above.
@@ -396,14 +423,19 @@ Run order per period: `geocode_venues_to_cbg.py` -> `build_features_2026_0X.py` 
 `fit_mixing_model_2026_0X.py` and `fit_balance_model_2026_0X.py` -> `estimate_model_prediction_
 variance.py` (REQUIRED since the model-refit-variance fix -- see Known limitations; reads that
 same period's `model_ready_<MONTH>.pkl`, ~10-15 minutes per period). The notebook is
-self-contained for a single period end to end. `estimate_overdispersion.py` can be run once
-enough periods' `model_ready_2026_0X.pkl` files exist to check it. Once every period's
-`results_mixing_<MONTH>.pkl` AND `model_prediction_variance_<MONTH>.csv` exist (i.e.
-`fit_mixing_model_2026_0X.py` and `estimate_model_prediction_variance.py` have both been rerun
-for each period in `pool_persistence.py`'s `PERIODS` tuple), run `consolidate_fragments.py`
-(which calls the same pooling logic as `pool_persistence.py` internally, so running
-`pool_persistence.py` separately first is optional, not a prerequisite), then
-`presence_bookkeeping.py`, which reads `consolidate_fragments.py`'s output.
+self-contained for a single period end to end. `estimate_overdispersion.py` is now ALSO REQUIRED
+(Note 5 -- see Known limitations): run it once all 8 periods' `model_ready_<PERIOD>.pkl` files
+exist (it needs the full balanced panel to measure serial correlation honestly), producing
+`overdispersion_estimate.pkl`'s adopted S_hat. Then run `estimate_visitor_sampling_variance_dm.py`
+per period (~1-2 minutes per period) -- also REQUIRED, and must come after
+`estimate_overdispersion.py` since it reads that S_hat. Once every period's
+`results_mixing_<MONTH>.pkl`, `model_prediction_variance_<MONTH>.csv`, AND
+`visitor_sampling_variance_dm_<MONTH>.csv` exist (i.e. `fit_mixing_model_2026_0X.py`,
+`estimate_model_prediction_variance.py`, and `estimate_visitor_sampling_variance_dm.py` have all
+been rerun for each period in `pool_persistence.py`'s `PERIODS` tuple), run
+`consolidate_fragments.py` (which calls the same pooling logic as `pool_persistence.py`
+internally, so running `pool_persistence.py` separately first is optional, not a prerequisite),
+then `presence_bookkeeping.py`, which reads `consolidate_fragments.py`'s output.
 
 Regression is weighted by `income_known_devices` (device count) when fitting the RandomForest,
 since `income_mixing_score` has a documented finite-sample bias below ~150 devices (see the
@@ -562,15 +594,19 @@ data licenses restrict redistribution even of aggregated results.
   and a direct measure of how much of its apparent month-to-month movement is genuine
   (`tau2_reml`) rather than visitor-sampling noise, then run through a Benjamini-Hochberg FDR
   correction across every venue tested in 2+ months (31,652 such venues citywide, current
-  8-period pooling Dec 2025-Jul 2026; **5,498** survive the ADOPTED REML+Hartung-Knapp FDR control
-  at q<=0.05 over `var_combined` (sampling + model-refit variance -- see "Model prediction
-  variance" in Known limitations), versus 14,388 under the DerSimonian-Laird diagnostic. That
-  52%-vs-62% gap breaks down as two separate, independently-measured effects, not one: switching
-  DL->Hartung-Knapp alone (still over sampling-only variance) already dropped survivors to 6,961
-  (a 52% reduction, the DerSimonian-Laird-optimism gap the caveat below warns about); folding in
-  model-refit variance on top of that dropped it further to 5,498 (a further 21% reduction on an
-  already-adopted number, from a real and separately-quantified source of previously-omitted
-  uncertainty -- see Known limitations).
+  8-period pooling Dec 2025-Jul 2026; **4,502** survive the ADOPTED REML+Hartung-Knapp FDR control
+  at q<=0.05 over `var_combined` (overdispersion-corrected sampling variance + model-refit variance
+  -- see "Model prediction variance" and "The overdispersion check's independence assumption" in
+  Known limitations), versus 13,471 under the DerSimonian-Laird diagnostic (also lower than before,
+  for the same reason -- see below). This breaks down as THREE separate, independently-measured
+  effects, not one: switching DL->Hartung-Knapp alone (still over the original plain-multinomial
+  sampling variance) dropped survivors to 6,961 (the DerSimonian-Laird-optimism gap the caveat below
+  warns about); folding in model-refit variance on top of that dropped it further to 5,498 (a real,
+  separately-quantified source of previously-omitted uncertainty -- see "Model prediction variance"
+  below); correcting the sampling variance itself for real extra-multinomial clustering (Note 5 --
+  see "The overdispersion check's independence assumption" below) dropped it further still, to
+  **4,502** (an 18% reduction on top of the already-adopted 5,498, concentrated almost entirely in
+  large, high-traffic venues -- see that bullet for why).
 
   **Point-estimate correction (external review caught this):** an earlier version of this script
   used the MEAN of the 500 visitor-sampling bootstrap draws (`resid_vs_mean`) as each month's point
@@ -608,10 +644,14 @@ data licenses restrict redistribution even of aggregated results.
   bottleneck is the model refits, not how many venues' predictions get read off after), and
   `pool_persistence.py`/`consolidate_fragments.py` now pool over `var_combined = resid_vs_var +
   model_pred_var` instead of `resid_vs_var` alone -- this is the ADOPTED pooling variance; see
-  those scripts' docstrings. Effect on the full 8-period pool: median variance inflation is +14%,
-  and confirmed findings (ADOPTED REML+Hartung-Knapp survivors, consolidated entity set) drop from
-  6,961 to **5,498** -- see "Persistent across months" above for where that number is used, and
-  below for what it does to the four named venues. Compute cost, stated plainly: this is now a
+  those scripts' docstrings. Effect on the full 8-period pool, measured at the time (before the
+  separate Note 5 fix below): median variance inflation is +14%, and confirmed findings (ADOPTED
+  REML+Hartung-Knapp survivors, consolidated entity set) dropped from 6,961 to 5,498 -- see
+  "Persistent across months" above for where that number was used at the time. UPDATE: superseded
+  again by Note 5 below, which corrects `resid_vs_var` itself -- the current adopted survivor count
+  is **4,502**, not 5,498; this bullet's +14%/5,498 numbers describe only this fix's own, isolated
+  effect, measured against the sampling variance as it stood before Note 5. Compute cost, stated
+  plainly: this is now a
   REQUIRED monthly pipeline step, not an optional check -- `estimate_model_prediction_variance.py`
   reruns the full grid-cell-blocked `GroupKFold(5)` 15 times per period (~10-15 minutes per period
   on the data sizes seen so far), and must be run for a period before `pool_persistence.py`/
@@ -688,74 +728,119 @@ data licenses restrict redistribution even of aggregated results.
   annual claim. DerSimonian-Laird's `mu_re`/`q_bh` are given alongside for comparison, but
   `mu_hk`/`q_bh_hk` are what's reported:
   - **Amenazel Organic** (Bronx specialty food store), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.2735, 95% CI [0.208, 0.339], `tau2_reml`~=0 --
-    no heterogeneity detected, `q_bh_hk`=0.0081 (was 0.0023 before folding model-refit variance
-    into the pooling weight -- see Known limitations). Survives the adopted bar comfortably; DL
-    agrees (`mu_re`=+0.278, `q_bh`<0.0001). The cleanest of the four results.
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.2735, 95% CI [0.206, 0.341], `tau2_reml`~=0 --
+    no heterogeneity detected, `q_bh_hk`=0.0106 (was 0.0081 before Note 5's overdispersion
+    correction, 0.0023 before folding model-refit variance into the pooling weight -- see Known
+    limitations). Still survives the adopted bar comfortably; DL agrees (`mu_re`=+0.276,
+    `q_bh`<0.0001). Still the cleanest of the four results.
   - **Chens Fresh Food Market** (Brooklyn grocery), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=-0.277, 95% CI [-0.366, -0.189], `tau2_reml`~=0,
-    `q_bh_hk`=0.0141 (was 0.0087). Survives the adopted bar; DL agrees (`mu_re`=-0.279, `q_bh`<0.0001).
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=-0.2788, 95% CI [-0.373, -0.184], `tau2_reml`~=0,
+    `q_bh_hk`=0.0189 (was 0.0141 before Note 5, 0.0087 before model-refit variance). Still survives
+    the adopted bar; DL agrees (`mu_re`=-0.280, `q_bh`<0.0001).
   - **Jacob Riis Park / beach complex** (the 3-fragment Rockaways cluster, now consolidated into
     one entity -- see POI fragmentation below), `persistence_tier`=`current_period_persistence`
-    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.098, 95% CI [0.015, 0.181], `tau2_reml`=0.0026
-    (DL's diagnostic `I2`=96.0% -- real period-to-period movement, not sampling noise, accounts
+    (5/5 eligible periods, Mar-Jul 2026): `mu_hk`=+0.099, 95% CI [0.016, 0.182], `tau2_reml`=0.0025
+    (DL's diagnostic `I2`=93.0% -- real period-to-period movement, not sampling noise, accounts
     for almost all the apparent variation here, consistent with a warm-weather-linked pattern
-    rather than a flat one across the year). **This is the one named venue where the method
-    switch changes the finding**: `q_bh_hk`=0.1094 (was 0.0665 before folding in model-refit
-    variance, itself already above the bar under the HK method switch alone), versus `q_bh`=0.0003
-    under the DL diagnostic. The pooled effect is still clearly positive and directionally
-    identical under every method tried -- what changed is whether it clears a strict
-    multiple-testing bar once the between-period variance is estimated by REML instead of DL's
-    more optimistic closed-form estimator, the CI widened by Hartung-Knapp, and now the pooling
-    weight itself widened further by real, previously-omitted model-refit uncertainty. Read this
-    as a real, persistent, but no-longer-formally-confirmed effect under the stricter standard --
-    not as a venue that stopped being unusual.
+    rather than a flat one across the year). **This remains the one named venue where the method
+    switch changes the finding, and Note 5's overdispersion correction pushes it further the same
+    direction**: `q_bh_hk`=0.1168 (was 0.1094 before Note 5, 0.0665 before folding in model-refit
+    variance, itself already above the bar under the HK method switch alone), versus `q_bh`=0.0002
+    under the DL diagnostic. Jacob Riis is exactly the kind of large, high-traffic venue Note 5's
+    correction hits hardest (see that bullet below -- a venue this size sees its visitor-sampling
+    variance roughly double), so this direction of movement is expected, not a surprise. The pooled
+    effect is still clearly positive and directionally identical under every method tried -- what's
+    changed, cumulatively, is whether it clears a strict multiple-testing bar once the
+    between-period variance is estimated by REML instead of DL's more optimistic closed-form
+    estimator, the CI widened by Hartung-Knapp, the pooling weight widened by real model-refit
+    uncertainty, and now the sampling variance itself corrected for real extra-multinomial
+    clustering. Read this as a real, persistent, but no-longer-formally-confirmed effect under the
+    stricter standard -- not as a venue that stopped being unusual.
   - **Hunts Point Floating Pier** only clears the eligibility floor in 2 of the current 8 periods
     (June and July 2026) -- see `presence_bookkeeping_2026.csv` for exactly why it's
     absent/ineligible the others. `persistence_tier`=`repeated_evidence`: pooled across those 2
-    adjacent periods, `mu_hk`=+0.322, 95% CI [-0.063, 0.708] (wide, since Hartung-Knapp's
-    t-distribution has only 1 degree of freedom at n=2, now wider still with model-refit variance
-    folded in), `q_bh_hk`=0.1699 (was 0.117), versus `q_bh`<0.0001 under the DL diagnostic (whose
+    adjacent periods, `mu_hk`=+0.322, 95% CI [-0.067, 0.711] (wide, since Hartung-Knapp's
+    t-distribution has only 1 degree of freedom at n=2, widened further by model-refit variance and
+    again by Note 5's overdispersion correction -- Hunts Point is another high-traffic venue, hit by
+    the same size-dependent effect as Jacob Riis), `q_bh_hk`=0.1816 (was 0.1699 before Note 5, 0.117
+    before folding in model-refit variance), versus `q_bh`<0.0001 under the DL diagnostic (whose
     normal-approximation CI is much narrower at this same sample size -- exactly the DL optimism
-    problem this switch was meant to correct for). A real, precisely-estimated-looking effect
-    that, assessed honestly under a method built for few observations, isn't yet distinguishable
-    from chance at only 2 eligible periods -- not evidence it's wrong, but a reminder that
-    2-period pooling is the thinnest evidence this project produces.
+    problem this switch was meant to correct for). A real, precisely-estimated-looking effect that,
+    assessed honestly under a method built for few observations and now a properly corrected
+    sampling variance, isn't yet distinguishable from chance at only 2 eligible periods -- not
+    evidence it's wrong, but a reminder that 2-period pooling is the thinnest evidence this project
+    produces.
 
   Separately -- and this is the correction that prompted building the citywide consolidation pass
   in the first place -- the Brooklyn "Jacob Riis Beach" catalog entry, 14.6km from the real
   Rockaways complex and confirmed to be a different, unrelated venue that merely shares part of
   its name (see POI fragmentation below), pools to `mu_hk`=+0.024 across its 3 eligible periods
-  (`persistence_tier`=`provisional_persistence`), 95% CI [-0.003, 0.050], `q_bh_hk`=0.1730 (was
-  0.117) -- same as Hunts Point, this does not clear the adopted bar (DL's diagnostic
-  `q_bh`=0.000001 would have called it significant), a much smaller effect than the real Jacob
-  Riis complex regardless of method, and should never be cited as evidence for, or against, the
-  Jacob Riis finding.
+  (`persistence_tier`=`provisional_persistence`), 95% CI [-0.005, 0.053], `q_bh_hk`=0.2017 (was
+  0.1730 before Note 5, 0.117 before model-refit variance) -- same as Hunts Point, this does not
+  clear the adopted bar (DL's diagnostic `q_bh`=0.00004 would have called it significant), a much
+  smaller effect than the real Jacob Riis complex regardless of method, and should never be cited
+  as evidence for, or against, the Jacob Riis finding. Unlike its Rockaways namesake, this is a
+  small, low-traffic venue, so Note 5's correction barely moved it -- the small shift here is
+  mostly ordinary Monte Carlo noise from a fresh 500-draw bootstrap, not a real overdispersion
+  effect.
 
-  Caveat on the visitor-sampling bootstrap itself, and a direct test of it: it assumes each
-  income-known device's home-quintile draw is independent given the venue's observed rate. If
-  visits cluster -- multiple devices from the same household, workplace, or tour group arriving
-  together -- true sampling variance would run higher than a plain multinomial implies, so these
-  stability numbers could in principle be an optimistic floor rather than a worst case. This is
-  testable, because the same venues appear in all three real months, so a venue's own
-  month-to-month movement in quintile shares can be compared against what a plain multinomial
-  predicts for its device count. Doing this properly (a chi-square test of homogeneity across
-  each venue's 2-3 months, with the right degrees of freedom for the fact that each venue's
-  reference rate has to be *estimated* from those same few months -- the naive version of this
-  check, which doesn't correct for that, understates real variance by roughly a third) gives an
-  observed-to-expected variance ratio of **0.91** across 28,172 venues appearing in 2+ of the 3
-  months (81,074 venue-months total; sanity-checked at 0.91 again when restricted to the 17,001
-  venues with 100+ devices every month they're present). A ratio at or below 1.0 means real
-  month-to-month movement is no larger -- if anything slightly smaller -- than independent-sampling
-  noise alone would predict for these device counts. Because this comparison conflates true
-  behavioral change between months with sampling noise (both would inflate the ratio, not shrink
-  it), a reading at or below 1.0 is real evidence against clustering showing up at a detectable
-  level here, not just an inconclusive null result. We therefore did not apply a Dirichlet-multinomial
-  (overdispersion-corrected) version of this bootstrap -- the data itself doesn't support one, and
-  forcing a correction the evidence doesn't show would trade a real number for an invented one.
-  The test can't rule out clustering entirely (three monthly snapshots is a thin basis, and a
-  clustering effect smaller than ordinary month-to-month behavioral noise could still be hiding
-  inside that 0.91), so this is "no detectable evidence of it," not "proven absent."
+  **The overdispersion check's independence assumption -- FIXED (Note 5, a third round of
+  external review):** the visitor-sampling bootstrap assumes each income-known device's
+  home-quintile draw is independent given the venue's observed rate. If visits cluster -- multiple
+  devices from the same household, workplace, or tour group arriving together -- true sampling
+  variance runs higher than a plain multinomial implies. This was checked directly early on
+  (`estimate_overdispersion.py`, originally against May/June/July 2026 only -- the first three real
+  months that existed at the time) via a chi-square test of homogeneity across each venue's 2-3
+  months, with the right degrees of freedom for the fact that each venue's reference rate has to be
+  *estimated* from those same few months. That version found an observed-to-expected variance ratio
+  of 0.91 and read it as real evidence AGAINST clustering -- but it rested on an assumption it never
+  tested: that a venue's different months are independent of each other once you've accounted for
+  its own fitted mean. With only 3 months (at most 2 lag-pairs per venue), there wasn't enough data
+  to test that directly.
+
+  Now that all 8 periods exist, `estimate_overdispersion.py` tests it directly, on the same
+  7,838-venue balanced panel used for the serial-correlation check two bullets up: it measures the
+  actual lag-1 correlation between adjacent periods' quintile-share deviations from each venue's
+  own period mean, against the same -1/(T-1) demeaning-artifact benchmark. All 7 available
+  period-pairs show real, consistently positive excess correlation (+0.03 to +0.29, averaging
+  +0.19) -- not an artifact, and not a result of too little data this time. The raw VIF on the full
+  8-period panel is already 1.21 (not 0.91 -- that was an artifact of only having 3 months to check
+  against), and correcting the reference distribution for the measured serial correlation pushes it
+  to roughly 1.48 at the mean estimate (honest range 1.24-1.70 across the 7 pairs' own estimates).
+  **This reverses the original conclusion**: there is real evidence FOR extra-multinomial
+  clustering in how devices visit venues, not against it.
+
+  ADOPTED FIX: `estimate_visitor_sampling_variance_dm.py` now draws each bootstrap replicate from a
+  Dirichlet-multinomial instead of a plain multinomial, using the Dirichlet-multinomial
+  concentration `S_hat`=732 this correction implies (honest range 504-1,452 across the 7-pair
+  estimates -- see `estimate_overdispersion.py`'s docstring for the full derivation).
+  `pool_persistence.py`/`consolidate_fragments.py` now read `resid_vs_mean`/`resid_vs_var` from
+  this corrected bootstrap instead of `fit_mixing_model_2026_0X.py`'s plain-multinomial one (left
+  unmodified and documented as superseded, rather than touched directly, since nothing downstream
+  still reads its visitor-sampling columns).
+
+  This correction is NOT a flat percentage bump -- it's strongly size-dependent, because the
+  Dirichlet-multinomial's variance-inflation factor VIF(n)=(S+n)/(S+1) scales roughly linearly with
+  a venue's own device count. Across the full 180,367 eligible venue-periods: venues near the
+  50-device eligibility floor see almost no change (median +10% variance for n<100, 37% of all
+  venue-periods); mid-size venues (100-499 devices, 56% of all venue-periods) see +27%; venues with
+  500-1,999 devices see their sampling variance roughly double (+106%); and the 1,037 venue-periods
+  (0.6%) above 2,000 devices see it roughly quintuple (+406%). In practice that means this
+  correction barely touches most small, individually-named businesses, but hits large, high-traffic
+  venues -- exactly the Jacob Riis complex and Hunts Point Floating Pier -- hardest; see those two
+  venues' bullets above for the actual effect on their numbers.
+
+  Caveat on the correction itself, stated plainly: `S_hat` is estimated from only 7 lag-pairs (each
+  itself pooled across all 7,838 panel venues, so 7 is the real sample size for "how many
+  independent looks at the serial-correlation structure," not 7,838). The 7 estimates are
+  reasonably consistent -- all positive, no sign flips -- but span a real range, so `S_hat`=732 is
+  the best available point estimate, not a precisely known constant; a few more periods of data
+  would narrow this meaningfully. The test still can't fully separate genuine device-level
+  clustering (the thing it's meant to measure) from the same kind of real month-to-month behavioral
+  persistence the serial-correlation bullet above documents elsewhere in this pipeline -- both would
+  show up as "more cross-period movement than plain sampling predicts," and this check doesn't
+  cleanly distinguish them. Read the correction as a real, data-driven improvement over assuming
+  independence outright, not as a precisely-calibrated final answer.
 - **`balance_score` is a robustness check, not independent confirmation**: an earlier draft of
   this methodology treated a venue's also being extreme under `balance_score` as a third,
   independent bar alongside bootstrap stability and cross-month replication. Directly checking
