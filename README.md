@@ -365,6 +365,17 @@ sensitivity_neighborhood_diversity.py  Tests whether adding a block group's inco
                                  feature added. Reads model_ready_2026_0X.pkl plus census_new.pkl;
                                  produces sensitivity_neighborhood_diversity_results.csv and
                                  sensitivity_neighborhood_diversity_named_venues.csv.
+
+sensitivity_spatial_block_bootstrap.py  Corrects the model-refit stability bootstrap in
+                                 fit_mixing_model_2026_0X.py, which resamples individual venues
+                                 (rows) and predicts in-sample rather than respecting the
+                                 project's own spatial blocking -- see Known limitations above.
+                                 Resamples grid CELLS with replacement and reruns the real
+                                 grid-cell-blocked GroupKFold(5) inside each replicate, so every
+                                 re-flagging prediction stays genuinely held out. Reads
+                                 model_ready_2026_07.pkl and results_mixing_2026_07.pkl (for the
+                                 real reference flags); produces
+                                 sensitivity_spatial_block_bootstrap_results.csv.
 ```
 
 Run order per month: `geocode_venues_to_cbg.py` -> `build_features_2026_0X.py` ->
@@ -513,7 +524,11 @@ data licenses restrict redistribution even of aggregated results.
   Amenazel Organic, and Hunts Point Floating Pier all remain flagged at or near 100% stability in
   every month tested under the corrected, spatially-blocked residuals and this resampling scheme.
   (A second, different resampling scheme -- visitor-sampling stability, below -- tells a less
-  uniform story for a couple of these venues; see that bullet for the real numbers.)
+  uniform story for a couple of these venues; see that bullet for the real numbers. A THIRD issue,
+  caught later in external review, affects this specific 100%-stability number for Amenazel
+  Organic -- the "30-iteration bootstrap-stability check" itself, not just the residuals it's
+  computed from, turned out to have its own spatial-dependence problem; see the
+  spatial-block-bootstrap bullet in **Known limitations** below for the corrected number.)
 - **Persistence is now a formal pooled estimate, not a percentage-of-30-iterations count, and it
   resolves the earlier July/Jacob-Riis ambiguity**: an earlier version of this section reported
   "visitor-sampling stability" as a raw percentage of bootstrap iterations in which a venue
@@ -559,6 +574,35 @@ data licenses restrict redistribution even of aggregated results.
   exactly right -- not yet a full confidence interval for the venue's true residual. Combining in
   model-refit variance (an approximate sum of variances, or a full nested bootstrap) is a
   documented next step, not something to read into the numbers as they stand today.
+
+  **Model-refit stability bootstrap doesn't reproduce the published scoring procedure (external
+  review caught this):** the "30-iteration bootstrap-stability check" described above resamples
+  individual VENUES (rows) with replacement, refits one RandomForest, and predicts on every venue
+  including the ones whose own rows were just resampled into that same model's training set -- an
+  in-sample prediction for those venues, not the out-of-fold prediction the published number
+  actually is, and it never re-applies the grid-cell spatial blocking the real CV depends on
+  (nearby venues' residuals are correlated ~0.52-0.61; see "Location vs. category" below). The fix
+  (`sensitivity_spatial_block_bootstrap.py`): resample grid CELLS, not venues, with replacement,
+  and rerun the actual grid-cell-blocked `GroupKFold(5)` inside each replicate (grouped by each
+  cell's original id, so a cell drawn more than once still lands entirely in one fold), keeping
+  every re-flagging prediction genuinely held out. Run for July 2026 against the real 266
+  reference-flagged venues (133 top + 133 bottom): mean stability barely moves (67.3% original vs.
+  66.0% corrected), but that average hides a real asymmetry -- 57 venues drop from >=80% stability
+  under the flawed procedure to below 80% once corrected, against only 10 that move the other way,
+  so the original check was overstating how many venues clear the stability bar, specifically for
+  venues sitting near that line. Of the four headline venues, three are essentially unchanged or
+  firm up (Chens Fresh Food Market 100%->100%, Hunts Point Floating Pier 100%->100%, the two Jacob
+  Riis fragments 86.7%->100% and 60%->100%), but **Amenazel Organic drops from 100% to 61.5%** --
+  still flagged most of the time under the corrected procedure, but nowhere near as uniformly
+  robust as the flawed bootstrap reported, and the one named venue where this fix changes the
+  picture. Caveat on the corrected numbers themselves: because grid cells are resampled with
+  replacement rather than appearing every iteration, each venue's own cell was only actually drawn
+  in a median of 13 of 20 replicates, and N_BOOT was reduced from 30 to 20 because each replicate
+  now requires a full 5-fold refit (~5x the model fits per draw) rather than one -- so the
+  corrected per-venue percentages rest on fewer effective draws than the flawed version's, and are
+  themselves a first pass (July 2026 only) rather than an exhaustive multi-month recheck. See
+  `sensitivity_spatial_block_bootstrap.py` and `sensitivity_spatial_block_bootstrap_results.csv`
+  for the full 266-venue table.
 
   **DerSimonian-Laird with 2-4 months, read honestly (UPDATE: superseded as the adopted
   method):** `tau2` and `I2` below use the standard moment-based DerSimonian-Laird estimator,
