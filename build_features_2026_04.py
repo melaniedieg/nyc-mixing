@@ -220,7 +220,9 @@ encounter_df = poi[poi["encounter_type"].isin(["public_civic", "commercial_socia
 print(f"[{time.time()-t0:.0f}s] encounter classified, libraries included:",
       (poi.loc[poi["sub_category"] == "Libraries and Archives", "encounter_type"] == "public_civic").all())
 
-INCOME_KNOWN_DEVICE_THRESHOLD = 50
+INCOME_KNOWN_DEVICE_THRESHOLD = int(os.environ.get(
+    "INCOME_KNOWN_DEVICE_THRESHOLD_OVERRIDE", "50"))  #sensitivity check override -- see
+    #sensitivity_eligibility_floor.py / sensitivity_eligibility_floor_fdr.py
 model_df = encounter_df[encounter_df["income_known_devices"] >= INCOME_KNOWN_DEVICE_THRESHOLD].copy()
 model_df["log_devices"] = np.log1p(model_df["income_known_devices"])
 print("model_df shape:", model_df.shape, "libraries:", (model_df["sub_category"] == "Libraries and Archives").sum())

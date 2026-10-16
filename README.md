@@ -196,56 +196,132 @@ within-month CV. Neither has been rebuilt yet; this is flagged as a follow-up, n
 confirmed.
 
 **How much do the two consolidation thresholds (75ft, name-token Jaccard≥0.4) and the 50-device
-eligibility floor, each picked somewhat by eye, actually drive the results?** Checked both.
+eligibility floor, each picked somewhat by eye, actually drive the results?** Checked both --
+first for CV R²/grouping correctness, then (Note 8, a sixth round of external review) for the
+thing that actually matters downstream: whether either choice moves the real FDR-survivor count
+and the four named venues' own significance calls, not just an intermediate diagnostic.
 
-*Fragment-consolidation thresholds.* `sensitivity_fragments.py` reruns just the clustering step
-of `consolidate_fragments.py` across a 42-combination grid (distance ∈ {40,50,60,75,100,125,150}ft
-× name-token Jaccard ∈ {0.25,0.3,0.35,0.4,0.5,0.6}), built on one shared KD-tree query at the
-widest radius rather than rebuilding the tree per combination. Two things were checked at every
-grid point, not just the one combination that was picked: whether the unrelated Brooklyn "Jacob
-Riis Beach" stays excluded, and whether the Rockaway Jacob Riis cluster's 4 real fragments stay
-correctly grouped together. Brooklyn is correctly excluded in all 42/42 combinations -- that part
-of the method is robust across the whole grid. The Rockaway grouping is correct in 28/42,
-breaking down specifically once the Jaccard threshold reaches 0.5 or higher (both 0.5 and 0.6
-fail it at every distance tested); distance threshold on its own never breaks it within the range
-tested. That means 0.4 is closer to necessary than merely a reasonable-looking choice -- the
-method depends on not setting that threshold too strict, which is worth knowing plainly rather
-than presenting 0.4 as an arbitrary-but-fine pick. The total number of groups found ranges from
-101 (strictest: 150ft, Jaccard≥0.6) to 691 (loosest: 40ft, Jaccard≥0.25) across the grid, and is
-driven mostly by the Jaccard threshold, not the distance threshold -- consistent with the earlier
-finding that distance alone rarely breaks the Rockaway case. See `sensitivity_fragments.py` and
-`sensitivity_fragments_results.csv` for the full 42-row table.
+*Fragment-consolidation thresholds.* `sensitivity_fragments.py` reruns the clustering step of
+`consolidate_fragments.py` across a 42-combination grid (distance ∈ {40,50,60,75,100,125,150}ft ×
+name-token Jaccard ∈ {0.25,0.3,0.35,0.4,0.5,0.6}), built on one shared KD-tree query at the widest
+radius rather than rebuilding the tree per combination, and (Note 8) at every grid point also
+re-merges each combination's fragment groups and reruns the full REML+Hartung-Knapp pooling/BH-FDR
+across the resulting ~31,650-entity family -- not just the clustering, so the grid speaks to the
+same conclusions the README actually reports. Three things were checked at every grid point: (1)
+whether the unrelated Brooklyn "Jacob Riis Beach" stays excluded, (2) whether the Rockaway Jacob
+Riis cluster's 4 real fragments stay correctly grouped together, and (3, Note 8) how much the
+grid point moves the FDR survivor count and the four named venues' significance calls. Brooklyn
+is correctly excluded in all 42/42 combinations -- that part of the method is robust across the
+whole grid. The Rockaway grouping is correct in 28/42, breaking down specifically once the
+Jaccard threshold reaches 0.5 or higher (both 0.5 and 0.6 fail it at every distance tested);
+distance threshold on its own never breaks it within the range tested. That means 0.4 is closer
+to necessary than merely a reasonable-looking choice -- the method depends on not setting that
+threshold too strict, which is worth knowing plainly rather than presenting 0.4 as an
+arbitrary-but-fine pick. The total number of groups found ranges from 106 (strictest) to 770
+(loosest) across the grid, driven mostly by the Jaccard threshold, not the distance threshold --
+consistent with the earlier finding that distance alone rarely breaks the Rockaway case. The FDR
+survivor count stays in a tight 4,845-4,909 band across all 42 combinations (versus the published
+4,871), and none of the four named venues ever flips significance anywhere on the grid: Chens
+Fresh Food Market and Hunts Point Floating Pier stay non-significant in all 42, Amenazel Organic
+stays significant in all 42, and the merged Jacob Riis group's own call tracks its 28/42
+correctly-grouped pattern (it's only a coherent single entity to test in those 28) without ever
+flipping sign or crossing the FDR line. So this choice is robust on both axes checked: the
+clustering mechanics the earlier check already covered, and the actual reported conclusions.
+See `sensitivity_fragments.py` and `sensitivity_fragments_results.csv` for the full 42-row table.
 
 *Eligibility floor.* `sensitivity_eligibility_floor.py` reruns the exact fit_mixing_model_2026_04.py
 model spec and CV scheme (same features, same RandomForest hyperparameters, same
-income_known_devices sample weighting, same 2000ft grid-cell-blocked GroupKFold(5)) at five
-floors instead of one, so every number below is directly comparable to the published floor=50
-baseline for April (mean CV R²=0.6927, fold range 0.635-0.735). Raising the floor (75, 100, 150)
-needed no rebuild -- every spatial/context feature in `build_features_2026_0X.py` is computed on
-the full POI universe before the eligibility filter is applied as a final subset, so raising the
-floor is just filtering more rows out of the existing floor=50 dataframe. Lowering it to 30
-needed an actual rebuild (venues with 30-49 devices were never in the floor=50 dataframe at all),
-run via a patched copy of `build_features_2026_04.py` with the threshold changed -- cheap (41s)
-for the same reason.
+income_known_devices sample weighting, same buffered 2000ft grid-cell-blocked GroupKFold(5) --
+see "No spatial buffer between CV folds" below) at four other floors for April, so every number
+below is directly comparable to the published, buffered floor=50 baseline (mean CV R²=0.6201,
+fold range 0.573-0.681). Raising the floor (75, 100, 150) needed no rebuild -- every
+spatial/context feature in `build_features_2026_0X.py` is computed on the full POI universe
+before the eligibility filter is applied as a final subset, so raising the floor is just
+filtering more rows out of the existing floor=50 dataframe. Lowering it to 30 needed an actual
+rebuild (venues with 30-49 devices were never in the floor=50 dataframe at all), run via a
+patched copy of `build_features_2026_04.py` with the threshold changed -- cheap for the same
+reason.
 
 | floor | n venues | CV R² (mean) | fold range |
 |---|---|---|---|
-| 30  | 31,982 | 0.6948 | 0.672–0.725 |
-| 50 (published) | 27,481 | 0.6927 | 0.635–0.735 |
-| 75  | 22,832 | 0.6971 | 0.618–0.748 |
-| 100 | 18,937 | 0.7093 | 0.693–0.728 |
-| 150 | 13,336 | 0.7190 | 0.695–0.743 |
+| 30  | 31,982 | 0.6440 | 0.620–0.678 |
+| 50 (published) | 27,481 | 0.6201 | 0.573–0.681 |
+| 75  | 22,832 | 0.6411 | 0.566–0.704 |
+| 100 | 18,937 | 0.6627 | 0.645–0.684 |
+| 150 | 13,336 | 0.6540 | 0.621–0.678 |
 
-The result is reassuring and unremarkable in the right way: R² is flat to a slight, steady climb
-across the whole range, from 0.6927 at the published floor=50 down to 0.6948 at floor=30 and up
-to 0.7190 at floor=150 -- no cliff, and no sign that 50 was propping up an otherwise fragile
-number. The mild upward drift at higher floors is itself explainable rather than suspicious:
-`income_mixing_score` has a documented finite-sample bias at low device counts (see "Regression
-is weighted by..." below), so a stricter floor is simply a less noisy target variable to predict,
-not a different relationship being fit. Lowering the floor to 30 -- which keeps the shakiest,
-most sampling-noise-prone venues out of the floor=50 run, roughly 4,500 additional borderline
-venues -- barely moves R² at all. See `sensitivity_eligibility_floor.py` and
-`sensitivity_eligibility_floor_results.csv`.
+Read this against the buffered baseline, not the pre-Note-7 one this table used to show (an
+earlier version of this table reported 0.6927/0.6948/0.6971/0.7093/0.7190 -- the unbuffered
+numbers, superseded the same way the rest of the CV figures in this README were by Note 7's
+spatial-buffer fix). The honest read of the buffered table is non-monotonic rather than a clean
+climb: R² dips at the published floor=50 (0.6201) and at floor=75 (0.6411), relative to floor=30
+(0.6440), then climbs to a high at floor=100 (0.6627) before easing slightly at floor=150
+(0.6540). There's no cliff and the full range is narrow (0.62-0.66), so this still doesn't read as
+50 propping up an otherwise fragile number -- but it no longer supports the earlier, tidier
+"flat to a slight steady climb" framing, which was itself an artifact of the unbuffered CV's
+optimism. See `sensitivity_eligibility_floor.py` and `sensitivity_eligibility_floor_results.csv`.
+
+*Eligibility floor, FDR-conclusion stability (Note 8).* CV R² only tests whether the floor
+changes how well the model fits -- it says nothing about whether the floor changes what the
+project actually concludes. `sensitivity_eligibility_floor_fdr.py` reruns the FULL downstream
+pipeline at each floor and for all 8 periods -- the same buffered PRIMARY CV above, Note 5's
+Dirichlet-multinomial visitor-sampling-variance bootstrap, the 15-replicate model-refit/prediction-
+variance bootstrap, and `pool_persistence.py`'s own REML+Hartung-Knapp pooling and
+Benjamini-Hochberg FDR control -- at floors 30, 75, 100, 150, compared against the published
+floor=50's own RAW (pre-fragment-consolidation) output, so this isolates the floor's own effect
+from fragment-consolidation (already stress-tested separately, above). This is a materially bigger
+undertaking than the CV-only check (real RandomForest refits at every floor and period, not just a
+clustering or CV pass), so it's its own companion script rather than folded into
+`sensitivity_eligibility_floor.py` -- same reasoning that split `estimate_model_prediction_variance.py`
+and `estimate_visitor_sampling_variance_dm.py` out of `fit_mixing_model_2026_0X.py` as their own
+required pipeline steps.
+
+| floor | n venues (≥1 month) | n tested (≥2 months) | FDR survivors | survivor rate |
+|---|---|---|---|---|
+| 30  | 40,050 | 37,227 | 5,761 | 15.48% |
+| 50 (published) | 34,943 | 31,864 | 4,832 | 15.16% |
+| 75  | 29,661 | 26,448 | 3,995 | 15.11% |
+| 100 | 25,114 | 21,949 | 3,037 | 13.84% |
+| 150 | 18,202 | 15,383 | 1,983 | 12.89% |
+
+The survivor rate declines close to monotonically as the floor rises, from 15.48% at floor=30 to
+12.89% at floor=150 -- an intuitive pattern (a stricter floor shrinks the tested family down to
+fewer, individually larger venues, and does not by itself make the underlying effects easier to
+detect) and not a sign that 50 was an unusually favorable or unfavorable cut point; it sits in the
+middle of the range, not at either extreme. The three non-grouped named venues move more
+individually than the aggregate rate does: **Chens Fresh Food Market**, never significant at the
+published floor=50 (`q_bh_hk`=0.1146) or above, IS significant at floor=30 (`q_bh_hk`=0.0078,
+`mu_hk`=-0.289, 8 eligible months instead of 5) -- lowering the floor recovers two additional
+borderline-eligible months for this specific venue, and with them a real, if less certain,
+negative effect becomes detectable. **Amenazel Organic** survives at floors 30 and 50
+(`q_bh_hk`=0.0075 and 0.0321) but loses testability as the floor rises: non-significant at 75
+(`q_bh_hk`=0.078, still only 3 eligible months), and untestable at all (fewer than 2 eligible
+months) at 100 and 150 -- a power loss from a shrinking eligible-month count, not a reversal of
+the effect's sign or direction. **Hunts Point Floating Pier** stays non-significant at every floor
+tested, consistent with its published read (a real but not-yet-FDR-significant effect, 2 eligible
+months at most floors). So the floor choice does move individual conclusions for specific
+venues -- most notably, it determines whether Chens clears the bar at all -- but it does so
+through the mechanical, explainable channel of how many eligible months a venue has, not through
+any instability in the pooling method itself. See `sensitivity_eligibility_floor_fdr.py` and
+`sensitivity_eligibility_floor_fdr_results.csv`.
+
+**A staging bug this check surfaced and fixed, with no effect on the published headline number:**
+building the table above meant rerunning `pool_persistence.py` end to end against the buffered
+Note 7 outputs, which surfaced a defect in the already-committed Note 7 delivery: the repo's
+working copy of `pool_persistence.py` had been silently overwritten, during Note 7's own staging,
+by a pre-Note-5 copy missing the Dirichlet-multinomial overdispersion correction entirely (no
+`VS_VAR_PATHS` merge at all) -- a staging-cache mixup, not a change anyone made on purpose. That
+stale script is what actually produced the committed `pooled_persistence_2026.{pkl,csv}` (the RAW,
+pre-consolidation file): 5,593 survivors under the broken script versus the correct 4,832 once
+fixed and rerun, a real difference. The published HEADLINE number this README reports throughout
+-- the **4,871**-survivor CONSOLIDATED figure from `consolidate_fragments.py`, and every
+named-venue number quoted under "Persistence is now a formal pooled estimate" and the four NAMED
+venue bullets below -- was never affected: `consolidate_fragments.py`'s own copy already had the
+Note 5 fix, and a full independent rerun against freshly-regenerated, buffer-consistent
+visitor-sampling-variance inputs reproduced the existing 4,871 and every individual venue's
+`mu_hk`/`q_bh_hk` to floating-point precision, confirmed directly rather than assumed. Both
+`pool_persistence.py` and the RAW `pooled_persistence_2026.{pkl,csv}` have been corrected and
+recommitted alongside this Note 8 extension.
 
 *Neighborhood income diversity (omitted-variable check).* `sensitivity_neighborhood_diversity.py`
 tests a specific concern raised in external review: the contextual baseline conditions on a block
@@ -418,18 +494,41 @@ geo_temporal_holdout_validation.py   Tests whether the model generalizes across 
 sensitivity_fragments.py        Stress-tests the two consolidation thresholds in
                                  consolidate_fragments.py (75ft, name-token Jaccard≥0.4) across a
                                  42-combination grid -- see Validation checks already run above.
-                                 Reruns only the clustering step, not the RF refit/bootstrap.
-                                 Reads all four months' model_ready_2026_0X.pkl; produces
+                                 Reruns the clustering step, then (Note 8) re-merges and reruns
+                                 the full REML+Hartung-Knapp pooling/BH-FDR at every grid point --
+                                 not just a clustering/CV-correctness check, but whether the
+                                 threshold choice moves the actual FDR survivor count and the four
+                                 named venues' significance calls. Reads all 8 periods'
+                                 model_ready_2026_0X.pkl plus each period's
+                                 visitor_sampling_variance_dm_<PERIOD>.csv and
+                                 model_prediction_variance_<PERIOD>.csv; produces
                                  sensitivity_fragments_results.csv.
 
 sensitivity_eligibility_floor.py  Stress-tests the 50-device eligibility floor in
                                  build_features_2026_0X.py at four other floors (30, 75, 100,
                                  150) for April -- see Validation checks already run above.
                                  Reruns the exact fit_mixing_model_2026_04.py model spec and
-                                 grid-cell-blocked CV at each floor so results are directly
-                                 comparable to the published baseline. Reads the floor=50
-                                 model_ready_2026_04.pkl plus a separately-rebuilt floor=30
-                                 version; produces sensitivity_eligibility_floor_results.csv.
+                                 buffered grid-cell-blocked CV at each floor so results are
+                                 directly comparable to the published, buffered baseline. Reads
+                                 the floor=50 model_ready_2026_04.pkl plus a separately-rebuilt
+                                 floor=30 version; produces
+                                 sensitivity_eligibility_floor_results.csv.
+
+sensitivity_eligibility_floor_fdr.py  Companion to sensitivity_eligibility_floor.py (Note 8, a
+                                 sixth round of external review): reruns the FULL downstream
+                                 pipeline -- buffered PRIMARY CV, Note 5's DM visitor-sampling
+                                 bootstrap, the 15-replicate model-refit/prediction-variance
+                                 bootstrap, and pool_persistence.py's REML+Hartung-Knapp/BH-FDR
+                                 pooling -- at floors 30, 75, 100, 150 across all 8 periods, since
+                                 CV R² alone doesn't say whether the floor moves the actual FDR
+                                 conclusions. Compares against the published floor=50's own RAW
+                                 (pre-consolidation) output. Real RandomForest refits at every
+                                 floor/period, materially more expensive than the CV-only check
+                                 above -- see Validation checks already run above for the full
+                                 numbers. Reads model_ready_<PERIOD>.pkl/overdispersion_estimate.pkl
+                                 (published floor=50 outputs) plus build_features_<PERIOD>.py (for
+                                 the floor=30 rebuild); produces
+                                 sensitivity_eligibility_floor_fdr_results.csv.
 
 sensitivity_neighborhood_diversity.py  Tests whether adding a block group's income-distribution
                                  diversity (computed in census_new.pkl, but never carried into

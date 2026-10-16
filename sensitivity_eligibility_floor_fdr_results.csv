@@ -1,0 +1,6 @@
+floor,n_venues,n_family,n_survivors,survivor_rate_pct,chens_fresh_food_market_n_months,chens_fresh_food_market_mu_hk,chens_fresh_food_market_q_bh_hk,chens_fresh_food_market_sig,amenazel_organic_n_months,amenazel_organic_mu_hk,amenazel_organic_q_bh_hk,amenazel_organic_sig,hunts_point_floating_pier_n_months,hunts_point_floating_pier_mu_hk,hunts_point_floating_pier_q_bh_hk,hunts_point_floating_pier_sig
+30,40050,37227,5761,15.475327047572998,8,-0.2885581826833944,0.0078161982782751,True,6,0.254552308924944,0.0074915909913327,True,2,0.2764612936273559,0.1907040071604482,False
+50,34943,31864,4832,15.164448907858398,5,-0.2165873360928644,0.1146027475831396,False,5,0.2024709146325486,0.032069612491082,True,2,0.2677962260828262,0.2050124425291685,False
+75,29661,26448,3995,15.105111917725347,2,-0.3661634127455389,0.2384296061798352,False,3,0.2476465023841316,0.0779565663779279,False,1,,,False
+100,25114,21949,3037,13.83662125837168,1,,,False,1,,,False,0,,,
+150,18202,15383,1983,12.890853539621661,0,,,,0,,,,0,,,
