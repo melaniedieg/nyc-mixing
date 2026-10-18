@@ -14,7 +14,10 @@ Rebuilds the streamlit_app/data CSVs from the CURRENT, most-defensible pipeline 
     from consolidated_pooled_persistence_2026.csv -- replaces the old two-tier
     stable_single_month/confirmed_multi_month scheme, which was based on a since-superseded
     one-off bootstrap-outlier flag file (three_month_stable_outliers_PROPORTIONAL_CORRECTED.csv)
-    that only ever covered May-July 2026.
+    that only ever covered May-July 2026. As of Note 10 (the temporal-dependence/GLS pooling
+    correction -- see the main repo's README), these three columns reflect the ADOPTED method,
+    not the earlier diagonal-covariance one; rerun this script whenever
+    consolidated_pooled_persistence_2026.csv is regenerated so the app doesn't go stale against it.
   - fragment-grouped venues (e.g. Jacob Riis Park's several POI records across months) are
     looked up via fragment_groups_report.csv's placekey->group_id membership, since
     consolidated_pooled_persistence_2026.csv keys a grouped venue by its GRP#####id, not by any
@@ -37,8 +40,20 @@ Rebuilds the streamlit_app/data CSVs from the CURRENT, most-defensible pipeline 
     data are untouched.
 
 Covers all 8 currently-pooled periods: Dec 2025 through Jul 2026.
+
+ADDED (Note 10 follow-up): also writes significant_venues.csv -- one row per CONSOLIDATED entity
+(not per period) that clears the ADOPTED FDR bar (fdr_sig_05_hk), for the app's "Significant
+venues" page. This is a genuinely different shape from venues_<period>.csv: significance is a
+property of the POOLED entity across however many periods it was eligible in, not of any single
+period, so a per-period table would either repeat each significant venue up to 8x or arbitrarily
+pick one period to show it in. Each entity's location/category snapshot (lat/lon/borough/
+display_category) comes from whichever period it was MOST RECENTLY seen in (periods are processed
+chronologically above, so the last period's own `out` frame wins per placekey) -- a venue's
+pooled effect doesn't change across periods, only which single period's record is used to place
+and categorize the dot.
 """
 import pickle
+import numpy as np
 import pandas as pd
 
 SHARED = "shared/output"
@@ -72,6 +87,7 @@ MUSEUM_PARK_SUB = "Nature Parks and Other Similar Institutions"
 MUSEUM_PARK_DISPLAY = 'Parks & Nature Sites (filed under "Museums, Historical Sites")'
 
 stats_rows = []
+period_outs = []  #collects each period's `out` frame -- used below to build significant_venues.csv
 
 for period in PERIODS:
     key = period_key(period)
@@ -154,7 +170,36 @@ for period in PERIODS:
                         "cv_r2_fold_min": round(float(cv_full.min()), 4),
                         "cv_r2_fold_max": round(float(cv_full.max()), 4)})
 
+    period_outs.append(out.assign(period=key))
+
 stats_df = pd.DataFrame(stats_rows)
 stats_df.to_csv("month_stats.csv", index=False)
 print("\nmonth_stats.csv:")
 print(stats_df.to_string(index=False))
+
+#--- significant_venues.csv: one row per consolidated entity, not per period -------------------
+#periods sort chronologically as plain strings ("2025-12" < ... < "2026-07"), so sorting by
+#period ascending and keeping the LAST row per placekey gives each entity's most-recently-seen
+#location/category snapshot -- its pooled effect (mu_hk/q_bh_hk/etc, from `cp` below) doesn't
+#change across periods, only which single period's record is used to place and categorize it.
+#cp already carries its own `borough` (one of pool_persistence.py's static_cols), so only
+#display_category/lat/lon -- which cp has no equivalent of -- come from the per-period snapshot.
+all_out = pd.concat(period_outs, ignore_index=True).sort_values("period")
+latest_snapshot = all_out.drop_duplicates(subset="placekey", keep="last")
+snapshot_cols = ["placekey", "display_category", "lat", "lon"]
+
+sig = cp[cp["fdr_sig_05_hk"]].copy()
+sig = sig.merge(latest_snapshot[snapshot_cols], on="placekey", how="left")
+missing_snapshot = sig["lat"].isna().sum()
+if missing_snapshot:
+    print(f"\nWARNING: {missing_snapshot} significant entities have no per-period snapshot "
+          f"(unexpected -- every pooled entity should appear in at least one period's `out`)")
+
+sig["direction"] = np.where(sig["mu_hk"] >= 0, "More mixed than expected", "Less mixed than expected")
+sig = sig[["placekey", "location_name", "borough", "display_category", "lat", "lon", "direction",
+           "mu_hk", "ci_hk_lo", "ci_hk_hi", "q_bh_hk", "tau2_reml", "n_months", "months"]]
+sig = sig.sort_values("mu_hk", ascending=False)
+sig.to_csv("significant_venues.csv", index=False)
+print(f"\nsignificant_venues.csv: {len(sig)} entities "
+      f"({int((sig['mu_hk'] >= 0).sum())} more-mixed, {int((sig['mu_hk'] < 0).sum())} less-mixed)")
+print(sig["borough"].value_counts().to_string())
