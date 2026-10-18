@@ -146,6 +146,11 @@ VS_VAR_PATHS = {
 #bootstrap uses -- see estimate_overdispersion.py.
 S_HAT = float(os.environ.get("S_HAT", pd.read_pickle(
     os.path.join(OUTPUT_DIR, "overdispersion_estimate.pkl"))["S_hat"]))
+#Calendar position of each period and the adopted lag-1 excess-correlation point estimate --
+#same Note 10 fix as pool_persistence.py, see that script for the full explanation.
+MONTH_IDX = {mm: i for i, mm in enumerate(PERIODS)}
+RHO_TEMPORAL = float(os.environ.get("RHO_TEMPORAL", pd.read_pickle(
+    os.path.join(OUTPUT_DIR, "temporal_dependence_estimate.pkl"))["rho_lag1_point"]))
 QCOLS = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 DIST_THRESHOLD_FT = 75.0  #~23m
 NAME_JACCARD_THRESHOLD = 0.4
@@ -200,29 +205,52 @@ def persistence_tier(n_months):
     return PERSISTENCE_TIERS.get(n_months, "current_period_persistence" if n_months > 4 else "single_month_not_tested")
 
 
-#ADOPTED METHOD, same as pool_persistence.py -- see that script for the full explanation.
-#mu_re/var_re/ci_re/tau2/I2/q_bh below are retained only as a DerSimonian-Laird
-#diagnostic/comparison (over resid_vs_var alone) -- mu_hk/var_hk/ci_hk/q_bh_hk (over
-#var_combined) are the numbers of record.
-def reml_tau2(r, v):
+#ADOPTED METHOD, same as pool_persistence.py (including the Note 10 GLS lag-1-correlation
+#generalization) -- see that script for the full explanation. mu_re/var_re/ci_re/tau2/I2/q_bh
+#below are retained only as a DerSimonian-Laird diagnostic/comparison (over resid_vs_var alone,
+#untouched by Note 10) -- mu_hk/var_hk/ci_hk/q_bh_hk (over var_combined) are the numbers of
+#record.
+def build_sigma(v, month_idx, tau2, rho):
+    m = len(v)
+    gap = np.abs(month_idx[:, None] - month_idx[None, :])
+    adj = (gap == 1).astype(float)
+    np.fill_diagonal(adj, 0.0)
+    sqrt_v = np.sqrt(v)
+    off_diag = rho * sqrt_v[:, None] * sqrt_v[None, :] * adj
+    return np.diag(tau2 + v) + off_diag
+
+
+def reml_tau2(r, v, month_idx, rho=RHO_TEMPORAL):
+    m = len(r)
     def neg_restricted_loglik(tau2):
-        w = 1.0 / (v + tau2)
-        sw = w.sum()
-        mu = np.sum(w * r) / sw
-        resid2 = (r - mu) ** 2
-        ll = -0.5 * np.sum(np.log(v + tau2)) - 0.5 * np.log(sw) - 0.5 * np.sum(w * resid2)
+        Sigma = build_sigma(v, month_idx, tau2, rho)
+        try:
+            Sinv = np.linalg.inv(Sigma)
+            sign, logdet = np.linalg.slogdet(Sigma)
+        except np.linalg.LinAlgError:
+            return 1e10
+        ones = np.ones(m)
+        sw = ones @ Sinv @ ones
+        if sw <= 0 or sign <= 0:
+            return 1e10
+        mu = (ones @ Sinv @ r) / sw
+        resid = r - mu
+        ll = -0.5 * logdet - 0.5 * np.log(sw) - 0.5 * (resid @ Sinv @ resid)
         return -ll
     upper = max(0.25, 20.0 * np.var(r))
     res = minimize_scalar(neg_restricted_loglik, bounds=(0.0, upper), method="bounded")
     return max(0.0, res.x)
 
 
-def hartung_knapp(r, v, tau2_reml):
+def hartung_knapp(r, v, month_idx, tau2_reml, rho=RHO_TEMPORAL):
     m = len(r)
-    w = 1.0 / (v + tau2_reml)
-    sw = w.sum()
-    mu_hk = np.sum(w * r) / sw
-    q_stat = np.sum(w * (r - mu_hk) ** 2) / (m - 1)
+    Sigma = build_sigma(v, month_idx, tau2_reml, rho)
+    Sinv = np.linalg.inv(Sigma)
+    ones = np.ones(m)
+    sw = ones @ Sinv @ ones
+    mu_hk = (ones @ Sinv @ r) / sw
+    resid = r - mu_hk
+    q_stat = (resid @ Sinv @ resid) / (m - 1)
     var_classical = 1.0 / sw
     var_hk = max(q_stat / sw, var_classical)
     return mu_hk, var_hk
@@ -427,6 +455,7 @@ long = long[long["resid_vs_var"] > 0].copy()
 #prediction, falling back to sampling-only for the rare entity-period missing the latter.
 long["var_combined"] = long["resid_vs_var"] + long["model_pred_var"].fillna(0.0)
 long["w"] = 1.0 / long["resid_vs_var"]
+long["month_idx"] = long["month"].map(MONTH_IDX)  #calendar position, for GLS lag-1 adjacency (Note 10)
 print(f"\nconsolidated venue-months: {len(long)}, distinct entities: {long['placekey'].nunique()} "
       f"(was 33767 distinct placekeys before consolidation)")
 print(f"median inflation factor (var_combined / resid_vs_var): "
@@ -457,6 +486,7 @@ for pk, g in long.groupby("placekey"):
     r = g["resid_observed"].to_numpy()
     v = g["resid_vs_var"].to_numpy()  #DIAGNOSTIC weight (DL columns below only)
     v_combined = g["var_combined"].to_numpy()  #ADOPTED weight (REML+HK below)
+    midx = g["month_idx"].to_numpy()  #calendar position, for GLS lag-1 adjacency (Note 10)
     w = g["w"].to_numpy()
     m = len(g)
 
@@ -487,8 +517,8 @@ for pk, g in long.groupby("placekey"):
     #ADOPTED pooling result -- see note above reml_tau2/hartung_knapp, over var_combined.
     tau2_reml = mu_hk = var_hk = ci_hk_lo = ci_hk_hi = p_hk = pred_lo = pred_hi = np.nan
     if m >= 2:
-        tau2_reml = reml_tau2(r, v_combined)
-        mu_hk, var_hk = hartung_knapp(r, v_combined, tau2_reml)
+        tau2_reml = reml_tau2(r, v_combined, midx)
+        mu_hk, var_hk = hartung_knapp(r, v_combined, midx, tau2_reml)
         t_crit_ci = t_dist.ppf(0.975, df=m - 1)
         ci_hk_lo, ci_hk_hi = mu_hk - t_crit_ci * np.sqrt(var_hk), mu_hk + t_crit_ci * np.sqrt(var_hk)
         t_stat_hk = mu_hk / np.sqrt(var_hk)

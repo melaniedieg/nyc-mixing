@@ -47,19 +47,39 @@ resid_vs_var alone, since they were always diagnostic/comparison only, not the
 reported result -- see README for why mixing two changes into one column would make
 that comparison harder to read, not easier.
 
-CAVEAT STILL OPEN (NOT fixed by this change, read honestly): the per-venue months
-pooled here are still treated as independent replicates of r_vm, when a direct check
-(see README "Known limitations" -- the independence assumption) found real positive
-excess serial correlation between ADJACENT months (every month pair this project has
-ever tested is adjacent, since the data is one contiguous Dec 2025-Jul 2026 window) --
-+0.20 above what pure sampling noise alone would predict at lag 1, fading by lag 2+.
-That means each additional adjacent month carries a bit less independent information
-than tau2/var_hk assume, so even the ADOPTED interval below is very likely still a
-little too narrow for venues tested across only adjacent months (all of them, right
-now). Properly correcting for this would mean replacing the one-way random-effects
-model with something that has an explicit serial-correlation structure across
-months -- a bigger, more experimental change than combining in model_pred_var was,
-and not attempted here; see README for the real numbers and why.
+POOLING COVARIANCE, FIXED (Note 10, a seventh round of external review -- previously an open
+caveat here): the per-venue months pooled here used to be treated as independent replicates of
+r_vm. The number this docstring previously cited for that ("+0.20 excess at lag 1, fading by lag
+2+") turned out, on tracing it, to describe a DIFFERENT check -- the quintile-share
+serial-correlation test behind Note 5's Dirichlet-multinomial correction, not a direct test of
+r_vm itself; no committed script ever tested r_vm directly before now. estimate_temporal_
+dependence.py does, across all 7 available lags, on the same 7,838-venue balanced panel: real
+excess correlation concentrated at lag 1 (+0.156 raw / +0.180 variance-standardized over the
+demeaning-artifact benchmark), fading to at-or-below that benchmark by lag 2 and beyond -- a
+one-lag-only pattern, confirming the qualitative shape of the old (uncertainly-sourced) claim
+while correcting its exact number and, more importantly, giving it a real, reproducible basis.
+
+ADOPTED FIX: `reml_tau2`/`hartung_knapp` below now build an explicit GLS covariance
+Sigma_v = diag(tau2 + var_combined) + rho * sqrt(var_combined_i * var_combined_j) on entries for
+a pair of a venue's eligible months that are CALENDAR-adjacent (one month apart on the real Dec
+2025-Jul 2026 timeline, not just "next in this venue's own eligible-months list" -- a venue
+eligible in Feb and April has a 2-month gap, not lag 1), zero elsewhere. tau2 keeps its usual
+meaning (occasion-level heterogeneity, independent across months, same convention the old
+diagonal method already used) -- only the sampling/model-error component (var_combined) carries
+the measured lag-1 correlation, matching the fact that it fades by lag 2+ rather than acting
+like a persistent between-month signal. rho is FIXED at RHO_TEMPORAL = +0.1683 (mean of the
+raw/standardized lag-1 excess estimates, read from estimate_temporal_dependence.py's
+temporal_dependence_estimate.pkl -- same single-point-from-an-honestly-reported-range convention
+as S_hat's adoption in Note 5), not re-estimated per venue -- there isn't remotely enough
+per-venue data to fit rho and tau2 both. At rho=0 this is EXACTLY the old diagonal method
+(checked to 1e-15, not assumed -- see note10/prototype_ar1_pooling.py, the prototype this was
+validated with before being adopted here).
+
+Effect, prototyped on a 2,100-venue stratified sample before being adopted: median variance
+inflation ~1.24x (CIs widen ~11%), growing mildly with n_months (1.16x at m=2 to 1.28x at m=8 --
+more months means more adjacent pairs). Point estimates (mu_hk) barely move (median shift
+~0.0005-0.001). See README for the full-pipeline effect on the FDR survivor count and the four
+named venues, measured after adopting this fix, not merely prototyped.
 
 POOLING VARIANCE, fixed again after a THIRD round of external review (Note 5 -- see README
 "Known limitations" -- the overdispersion check's independence assumption): resid_vs_var itself
@@ -138,6 +158,9 @@ Input:  OUTPUT_DIR/results_mixing_<PERIOD>.pkl, one per period (must be from the
         estimate_visitor_sampling_variance_dm.py -- also REQUIRED since the Note 5 fix;
         supplies the overdispersion-corrected resid_vs_mean/resid_vs_var used below in
         place of results_mixing_<PERIOD>.pkl's plain-multinomial columns).
+        OUTPUT_DIR/temporal_dependence_estimate.pkl (from estimate_temporal_dependence.py --
+        also REQUIRED since the Note 10 fix; supplies RHO_TEMPORAL, the fixed lag-1
+        excess-correlation point estimate the GLS pooling below uses).
         Set OUTPUT_DIR to wherever build_features_2026_0X.py /
         fit_mixing_model_2026_0X.py wrote their outputs (same OUTPUT_DIR each
         period -- see those scripts' docstrings); default ./output.
@@ -171,6 +194,15 @@ MODEL_VAR_PATHS = {
 VS_VAR_PATHS = {
     mm: os.path.join(OUTPUT_DIR, f"visitor_sampling_variance_dm_{mm}.csv") for mm in PERIODS
 }
+#Calendar position of each period (0..7), NOT a venue's own position in its eligible-months list
+#-- two of a venue's eligible months are lag-1/"calendar-adjacent" only if their MONTH_IDX differ
+#by exactly 1, so a venue eligible in Feb and April (idx 2 and 4) is correctly NOT lag-1, even
+#though April is its next observed month. See Note 10 in the module docstring above.
+MONTH_IDX = {mm: i for i, mm in enumerate(PERIODS)}
+#Adopted lag-1 excess-correlation point estimate (Note 10) -- read from
+#estimate_temporal_dependence.py's saved pickle, same env-override pattern as S_HAT below.
+RHO_TEMPORAL = float(os.environ.get("RHO_TEMPORAL", pd.read_pickle(
+    os.path.join(OUTPUT_DIR, "temporal_dependence_estimate.pkl"))["rho_lag1_point"]))
 Z95 = 1.959963984540054
 
 #Plain-language labels for what n_months actually supports, per external review: a venue
@@ -195,17 +227,45 @@ def persistence_tier(n_months):
 #better-behaved alternative at this sample size, run over var_combined (see module docstring
 #for why var_combined, not resid_vs_var alone). mu_re/var_re/ci_re/tau2/I2/q_bh (DL, over
 #resid_vs_var alone) are retained only as a diagnostic/comparison. ----
-def reml_tau2(r, v):
+def build_sigma(v, month_idx, tau2, rho):
+    """GLS covariance for one venue's m eligible months (Note 10 -- see module docstring).
+    Sigma_ii = tau2 + v_i, the SAME marginal variance the old diagonal method used (tau2 is
+    still an occasion-level term, independent across months, not a single shared venue-level
+    draw). Sigma_ij (i!=j) = rho*sqrt(v_i*v_j) when months i,j are CALENDAR-adjacent (their
+    MONTH_IDX differ by exactly 1), else 0. At rho=0 this is exactly diag(tau2+v) -- the old
+    method's implicit covariance -- which is what makes reml_tau2/hartung_knapp below exact
+    generalizations rather than a different model; verified to 1e-15 in
+    note10/prototype_ar1_pooling.py before being adopted."""
+    m = len(v)
+    gap = np.abs(month_idx[:, None] - month_idx[None, :])
+    adj = (gap == 1).astype(float)
+    np.fill_diagonal(adj, 0.0)
+    sqrt_v = np.sqrt(v)
+    off_diag = rho * sqrt_v[:, None] * sqrt_v[None, :] * adj
+    return np.diag(tau2 + v) + off_diag
+
+
+def reml_tau2(r, v, month_idx, rho=RHO_TEMPORAL):
     """REML estimate of between-month variance tau^2, by directly maximizing the restricted
     log-likelihood over tau^2 (Viechtbauer 2005's REML criterion for a random-effects
-    meta-analysis) -- a 1-D, well-behaved numerical optimization, not the DL closed-form moment
-    estimator. m=len(r) must be >=2."""
+    meta-analysis, generalized (Note 10) to the GLS covariance Sigma_v(tau2, rho) from
+    build_sigma above instead of a diagonal one) -- a 1-D, well-behaved numerical optimization,
+    not the DL closed-form moment estimator. m=len(r) must be >=2."""
+    m = len(r)
     def neg_restricted_loglik(tau2):
-        w = 1.0 / (v + tau2)
-        sw = w.sum()
-        mu = np.sum(w * r) / sw
-        resid2 = (r - mu) ** 2
-        ll = -0.5 * np.sum(np.log(v + tau2)) - 0.5 * np.log(sw) - 0.5 * np.sum(w * resid2)
+        Sigma = build_sigma(v, month_idx, tau2, rho)
+        try:
+            Sinv = np.linalg.inv(Sigma)
+            sign, logdet = np.linalg.slogdet(Sigma)
+        except np.linalg.LinAlgError:
+            return 1e10
+        ones = np.ones(m)
+        sw = ones @ Sinv @ ones
+        if sw <= 0 or sign <= 0:
+            return 1e10
+        mu = (ones @ Sinv @ r) / sw
+        resid = r - mu
+        ll = -0.5 * logdet - 0.5 * np.log(sw) - 0.5 * (resid @ Sinv @ resid)
         return -ll
     #upper bound generous relative to the data's own scale (income_mixing_score residuals are
     #bounded in roughly [-1,1], so tau2 in practice never approaches this) -- wide enough not to
@@ -215,19 +275,24 @@ def reml_tau2(r, v):
     return max(0.0, res.x)
 
 
-def hartung_knapp(r, v, tau2_reml):
+def hartung_knapp(r, v, month_idx, tau2_reml, rho=RHO_TEMPORAL):
     """Hartung-Knapp-Sidik-Jonkman pooled mean/variance given REML tau^2: widens the random-effects
     variance by a factor reflecting how much the observed per-month residuals actually agree with
     each other (not just their nominal variances), and floors it at the classical random-effects
     variance under the same weights (the IQWiG/Wiksten et al. 2016 modification -- without it, HK
     can occasionally give an implausibly NARROW interval when a venue's few months happen to agree
-    closely by chance). Use a t-distribution with m-1 df against this variance, not a normal
-    one -- see ci_hk_lo/hi below."""
+    closely by chance). Generalized (Note 10) to the GLS covariance Sigma_v -- the diagonal
+    weights w_i/sum(w) below become Sigma^-1-weighted sums, which is the standard GLS form and
+    reduces exactly to the old diagonal formulas at rho=0. Use a t-distribution with m-1 df
+    against this variance, not a normal one -- see ci_hk_lo/hi below."""
     m = len(r)
-    w = 1.0 / (v + tau2_reml)
-    sw = w.sum()
-    mu_hk = np.sum(w * r) / sw
-    q_stat = np.sum(w * (r - mu_hk) ** 2) / (m - 1)
+    Sigma = build_sigma(v, month_idx, tau2_reml, rho)
+    Sinv = np.linalg.inv(Sigma)
+    ones = np.ones(m)
+    sw = ones @ Sinv @ ones
+    mu_hk = (ones @ Sinv @ r) / sw
+    resid = r - mu_hk
+    q_stat = (resid @ Sinv @ resid) / (m - 1)
     var_classical = 1.0 / sw
     var_hk = max(q_stat / sw, var_classical)
     return mu_hk, var_hk
@@ -261,6 +326,7 @@ for mm, path in MONTH_PATHS.items():
 
 long = pd.concat(frames, ignore_index=True)
 long = long[long["resid_vs_var"] > 0].copy()  #guard against degenerate zero-variance rows
+long["month_idx"] = long["month"].map(MONTH_IDX)  #calendar position -- see Note 10 above
 #ADOPTED pooling variance: visitor-sampling (resid_vs_var) + model-refit/prediction
 #(model_pred_var, fallback 0 for the rare venue-month where it couldn't be estimated -- see
 #warning above). DL diagnostic columns below still use resid_vs_var alone -- see module
@@ -284,6 +350,7 @@ for pk, g in long.groupby("placekey"):
     r = g["improbable_copresence_cv"].to_numpy()  #observed residual -- see point-estimate note above
     v = g["resid_vs_var"].to_numpy()  #DIAGNOSTIC weight (DL columns below only)
     v_combined = g["var_combined"].to_numpy()  #ADOPTED weight (REML+HK below)
+    midx = g["month_idx"].to_numpy()  #calendar position, for GLS lag-1 adjacency (Note 10)
     w = g["w"].to_numpy()
     m = len(g)
 
@@ -320,8 +387,8 @@ for pk, g in long.groupby("placekey"):
     #q_bh/fdr_sig_05 (DL-based, above) are diagnostic/comparison only. ----
     tau2_reml = mu_hk = var_hk = ci_hk_lo = ci_hk_hi = p_hk = pred_lo = pred_hi = np.nan
     if m >= 2:
-        tau2_reml = reml_tau2(r, v_combined)
-        mu_hk, var_hk = hartung_knapp(r, v_combined, tau2_reml)
+        tau2_reml = reml_tau2(r, v_combined, midx)
+        mu_hk, var_hk = hartung_knapp(r, v_combined, midx, tau2_reml)
         t_crit_ci = t_dist.ppf(0.975, df=m - 1)
         ci_hk_lo, ci_hk_hi = mu_hk - t_crit_ci * np.sqrt(var_hk), mu_hk + t_crit_ci * np.sqrt(var_hk)
         t_stat_hk = mu_hk / np.sqrt(var_hk)
