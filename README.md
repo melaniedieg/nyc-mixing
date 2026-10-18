@@ -229,15 +229,24 @@ flipping sign or crossing the FDR line. So this choice is robust on both axes ch
 clustering mechanics the earlier check already covered, and the actual reported conclusions.
 See `sensitivity_fragments.py` and `sensitivity_fragments_results.csv` for the full 42-row table.
 
-UPDATE (Note 10): this entire grid -- the 4,845-4,909 survivor band, the "versus the published
-4,871" comparison, and "Amenazel Organic stays significant in all 42" -- predates the GLS
-temporal-dependence fix adopted below (see "The independence assumption -- FIXED (Note 10...)" in
-Known limitations) and has NOT been rerun under it: `sensitivity_fragments.py` still carries its
-own pre-Note-10 duplicated `reml_tau2`/`hartung_knapp`, unlike `sensitivity_eligibility_floor_fdr.py`
-below, which inherits fixes automatically via its `pool_persistence.py` subprocess call. Given that
-Amenazel flips to non-significant under the now-ADOPTED method, this grid's "stays significant in
-all 42" claim should be read as a pre-Note-10 snapshot, not a current robustness confirmation --
-re-running it under the GLS method is the open follow-up flagged there.
+UPDATE (Note 10): `sensitivity_fragments.py` has been extended to the same GLS/AR(1)
+temporal-dependence covariance used by `pool_persistence.py` and `consolidate_fragments.py` (see
+"The independence assumption -- FIXED (Note 10...)" in Known limitations), and the full
+42-combination grid has been rerun under it. The FDR survivor count now ranges 3,186-3,283 across
+the grid, with the chosen 75ft/0.4 combination landing at exactly 3,233 -- an exact match to the
+real, currently-adopted `consolidate_fragments.py` production value, which is itself the right
+cross-check since both now share the same pooling method. Brooklyn exclusion (42/42) and the
+106-770 group-count range are unchanged from the pre-Note-10 grid, as expected -- the GLS fix only
+changes pooling/FDR, not the clustering step those two numbers measure. The Rockaway grouping
+correctness is also unchanged at 28/42, breaking down at Jaccard >=0.5 exactly as before, for the
+same reason. What did change, substantially: **all four named venues are now non-significant at
+every single one of the 42 grid points** -- Chens Fresh Food Market, Amenazel Organic, Hunts Point
+Floating Pier, and the merged Jacob Riis group (in the 28/42 combinations where it clusters as one
+entity) are each significant in 0/42 combinations. This reverses the pre-Note-10 grid's "Amenazel
+Organic stays significant in all 42" and confirms that the Amenazel flip reported above under the
+adopted method is not a boundary artifact of the specific 75ft/0.4 threshold choice -- it holds
+across the entire threshold grid tested. See `sensitivity_fragments.py` and
+`sensitivity_fragments_results.csv` for the full, re-run 42-row table.
 
 *Eligibility floor.* `sensitivity_eligibility_floor.py` reruns the exact fit_mixing_model_2026_04.py
 model spec and CV scheme (same features, same RandomForest hyperparameters, same
@@ -977,13 +986,14 @@ data licenses restrict redistribution even of aggregated results.
   closed-form scalar sum, which is still cheap per venue but adds up across ~35,000 venues --
   `pool_persistence.py` now takes several minutes rather than well under one.
 
-  Known open item from adopting this: `sensitivity_fragments.py` (Note 8's 42-combination
-  threshold grid) has its own duplicated `reml_tau2`/`hartung_knapp` and has NOT yet been updated
-  to this GLS method, so its own survivor-count/named-venue numbers in "Fragment-consolidation
-  thresholds" above still reflect the pre-Note-10 diagonal method -- `sensitivity_eligibility_
-  floor_fdr.py` is unaffected since it shells out to `pool_persistence.py` as a subprocess and so
-  inherits this fix automatically. Re-running the fragment-threshold grid under the new method is
-  a real, not-yet-done follow-up.
+  `sensitivity_fragments.py` (Note 8's 42-combination threshold grid) has also been updated to
+  this same GLS method and rerun in full -- see "Fragment-consolidation thresholds" above for the
+  result. The survivor count across the grid (3,186-3,283, with the chosen 75ft/0.4 combination
+  landing exactly on the real production value of 3,233) and, more importantly, all four named
+  venues' significance calls flipping to 0/42 confirm the Amenazel finding is robust across the
+  whole threshold grid, not an artifact of one cutoff choice. `sensitivity_eligibility_
+  floor_fdr.py` was unaffected throughout, since it shells out to `pool_persistence.py` as a
+  subprocess and so inherited this fix automatically without any changes of its own.
 
   **Model-refit stability bootstrap doesn't reproduce the published scoring procedure (external
   review caught this):** the "30-iteration bootstrap-stability check" described above resamples
@@ -1306,19 +1316,42 @@ data licenses restrict redistribution even of aggregated results.
   sustain an income-diverse crowd. Since these scores were never used to produce any reported
   finding, this doesn't affect anything above -- it's documented here so the near-empty
   `shared_candidate` column isn't mistaken for a result.
-- **Sensitive-location categories are absent, not just underrepresented**: Veraset has
-  filtered visits to health care facilities, places of worship, and shelters from its data
-  since August 2022 for privacy reasons -- and, confirmed directly against the June 2026 file,
-  K-12 schools as well: searching all 92,168 venues for NAICS 6111 (Elementary and Secondary
-  Schools) returned zero matches, against dozens of colleges, tutoring centers, and
-  specialty-instruction venues that do appear. (One public school, PS 128M, slipped through
-  mislabeled under the college/university NAICS code -- a rare leak, not evidence K-12 schools
-  are generally present.) This isn't a sampling gap that undercounts an otherwise-present
-  category; these venue types cannot appear in this analysis at all, regardless of how popular
-  or income-mixed they might be. That matters for how this project frames itself: Oldenburg's
+- **Sensitive-location categories are absent, not just underrepresented -- but school PLAYGROUNDS
+  are a documented exception, and were missed by the original check**: Veraset has filtered
+  visits to health care facilities, places of worship, and shelters from its data since August
+  2022 for privacy reasons -- and, confirmed directly against the June 2026 file, K-12 schools
+  as well: searching all 92,168 venues for NAICS 6111 (Elementary and Secondary Schools) returned
+  zero matches, against dozens of colleges, tutoring centers, and specialty-instruction venues
+  that do appear. (One public school, PS 128M, slipped through mislabeled under the
+  college/university NAICS code -- a rare leak relative to that NAICS-based search, but see
+  below for why this check understates how many school-adjacent venues are actually present.)
+  That NAICS-6111 search is name-blind, though, and it misses a real, non-rare category:
+  searching by NAME instead turns up 142 distinct venues named "P.S. ###" (the standard NYC
+  public-school naming convention) across the 8 pooled periods. 141 of them are filed under
+  "Museums, Historical Sites, and Similar Institutions" -> "Nature Parks and Other Similar
+  Institutions," not any education NAICS code, which is why the NAICS-6111 search didn't catch
+  them. This is almost certainly NYC's Schoolyards to Playgrounds program: the public,
+  after-hours-accessible playground attached to a school building gets its own point-of-interest,
+  tagged as a park rather than a school, since it's the playground's foot traffic being measured,
+  not the school building's. These are a genuinely different thing from the school itself (no
+  instructional space, no enrolled-student data, open to the general public outside school
+  hours), so excluding them outright isn't obviously correct either -- but reporting "zero K-12
+  schools, one rare leak" without mentioning 141 school-adjacent playgrounds materially
+  undersold how present this category is. 28 of the 142 clear the ADOPTED FDR bar (`fdr_sig_05_hk`
+  in `consolidated_pooled_persistence_2026.csv`), skewing toward less-mixed-than-expected (18 of
+  28, vs. 10 more-mixed) -- plausibly because a schoolyard playground's visitors are weighted
+  toward its zoned attendance area in a way a general park isn't, though this dataset can't test
+  that mechanism directly. Any bullet or figure elsewhere in this README or the app that cites a
+  "P.S. ###"-named venue (e.g. a top-significant-venue table) should be read as a schoolyard
+  playground, not literally the school campus. This isn't a sampling gap that undercounts an
+  otherwise-present category for the health care/worship/shelter/true-school-building cases;
+  those venue types cannot appear in this analysis at all, regardless of how popular or
+  income-mixed they might be. That matters for how this project frames itself: Oldenburg's
   original "third place" concept and Klinenberg's "social infrastructure" both treat
   congregations and schools as central examples of places that foster cross-class contact, and
-  this dataset structurally cannot speak to either category. A sensitive location nested inside
+  this dataset structurally cannot speak to either category (the schoolyard-playground exception
+  above is a genuinely different venue, not a loophole back into measuring the school itself). A
+  sensitive location nested inside
   a larger one (a cafeteria inside a school, a gift shop inside a hospital) is removed along
   with it too, which can make an otherwise-ordinary venue disappear for reasons unrelated to
   its own category.

@@ -20,6 +20,16 @@ hundred group-months) plus the same REML/Hartung-Knapp optimization over ~31,650
 consolidate_fragments.py already does once -- no RandomForest refit anywhere, so the full 42-point
 grid runs in about 2 minutes end to end on top of a one-time ~1-second data load.
 
+EXTENDED AGAIN (Note 10, an eighth round of external review): reml_tau2/hartung_knapp below were
+a THIRD duplicate of consolidate_fragments.py's pre-Note-10 diagonal-covariance functions (unlike
+sensitivity_eligibility_floor_fdr.py, which shells out to pool_persistence.py as a subprocess and
+so inherited the Note 10 fix automatically) -- this was flagged as a known open item in the README
+until now. Brought into line with the ADOPTED GLS method: build_sigma/reml_tau2/hartung_knapp are
+now the same generalization pool_persistence.py/consolidate_fragments.py use (an explicit
+covariance for calendar-adjacent eligible months, rho fixed at RHO_TEMPORAL -- see those scripts'
+docstrings for the full derivation), and every long_row below now carries a month_idx so lag-1
+adjacency can be computed per grid point exactly as it is in the main pipeline.
+
 Checked at every grid point, not just the one combination that was picked: whether the unrelated
 Brooklyn "Jacob Riis Beach" stays excluded, whether the Rockaway Jacob Riis cluster's 4 real
 fragments stay correctly grouped together, the total ADOPTED FDR survivor count, and the
@@ -27,8 +37,9 @@ significance call (q_bh_hk<=0.05) for each of the four named venues (the Jacob R
 group, Chens Fresh Food Market, Amenazel Organic, Hunts Point Floating Pier).
 
 Input: model_ready_<PERIOD>.pkl, results_mixing_<PERIOD>.pkl, model_prediction_variance_<PERIOD>.csv,
-       visitor_sampling_variance_dm_<PERIOD>.csv for all 8 periods, overdispersion_estimate.pkl
-       (set OUTPUT_DIR, default ./output -- same directory every other pipeline script writes to).
+       visitor_sampling_variance_dm_<PERIOD>.csv for all 8 periods, overdispersion_estimate.pkl, and
+       (Note 10) temporal_dependence_estimate.pkl (set OUTPUT_DIR, default ./output -- same
+       directory every other pipeline script writes to).
 Output: sensitivity_fragments_results.csv -- one row per (distance, Jaccard) grid combination.
 """
 import math
@@ -51,6 +62,12 @@ MODEL_VAR_PATHS = {mm: os.path.join(OUTPUT_DIR, f"model_prediction_variance_{mm}
 VS_VAR_PATHS = {mm: os.path.join(OUTPUT_DIR, f"visitor_sampling_variance_dm_{mm}.csv") for mm in PERIODS}
 S_HAT = float(os.environ.get("S_HAT", pd.read_pickle(
     os.path.join(OUTPUT_DIR, "overdispersion_estimate.pkl"))["S_hat"]))
+#calendar position per period, for GLS lag-1 adjacency -- same convention as pool_persistence.py/
+#consolidate_fragments.py's MONTH_IDX (Note 10).
+MONTH_IDX = {mm: i for i, mm in enumerate(PERIODS)}
+#Adopted lag-1 excess-correlation point estimate (Note 10) -- same env-override pattern as S_HAT.
+RHO_TEMPORAL = float(os.environ.get("RHO_TEMPORAL", pd.read_pickle(
+    os.path.join(OUTPUT_DIR, "temporal_dependence_estimate.pkl"))["rho_lag1_point"]))
 QCOLS = ["q1_devices", "q2_devices", "q3_devices", "q4_devices", "q5_devices"]
 N_BOOT_VS = 500
 Z95 = 1.959963984540054
@@ -96,25 +113,57 @@ def jaccard(a, b):
     return inter / union if union else 0.0
 
 
-def reml_tau2(r, v):
+def build_sigma(v, month_idx, tau2, rho):
+    """GLS covariance for one venue's m eligible months (Note 10 -- same construction as
+    pool_persistence.py/consolidate_fragments.py's build_sigma; see those modules' docstrings
+    for the full derivation). Sigma_ii = tau2 + v_i (tau2 still occasion-level, independent
+    across months); Sigma_ij (i!=j) = rho*sqrt(v_i*v_j) when months i,j are calendar-adjacent
+    (MONTH_IDX differ by exactly 1), else 0. At rho=0 this is exactly diag(tau2+v) -- the old
+    diagonal method's implicit covariance."""
+    m = len(v)
+    gap = np.abs(month_idx[:, None] - month_idx[None, :])
+    adj = (gap == 1).astype(float)
+    np.fill_diagonal(adj, 0.0)
+    sqrt_v = np.sqrt(v)
+    off_diag = rho * sqrt_v[:, None] * sqrt_v[None, :] * adj
+    return np.diag(tau2 + v) + off_diag
+
+
+def reml_tau2(r, v, month_idx, rho=RHO_TEMPORAL):
+    """REML estimate of tau^2 over the GLS covariance Sigma_v(tau2, rho) from build_sigma above
+    -- same generalization as pool_persistence.py/consolidate_fragments.py's reml_tau2."""
+    m = len(r)
     def neg_restricted_loglik(tau2):
-        w = 1.0 / (v + tau2)
-        sw = w.sum()
-        mu = np.sum(w * r) / sw
-        resid2 = (r - mu) ** 2
-        ll = -0.5 * np.sum(np.log(v + tau2)) - 0.5 * np.log(sw) - 0.5 * np.sum(w * resid2)
+        Sigma = build_sigma(v, month_idx, tau2, rho)
+        try:
+            Sinv = np.linalg.inv(Sigma)
+            sign, logdet = np.linalg.slogdet(Sigma)
+        except np.linalg.LinAlgError:
+            return 1e10
+        ones = np.ones(m)
+        sw = ones @ Sinv @ ones
+        if sw <= 0 or sign <= 0:
+            return 1e10
+        mu = (ones @ Sinv @ r) / sw
+        resid = r - mu
+        ll = -0.5 * logdet - 0.5 * np.log(sw) - 0.5 * (resid @ Sinv @ resid)
         return -ll
     upper = max(0.25, 20.0 * np.var(r))
     res = minimize_scalar(neg_restricted_loglik, bounds=(0.0, upper), method="bounded")
     return max(0.0, res.x)
 
 
-def hartung_knapp(r, v, tau2_reml):
+def hartung_knapp(r, v, month_idx, tau2_reml, rho=RHO_TEMPORAL):
+    """Hartung-Knapp pooled mean/variance over the GLS covariance Sigma_v -- same generalization
+    as pool_persistence.py/consolidate_fragments.py's hartung_knapp."""
     m = len(r)
-    w = 1.0 / (v + tau2_reml)
-    sw = w.sum()
-    mu_hk = np.sum(w * r) / sw
-    q_stat = np.sum(w * (r - mu_hk) ** 2) / (m - 1)
+    Sigma = build_sigma(v, month_idx, tau2_reml, rho)
+    Sinv = np.linalg.inv(Sigma)
+    ones = np.ones(m)
+    sw = ones @ Sinv @ ones
+    mu_hk = (ones @ Sinv @ r) / sw
+    resid = r - mu_hk
+    q_stat = (resid @ Sinv @ resid) / (m - 1)
     var_classical = 1.0 / sw
     var_hk = max(q_stat / sw, var_classical)
     return mu_hk, var_hk
@@ -252,13 +301,14 @@ for dist_thresh in DIST_GRID:
                     draws[b] = np.average(frag_scores[valid], weights=w[valid]) - merged_expected_cv
 
                 long_rows.append({
-                    "placekey": gid, "month": mm, "resid_observed": merged_resid,
+                    "placekey": gid, "month": mm, "month_idx": MONTH_IDX[mm],
+                    "resid_observed": merged_resid,
                     "resid_vs_var": draws.var(ddof=1), "model_pred_var": merged_model_pred_var,
                 })
 
             for _, row in singleton_part.iterrows():
                 long_rows.append({
-                    "placekey": row["placekey"], "month": mm,
+                    "placekey": row["placekey"], "month": mm, "month_idx": MONTH_IDX[mm],
                     "resid_observed": row["improbable_copresence_cv"],
                     "resid_vs_var": row["resid_vs_var"], "model_pred_var": row["model_pred_var"],
                 })
@@ -273,12 +323,13 @@ for dist_thresh in DIST_GRID:
         for pk, g in long.groupby("placekey"):
             r = g["resid_observed"].to_numpy()
             v_combined = g["var_combined"].to_numpy()
+            midx = g["month_idx"].to_numpy()  #calendar position, for GLS lag-1 adjacency (Note 10)
             m = len(g)
             if m < 2:
                 records.append({"placekey": pk, "n_months": m, "q_bh_hk": np.nan, "p_hk": np.nan})
                 continue
-            tau2_reml = reml_tau2(r, v_combined)
-            mu_hk, var_hk = hartung_knapp(r, v_combined, tau2_reml)
+            tau2_reml = reml_tau2(r, v_combined, midx)
+            mu_hk, var_hk = hartung_knapp(r, v_combined, midx, tau2_reml)
             t_stat_hk = mu_hk / np.sqrt(var_hk)
             p_hk = 2.0 * t_dist.sf(abs(t_stat_hk), df=m - 1)
             records.append({"placekey": pk, "n_months": m, "mu_hk": mu_hk, "q_bh_hk": np.nan, "p_hk": p_hk})
@@ -333,7 +384,7 @@ print(f"group count range across grid: {res_df['n_groups'].min()}-{res_df['n_gro
       f"(chosen: {chosen['n_groups'].iloc[0]})")
 print(f"ADOPTED FDR survivor count range across grid: {res_df['n_survivors_hk'].min()}-"
       f"{res_df['n_survivors_hk'].max()} (chosen: {chosen['n_survivors_hk'].iloc[0]}, "
-      f"real production value: 4871)")
+      f"real production value: 3233)")
 for label in NAMED_PKS:
     col = f"{label}_sig"
     print(f"{label}: significant in {res_df[col].sum()}/{len(res_df)} grid combinations "
