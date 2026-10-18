@@ -1,266 +1,276 @@
 group_id,n_fragments,names,placekeys,top_category,exact_name_match
-GRP00228,4,Riis Park Visitor Center; Jacob Riis Park; The People's Beach at Jacob Riis Park; Jacob Riis Beach,"zzy-22b@627-tmh-49z,zzy-222@627-wgg-sbk,zzy-228@627-tmh-49z,zzy-22f@627-tmh-49z","Museums, Historical Sites, and Similar Institutions",False
+GRP00235,4,Riis Park Visitor Center; Jacob Riis Park; The People's Beach at Jacob Riis Park; Jacob Riis Beach,"zzy-22b@627-tmh-49z,zzy-222@627-wgg-sbk,zzy-228@627-tmh-49z,zzy-22f@627-tmh-49z","Museums, Historical Sites, and Similar Institutions",False
+GRP00078,3,Vanka Caf a.k.a Vanka Vstanka; Vanka Cafe; Vanka Vstanka Cafe,"22r-223@627-wdk-7bk,22r-222@627-wdk-7bk,22r-224@627-wdk-7bk",Restaurants and Other Eating Places,False
 GRP00002,3,Hyderabad Tandoori; Tandoori Hyderabad Indian Kitchen; Tandoori Kitchen,"223-228@627-tnw-4n5,223-229@627-tnw-4n5,223-227@627-tnw-4n5",Restaurants and Other Eating Places,False
-GRP00076,3,Vanka Caf a.k.a Vanka Vstanka; Vanka Cafe; Vanka Vstanka Cafe,"22r-223@627-wdk-7bk,22r-222@627-wdk-7bk,22r-224@627-wdk-7bk",Restaurants and Other Eating Places,False
-GRP00181,2,Family 99c Plus Inc.; Heyam 99c Plus,"22w-222@627-wc3-jgk,22w-223@627-wc3-jgk","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
-GRP00180,2,Isamu Noguchi Foundation And Garden Museum; Noguchi Isamu Foundation Inc,"229-222@627-s8n-m8v,229-223@627-s8n-m8v","Museums, Historical Sites, and Similar Institutions",False
-GRP00179,2,Dunkin'; Dunkin',"zzw-223@627-s9q-7dv,zzy-228@627-s9q-7dv",Restaurants and Other Eating Places,True
-GRP00178,2,Trade Fair Supermarket; Trade Fair 5,"233-222@627-sb5-6ff,233-223@627-sb5-6ff",Grocery Stores,False
-GRP00177,2,Yi Min Kitchen; Yi Min Chinese Restaurant,"238-223@627-wgv-ghq,238-222@627-wgv-ghq",Restaurants and Other Eating Places,False
-GRP00176,2,Radhuni Sweets & Restaurant; Radhuni Sweets Rest,"22x-222@627-wh4-k9f,22x-224@627-wh4-k9f",Restaurants and Other Eating Places,False
-GRP00175,2,Eim A-Roy Thai Kitchen; Niyom Thai Kitchen,"22j-224@627-s9j-9xq,22j-227@627-s9j-9xq",Restaurants and Other Eating Places,False
-GRP00182,2,Tejeda Food Court; Tejeda Bros. Food Corp.,"23h-224@627-s7q-mff,23d-222@627-s7q-mff",Grocery Stores,False
-GRP00173,2,Liberty Produce Corporation; Liberty Fruit and Produce,"23m-222@627-s9v-td9,23m-223@627-s9v-td9",Grocery Stores,False
-GRP00172,2,John & Joe's Pizzeria; John Joe Pizzeria,"233-222@627-rwc-py9,233-223@627-rwc-py9",Restaurants and Other Eating Places,False
-GRP00171,2,J & K Food Center Corp.; Nana Food Center,"22n-222@627-rwv-zj9,zzw-222@627-rww-3qz",Grocery Stores,False
-GRP00170,2,Abe Stark Arena; Abe Stark Sports Center,"222-222@627-wdg-7nq,222-223@627-wdg-7nq",Other Amusement and Recreation Industries,False
-GRP00169,2,Gregory's Coffee; Gregory's Coffee,"22b-222@627-s8j-y7q,zzy-22g@627-s8k-ygk",Restaurants and Other Eating Places,True
-GRP00168,2,Golden Billion Chinese Restaurant; New Golden Billion,"222-222@627-s8w-h5z,222-223@627-s8w-h5z",Restaurants and Other Eating Places,False
-GRP00174,2,Treasure Island Food Market; Remy's Treasure Island Market,"zzy-223@627-wdb-28v,zzy-224@627-wdb-28v",Grocery Stores,False
-GRP00167,2,Sunberi Frozen Yogurt And Cafe; Sunberi Frozen Yogurt & Crepe,"zzy-23g@627-sb9-7dv,23x-222@627-sb9-kfz",Restaurants and Other Eating Places,False
-GRP00184,2,Elks Lodge; The Elks,"224-222@627-vs8-v4v,224-224@627-vs8-v4v",Civic and Social Organizations,False
-GRP00185,2,Vinny's Pizzeria and Luncheonette; Vinny's Pizzeria,"zzw-222@627-s9j-ygk,22k-223@627-s9j-yn5",Restaurants and Other Eating Places,False
-GRP00186,2,Gemini & Scorpio Loft; Gemini and Scorpio Loft,"222-223@627-wc3-fzz,226-225@627-s8y-cnq","Promoters of Performing Arts, Sports, and Similar Events",True
-GRP00187,2,Flushing Meadow Park Field 12; Flushing Meadow Park Soccer Field 3,"zzy-22s@627-s7s-z2k,zzy-228@627-s7s-z2k","Museums, Historical Sites, and Similar Institutions",False
-GRP00188,2,Fine Fare Supermarkets; Fine Fare Gold,"228-22b@627-s6m-rkz,228-22c@627-s6m-rkz",Grocery Stores,False
-GRP00189,2,Zucker's Bagels; Zucker's Bagels,"22r-225@627-wbz-r8v,22r-228@627-wbz-r8v",Restaurants and Other Eating Places,True
-GRP00190,2,The Salvation Army; The Salvation Army,"226-222@627-s7w-dn5,zzy-222@627-s7w-dn5",Used Merchandise Stores,True
-GRP00191,2,Dunkin'; Dunkin',"22h-222@627-s7q-nyv,zzy-22d@627-s7q-nyv",Restaurants and Other Eating Places,True
-GRP00192,2,Susano's Pizzeria & Restaurant; Julie's Pizzeria & Restaurant,"22k-222@627-s7r-4qf,22k-225@627-s7r-4qf",Restaurants and Other Eating Places,False
-GRP00193,2,Banesa Grocery; Banesa Deli Grocery,"22n-222@627-s6h-5vf,22n-224@627-s6h-5vf",Grocery Stores,False
-GRP00194,2,Buckley's Self-Service Market; Buckley's Market,"22c-222@627-s8g-brk,22c-224@627-s8g-brk",Grocery Stores,False
-GRP00195,2,Efes Mediterranean Gyro & Grill; Istanbul Clinton Hill Mediterranean Gyro & Grill,"226-227@627-s8x-s5z,226-229@627-s8x-s5z",Restaurants and Other Eating Places,False
-GRP00196,2,Westville Chelsea; Westville,"22y-22b@627-s8j-ht9,22y-225@627-s8j-ht9",Restaurants and Other Eating Places,False
-GRP00197,2,Shop Fair Supermarket; Shop Fair of Alphabet City,"225-222@627-s8k-q2k,zzy-228@627-s8k-q2k",Grocery Stores,False
-GRP00183,2,Stage Door Pizzeria; Stage Door Delicatessen,"224-222@627-wbz-vvf,224-224@627-wbz-vvf",Restaurants and Other Eating Places,False
-GRP00149,2,Rano's Chicken & Burgers; Rano's Chicken & Burgers,"223-223@627-s4v-2hq,223-226@627-s4v-2hq",Restaurants and Other Eating Places,True
-GRP00148,2,Pizza Palace Cafe; Pizza Palace Cafe LLC,"zzw-224@627-s7v-ndv,zzy-22j@627-s7v-ndv",Restaurants and Other Eating Places,True
-GRP00147,2,Happy Wok Chinese Restaurant; Happy Wok Ny Inc.,"228-222@627-s8z-dn5,228-223@627-s8z-dn5",Restaurants and Other Eating Places,False
-GRP00146,2,Restaurante Perla De Oriente; La Perla De Oriente,"22p-226@627-s2c-3nq,22p-227@627-s2c-3nq",Restaurants and Other Eating Places,False
-GRP00145,2,The Mexican Culture; Mexican Culture Deli Grocer,"zzw-222@627-s6f-45f,228-223@627-s6d-7wk",Restaurants and Other Eating Places,False
-GRP00144,2,Net Cost Market; Net Cost 8671 18th Ave,"22c-222@627-wdm-cqz,22c-223@627-wdm-cqz",Grocery Stores,False
-GRP00143,2,Blue Mist Lounge&Bar; Showtime Bar & Lounge,"229-222@627-s9v-6c5,229-223@627-s9v-6c5",Drinking Places (Alcoholic Beverages),False
-GRP00166,2,The Original Crab Shanty Restaurant; Crab Shanty One,"22f-222@627-rvh-nyv,22f-223@627-rvh-nyv",Restaurants and Other Eating Places,False
-GRP00141,2,Dutch Kills Fitness; Crossfit Dutch Kills,"22m-225@627-s8q-jqf,22m-222@627-s8q-jqf",Other Amusement and Recreation Industries,False
-GRP00140,2,Taste of India II; Taste Of India Restaurant & Lounge,"22s-222@627-vvb-yqf,22s-223@627-vvb-yqf",Restaurants and Other Eating Places,False
-GRP00139,2,Victor's Deli & Grill Restaurant; Victor's Deli & Grill Restaurant,"222-223@627-tny-wrk,222-224@627-tny-wrk",Restaurants and Other Eating Places,True
-GRP00138,2,Hengtong Grocery; T & Y Grocery,"235-224@627-s99-j5f,235-222@627-s99-j5f",Grocery Stores,False
-GRP00137,2,Kaieteur Restaurant Bak; Kaieteur Express II Restaurant,"236-223@627-s9y-8gk,236-222@627-s9y-8gk",Restaurants and Other Eating Places,False
-GRP00136,2,Airways Pizza Restaurant; Airways Pizza Gyro & Restaurant Official,"22m-222@627-sb6-7bk,zzy-226@627-sb6-7bk",Restaurants and Other Eating Places,False
-GRP00135,2,Mofongo del Valle; Pizza Del Valle,"226-222@627-s4t-5pv,226-228@627-s4t-5pv",Restaurants and Other Eating Places,False
-GRP00134,2,New Dragon Restaurant; New Dragon Palace,"22r-222@627-s8y-zs5,22r-223@627-s8y-zs5",Restaurants and Other Eating Places,False
-GRP00142,2,6th St and Ave B Community Garden; 6th Street and Avenue B Community Garden,"zzz-222@627-s8k-q4v,22w-223@627-s8k-zmk","Museums, Historical Sites, and Similar Institutions",True
-GRP00198,2,New World Stages - Stage 1; New World Stages - Stage 4,"22d-23m@627-s8r-7dv,22d-23k@627-s8r-7dv","Promoters of Performing Arts, Sports, and Similar Events",True
-GRP00165,2,US Fried Chicken & Pizza; 7 Tasty Pizza And Fried Chicken,"23b-222@627-s8z-g6k,23b-224@627-s8z-g6k",Restaurants and Other Eating Places,False
-GRP00164,2,332 Bello Mini Market; Chicky's Mini Market,"22c-222@627-sbg-rx5,22c-223@627-sbg-rx5",Grocery Stores,False
-GRP00163,2,Max Bratwurst und Bier; Brats Und Bier Inc,"23k-222@627-sb9-6p9,23k-224@627-sb9-6p9",Restaurants and Other Eating Places,False
-GRP00162,2,Beyti Turkish Kebab; Beyti Kebab,"22t-222@627-wdb-fpv,22t-226@627-wdb-fpv",Restaurants and Other Eating Places,False
-GRP00161,2,Jeff Deli Grocery; Jack Grocery & Deli Corp,"23k-223@627-s7s-2p9,23j-222@627-s7s-2p9",Grocery Stores,False
-GRP00160,2,110th and Central Park; Central Park Sightseeing,"zzy-228@627-s4v-789,26r-22c@627-s4v-789","Museums, Historical Sites, and Similar Institutions",False
-GRP00150,2,Noreen Marie Vitolo Spa; Noreen Marie Vitolo Skincare,"22j-223@627-vvj-xbk,22j-224@627-vvj-xbk",Personal Care Services,False
-GRP00158,2,SK Sweets; S K Sweets Inc,"22w-225@627-tny-k2k,22w-226@627-tny-k2k",Restaurants and Other Eating Places,False
-GRP00157,2,Contento Food Center; Contento Food Center I,"22h-224@627-s6h-h5z,27h-224@627-s6h-gx5",Grocery Stores,True
-GRP00156,2,205 Sb Fruits Vegetable; 205 Sb Fruits And Vege,"zzy-22h@627-rzr-f75,zzy-22w@627-rzr-f75",Grocery Stores,False
-GRP00155,2,The Yoga Nook LLC; Nicole's Yoga Nook,"225-222@627-vsx-r49,225-223@627-vsx-r49",Other Amusement and Recreation Industries,False
-GRP00154,2,El Malecon Restaurant II; Malecon Restaurant - Amsterdam Ave,"22f-222@627-s4m-btv,22f-227@627-s4m-btv",Restaurants and Other Eating Places,False
-GRP00153,2,Umi Sushi & Seafood Buffet; Umi Premium Sushi & Seafood Buffet,"223-226@627-wdk-7wk,zzy-223@627-wdk-7wk",Restaurants and Other Eating Places,False
-GRP00152,2,Broome St Grocery; Broome Street Grocery,"224-222@627-wc9-p9z,2wn-222@627-wc9-p9z",Grocery Stores,True
-GRP00151,2,69th Regiment Armory; Veteran Corps 69th Regiment,"229-223@627-s8h-xkf,229-226@627-s8h-xkf",Other Amusement and Recreation Industries,False
-GRP00159,2,Sottocasa Pizzeria - Harlem; Sottocasa Harlem,"224-222@627-s4v-xkf,27n-225@627-s4v-xkf",Restaurants and Other Eating Places,False
-GRP00240,2,Morning Side Meat Market; Morning Side Meat Mark,"222-223@627-s4t-zcq,222-225@627-s4t-zcq",Specialty Food Stores,False
-GRP00009,2,Yer Man's Irish Pub; Yermans Irish Pub,"zzw-223@627-s7m-j7q,229-223@627-s7m-jd9",Drinking Places (Alcoholic Beverages),False
-GRP00010,2,Starbucks; Starbucks,"zzw-224@627-rwm-y9z,zzy-223@627-rwm-y9z",Restaurants and Other Eating Places,True
-GRP00011,2,Antillana Fresh Meat Market; Asociados Meat Market,"22z-223@627-s6c-ch5,22z-222@627-s6c-ch5",Specialty Food Stores,False
-GRP00012,2,Ts Halal Food; T&s Halal Food Inc,"2f5-222@627-sb8-8n5,27m-222@627-sb8-8n5",Restaurants and Other Eating Places,False
-GRP00013,2,Gun Hill Deli & Grocery; Marquenses Deli Grocery,"22c-226@627-rwb-3kf,22c-222@627-rwb-3kf",Grocery Stores,False
-GRP00014,2,Ralph Food Center; Marbelly Food Center,"22m-222@627-wg7-8vz,22m-223@627-wg7-8vz",Grocery Stores,False
-GRP00015,2,Lattanzio Joseph Grocery; Lattanzio Grocery Stor,"22j-222@627-wgz-zcq,22j-223@627-wgz-zcq",Grocery Stores,False
-GRP00040,2,Flamin Chicken & Pizza; Flamin Pizza And Wings,"23q-225@627-s94-9xq,285-222@627-s94-9xq",Restaurants and Other Eating Places,False
-GRP00017,2,Dunkin'; Dunkin',"225-222@627-s6g-ndv,22c-225@627-s6g-ndv",Restaurants and Other Eating Places,True
-GRP00018,2,One More Charm; One More Charm Thai Restaurant,"222-222@627-wh3-8n5,222-225@627-wh3-8n5",Restaurants and Other Eating Places,False
-GRP00019,2,Top 99 Cents; Top 99 and Up,"22f-22n@627-s7s-jvz,22f-223@627-s7s-jvz","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
-GRP00020,2,Jfk Deli Grocery; Diamond & Jimmy Deli & Grocery,"222-222@627-tnw-hbk,222-223@627-tnw-hbk",Grocery Stores,False
-GRP00021,2,Bravo Kosher Pizza; Bravo Kosher Downtown,"228-222@627-wbz-3nq,222-223@627-wbz-3nq",Restaurants and Other Eating Places,False
-GRP00022,2,Perez Almonte Meat Mark; Perez & Almonte Meat Market,"22c-224@627-s9r-ht9,22c-222@627-s9r-ht9",Specialty Food Stores,False
-GRP00199,2,Eastville Comedy Club; EastVille Comedy Club,"22v-223@627-s8y-789,22v-226@627-s8y-789",Performing Arts Companies,True
-GRP00039,2,FDP Ice Cream; Thomas Ice Cream,"22k-222@627-wgw-92k,239-227@627-wgw-92k",Restaurants and Other Eating Places,False
-GRP00038,2,Bronx Pk East Park; Bronx Park East Owner Association,"227-223@627-rwb-tjv,227-224@627-rwb-tjv","Museums, Historical Sites, and Similar Institutions",False
-GRP00037,2,Dunkin'; Dunkin',"zzy-223@627-wbz-249,223-228@627-s8g-zvf",Restaurants and Other Eating Places,True
-GRP00036,2,Fresh Deli; B & A Deli,"227-222@627-s8v-zs5,227-223@627-s8v-zs5",Restaurants and Other Eating Places,False
-GRP00035,2,Mi Otra Casa Restaurant; Mi Otra Casa Michelada House,"236-222@627-s7s-kpv,zzy-22k@627-s7s-kpv",Restaurants and Other Eating Places,False
-GRP00034,2,Charlton-Thompson Garden; Charlton Garden,"22h-222@627-s6c-s5z,zzz-222@627-s6c-s5z","Museums, Historical Sites, and Similar Institutions",False
-GRP00033,2,A & G Deli Grocery Iii; A&G Deli Grocery,"225-222@627-s6c-f9f,225-226@627-s6c-f9f",Grocery Stores,False
-GRP00023,2,Supremo Food Market; Sabor Food Market,"22k-223@627-s7r-y9z,zzy-224@627-s7r-y9z",Grocery Stores,False
+GRP00176,2,Abe Stark Arena; Abe Stark Sports Center,"222-222@627-wdg-7nq,222-223@627-wdg-7nq",Other Amusement and Recreation Industries,False
+GRP00177,2,J & K Food Center Corp.; Nana Food Center,"22n-222@627-rwv-zj9,zzw-222@627-rww-3qz",Grocery Stores,False
+GRP00178,2,John & Joe's Pizzeria; John Joe Pizzeria,"233-222@627-rwc-py9,233-223@627-rwc-py9",Restaurants and Other Eating Places,True
+GRP00179,2,Liberty Produce Corporation; Liberty Fruit and Produce,"23m-222@627-s9v-td9,23m-223@627-s9v-td9",Grocery Stores,False
+GRP00180,2,Treasure Island Food Market; Remy's Treasure Island Market,"zzy-223@627-wdb-28v,zzy-224@627-wdb-28v",Grocery Stores,False
+GRP00175,2,Gregory's Coffee; Gregory's Coffee,"22b-222@627-s8j-y7q,zzy-22g@627-s8k-ygk",Restaurants and Other Eating Places,True
+GRP00174,2,Golden Billion Chinese Restaurant; New Golden Billion,"222-222@627-s8w-h5z,222-223@627-s8w-h5z",Restaurants and Other Eating Places,False
+GRP00181,2,Eim A-Roy Thai Kitchen; Niyom Thai Kitchen,"22j-224@627-s9j-9xq,22j-227@627-s9j-9xq",Restaurants and Other Eating Places,False
+GRP00182,2,Radhuni Sweets & Restaurant; Radhuni Sweets Rest,"22x-222@627-wh4-k9f,22x-224@627-wh4-k9f",Restaurants and Other Eating Places,False
+GRP00183,2,Yi Min Kitchen; Yi Min Chinese Restaurant,"238-223@627-wgv-ghq,238-222@627-wgv-ghq",Restaurants and Other Eating Places,False
+GRP00184,2,Trade Fair Supermarket; Trade Fair 5,"233-222@627-sb5-6ff,233-223@627-sb5-6ff",Grocery Stores,False
+GRP00185,2,Dunkin'; Dunkin',"zzw-223@627-s9q-7dv,zzy-228@627-s9q-7dv",Restaurants and Other Eating Places,True
+GRP00186,2,Isamu Noguchi Foundation And Garden Museum; Noguchi Isamu Foundation Inc,"229-222@627-s8n-m8v,229-223@627-s8n-m8v","Museums, Historical Sites, and Similar Institutions",False
+GRP00187,2,Family 99c Plus Inc.; Heyam 99c Plus,"22w-222@627-wc3-jgk,22w-223@627-wc3-jgk","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
+GRP00173,2,Sunberi Frozen Yogurt And Cafe; Sunberi Frozen Yogurt & Crepe,"zzy-23g@627-sb9-7dv,23x-222@627-sb9-kfz",Restaurants and Other Eating Places,False
+GRP00204,2,New World Stages - Stage 1; New World Stages - Stage 4,"22d-23m@627-s8r-7dv,22d-23k@627-s8r-7dv","Promoters of Performing Arts, Sports, and Similar Events",True
+GRP00203,2,Shop Fair Supermarket; Shop Fair of Alphabet City,"225-222@627-s8k-q2k,zzy-228@627-s8k-q2k",Grocery Stores,False
+GRP00202,2,Westville Chelsea; Westville,"22y-22b@627-s8j-ht9,22y-225@627-s8j-ht9",Restaurants and Other Eating Places,False
+GRP00201,2,Efes Mediterranean Gyro & Grill; Istanbul Clinton Hill Mediterranean Gyro & Grill,"226-227@627-s8x-s5z,226-229@627-s8x-s5z",Restaurants and Other Eating Places,False
+GRP00200,2,Buckley's Self-Service Market; Buckley's Market,"22c-222@627-s8g-brk,22c-224@627-s8g-brk",Grocery Stores,False
+GRP00199,2,Banesa Grocery; Banesa Deli Grocery,"22n-222@627-s6h-5vf,22n-224@627-s6h-5vf",Grocery Stores,False
+GRP00198,2,Susano's Pizzeria & Restaurant; Julie's Pizzeria & Restaurant,"22k-222@627-s7r-4qf,22k-225@627-s7r-4qf",Restaurants and Other Eating Places,False
+GRP00188,2,Tejeda Food Court; Tejeda Bros. Food Corp.,"23h-224@627-s7q-mff,23d-222@627-s7q-mff",Grocery Stores,False
+GRP00196,2,The Salvation Army; The Salvation Army,"226-222@627-s7w-dn5,zzy-222@627-s7w-dn5",Used Merchandise Stores,True
+GRP00195,2,Zucker's Bagels; Zucker's Bagels,"22r-225@627-wbz-r8v,22r-228@627-wbz-r8v",Restaurants and Other Eating Places,True
+GRP00194,2,Fine Fare Supermarkets; Fine Fare Gold,"228-22b@627-s6m-rkz,228-22c@627-s6m-rkz",Grocery Stores,False
+GRP00193,2,Flushing Meadow Park Field 12; Flushing Meadow Park Soccer Field 3,"zzy-22s@627-s7s-z2k,zzy-228@627-s7s-z2k","Museums, Historical Sites, and Similar Institutions",False
+GRP00192,2,Gemini & Scorpio Loft; Gemini and Scorpio Loft,"222-223@627-wc3-fzz,226-225@627-s8y-cnq","Promoters of Performing Arts, Sports, and Similar Events",True
+GRP00191,2,Vinny's Pizzeria and Luncheonette; Vinny's Pizzeria,"zzw-222@627-s9j-ygk,22k-223@627-s9j-yn5",Restaurants and Other Eating Places,False
+GRP00190,2,Elks Lodge; The Elks,"224-222@627-vs8-v4v,224-224@627-vs8-v4v",Civic and Social Organizations,False
+GRP00189,2,Stage Door Pizzeria; Stage Door Delicatessen,"224-222@627-wbz-vvf,224-224@627-wbz-vvf",Restaurants and Other Eating Places,False
+GRP00197,2,Dunkin'; Dunkin',"22h-222@627-s7q-nyv,zzy-22d@627-s7q-nyv",Restaurants and Other Eating Places,True
+GRP00154,2,Rano's Chicken & Burgers; Rano's Chicken & Burgers,"223-223@627-s4v-2hq,223-226@627-s4v-2hq",Restaurants and Other Eating Places,True
+GRP00153,2,Pizza Palace Cafe; Pizza Palace Cafe LLC,"zzw-224@627-s7v-ndv,zzy-22j@627-s7v-ndv",Restaurants and Other Eating Places,True
+GRP00152,2,Happy Wok Chinese Restaurant; Happy Wok Ny Inc.,"228-222@627-s8z-dn5,228-223@627-s8z-dn5",Restaurants and Other Eating Places,False
+GRP00151,2,Restaurante Perla De Oriente; La Perla De Oriente,"22p-226@627-s2c-3nq,22p-227@627-s2c-3nq",Restaurants and Other Eating Places,False
+GRP00150,2,The Mexican Culture; Mexican Culture Deli Grocer,"zzw-222@627-s6f-45f,228-223@627-s6d-7wk",Restaurants and Other Eating Places,False
+GRP00149,2,Net Cost Market; Net Cost 8671 18th Ave,"22c-222@627-wdm-cqz,22c-223@627-wdm-cqz",Grocery Stores,False
+GRP00148,2,Blue Mist Lounge&Bar; Showtime Bar & Lounge,"229-222@627-s9v-6c5,229-223@627-s9v-6c5",Drinking Places (Alcoholic Beverages),False
+GRP00172,2,The Original Crab Shanty Restaurant; Crab Shanty One,"22f-222@627-rvh-nyv,22f-223@627-rvh-nyv",Restaurants and Other Eating Places,False
+GRP00146,2,Dutch Kills Fitness; Crossfit Dutch Kills,"22m-225@627-s8q-jqf,22m-222@627-s8q-jqf",Other Amusement and Recreation Industries,False
+GRP00145,2,Taste of India II; Taste Of India Restaurant & Lounge,"22s-222@627-vvb-yqf,22s-223@627-vvb-yqf",Restaurants and Other Eating Places,False
+GRP00144,2,Victor's Deli & Grill Restaurant; Victor's Deli & Grill Restaurant,"222-223@627-tny-wrk,222-224@627-tny-wrk",Restaurants and Other Eating Places,True
+GRP00143,2,Hengtong Grocery; T & Y Grocery,"235-224@627-s99-j5f,235-222@627-s99-j5f",Grocery Stores,False
+GRP00142,2,Kaieteur Restaurant Bak; Kaieteur Express II Restaurant,"236-223@627-s9y-8gk,236-222@627-s9y-8gk",Restaurants and Other Eating Places,False
+GRP00141,2,Airways Pizza Restaurant; Airways Pizza Gyro & Restaurant Official,"22m-222@627-sb6-7bk,zzy-226@627-sb6-7bk",Restaurants and Other Eating Places,False
+GRP00140,2,Mofongo del Valle; Pizza Del Valle,"226-222@627-s4t-5pv,226-228@627-s4t-5pv",Restaurants and Other Eating Places,False
+GRP00139,2,New Dragon Restaurant; New Dragon Palace,"22r-222@627-s8y-zs5,22r-223@627-s8y-zs5",Restaurants and Other Eating Places,False
+GRP00147,2,6th St and Ave B Community Garden; 6th Street and Avenue B Community Garden,"zzz-222@627-s8k-q4v,22w-223@627-s8k-zmk","Museums, Historical Sites, and Similar Institutions",True
+GRP00205,2,Eastville Comedy Club; EastVille Comedy Club,"22v-223@627-s8y-789,22v-226@627-s8y-789",Performing Arts Companies,True
+GRP00171,2,US Fried Chicken & Pizza; 7 Tasty Pizza And Fried Chicken,"23b-222@627-s8z-g6k,23b-224@627-s8z-g6k",Restaurants and Other Eating Places,False
+GRP00170,2,332 Bello Mini Market; Chicky's Mini Market,"22c-222@627-sbg-rx5,22c-223@627-sbg-rx5",Grocery Stores,False
+GRP00169,2,Max Bratwurst und Bier; Brats Und Bier Inc,"23k-222@627-sb9-6p9,23k-224@627-sb9-6p9",Restaurants and Other Eating Places,False
+GRP00168,2,Beyti Turkish Kebab; Beyti Kebab,"22t-222@627-wdb-fpv,22t-226@627-wdb-fpv",Restaurants and Other Eating Places,False
+GRP00167,2,Jeff Deli Grocery; Jack Grocery & Deli Corp,"23k-223@627-s7s-2p9,23j-222@627-s7s-2p9",Grocery Stores,False
+GRP00166,2,110th and Central Park; Central Park Sightseeing,"zzy-228@627-s4v-789,26r-22c@627-s4v-789","Museums, Historical Sites, and Similar Institutions",False
+GRP00165,2,L Mo's Market; L Mo S Market Inc,"223-222@627-s92-skf,223-223@627-s92-skf",Grocery Stores,True
+GRP00155,2,Noreen Marie Vitolo Spa; Noreen Marie Vitolo Skincare,"22j-223@627-vvj-xbk,22j-224@627-vvj-xbk",Personal Care Services,False
+GRP00163,2,SK Sweets; S K Sweets Inc,"22w-225@627-tny-k2k,22w-226@627-tny-k2k",Restaurants and Other Eating Places,False
+GRP00162,2,Contento Food Center; Contento Food Center I,"22h-224@627-s6h-h5z,27h-224@627-s6h-gx5",Grocery Stores,True
+GRP00161,2,205 Sb Fruits Vegetable; 205 Sb Fruits And Vege,"zzy-22h@627-rzr-f75,zzy-22w@627-rzr-f75",Grocery Stores,False
+GRP00160,2,The Yoga Nook LLC; Nicole's Yoga Nook,"225-222@627-vsx-r49,225-223@627-vsx-r49",Other Amusement and Recreation Industries,False
+GRP00159,2,El Malecon Restaurant II; Malecon Restaurant - Amsterdam Ave,"22f-222@627-s4m-btv,22f-227@627-s4m-btv",Restaurants and Other Eating Places,False
+GRP00158,2,Umi Sushi & Seafood Buffet; Umi Premium Sushi & Seafood Buffet,"223-226@627-wdk-7wk,zzy-223@627-wdk-7wk",Restaurants and Other Eating Places,False
+GRP00157,2,Broome St Grocery; Broome Street Grocery,"224-222@627-wc9-p9z,2wn-222@627-wc9-p9z",Grocery Stores,True
+GRP00156,2,69th Regiment Armory; Veteran Corps 69th Regiment,"229-223@627-s8h-xkf,229-226@627-s8h-xkf",Other Amusement and Recreation Industries,False
+GRP00164,2,Sottocasa Pizzeria - Harlem; Sottocasa Harlem,"224-222@627-s4v-xkf,27n-225@627-s4v-xkf",Restaurants and Other Eating Places,False
+GRP00032,2,2nd Ave Grocery Smoke S; 2nd Ave Grocery And Smoke Shop,"2df-222@627-s8j-st9,229-222@627-s8j-st9",Grocery Stores,False
 GRP00031,2,Almanzar Deli Grocery Corporation; Almanzar Grocery And F,"228-222@627-s6b-r49,228-223@627-s6b-r49",Grocery Stores,False
 GRP00030,2,Chang Hong Chinese Restaurant; New Chang Hong,"22b-222@627-s95-gkz,22b-223@627-s95-gkz",Restaurants and Other Eating Places,False
 GRP00029,2,Superfresh; superfresh,"22b-222@627-vty-g8v,22b-22h@627-vty-g8v",Grocery Stores,True
 GRP00028,2,Whole Foods NoMad Pizza; Whole Foods Market,"228-228@627-s8h-wrk,228-223@627-s8h-wrk",Grocery Stores,False
 GRP00027,2,Inoa Deli Grocery; Fior Family Deli Grocery,"23d-222@627-s95-ghq,23d-224@627-s95-ghq",Grocery Stores,False
-GRP00026,2,Panini Cafe; Panini Tozt Cafe,"229-225@627-s8f-8gk,225-22b@627-s8f-8gk",Restaurants and Other Eating Places,False
-GRP00025,2,Ralph's Italian ices & Ice Cream; Ralph's Italian Ices,"22b-222@627-vsr-q9f,22b-226@627-vsr-q9f",Restaurants and Other Eating Places,False
-GRP00024,2,277 Top Deli; Top Deli Grill,"22d-222@627-s8x-9zz,22d-223@627-s8x-9zz",Grocery Stores,False
-GRP00032,2,2nd Ave Grocery Smoke S; 2nd Ave Grocery And Smoke Shop,"2df-222@627-s8j-st9,229-222@627-s8j-st9",Grocery Stores,False
-GRP00133,2,Privilege Restaurant And Lounge; Privilege Restaurant Lo,"23b-222@627-s9y-4y9,23b-224@627-s9y-4y9",Restaurants and Other Eating Places,False
-GRP00200,2,Utica Halal Live Poultry; Halal Live Poultry,"224-225@627-s8w-vfz,224-226@627-s8w-vfz",Specialty Food Stores,False
-GRP00233,2,Triangle Deli & Grill; Triangle Deli Corp,"239-222@627-s94-mhq,239-224@627-s94-mhq",Grocery Stores,False
-GRP00234,2,Salsa Y Sazon; Salsa Y Sazon Bar & Restaurant,"259-222@627-s6g-j7q,22c-224@627-s6g-j7q",Drinking Places (Alcoholic Beverages),False
-GRP00235,2,Ananda Bazar And Grocery; Ananda Bazar Bengali Indian Grocery,"23m-223@627-s9r-8gk,23m-224@627-s9r-8gk",Grocery Stores,False
-GRP00236,2,The Broadway Wig Company; The Broadway Wig,"23z-222@627-s8r-vs5,23z-224@627-s8r-vs5",Restaurants and Other Eating Places,False
-GRP00237,2,Kang Sheng Grocery; Kang Sheng Grocery INC,"22g-222@627-wdm-tgk,22z-224@627-wdm-tgk",Grocery Stores,True
-GRP00238,2,Mediterranean Foods; Mediterranean Foods Inc,"22n-222@627-sb9-kcq,22n-223@627-sb9-kcq",Grocery Stores,True
-GRP00239,2,Tairyo Japanese Fusion; Mikawa Japanese Fusion,"22g-222@627-wgz-ckf,22g-225@627-wgz-ckf",Restaurants and Other Eating Places,False
-GRP00008,2,Los Limones Deli; Los Limones Grocery Corp.,"22f-222@627-s94-zzz,22f-224@627-s94-zzz",Grocery Stores,False
-GRP00241,2,Malecon Restaurant Express; Malecn Express Restaurant,"22q-224@627-s4t-5zz,22q-225@627-s4t-5zz",Restaurants and Other Eating Places,False
-GRP00242,2,superfresh; Superfresh,"226-225@627-wgz-8jv,226-222@627-wgz-8jv",Grocery Stores,True
-GRP00243,2,H&H Bagels; Hh Bagels,"222-224@627-s4n-4sq,222-228@627-s4n-4sq",Restaurants and Other Eating Places,False
-GRP00244,2,Los Castillos Mini Market; Los Castillos Mini Market Corp.,"2gn-224@627-s6b-cwk,223-226@627-s6b-cwk",Grocery Stores,True
-GRP00245,2,Melody Nyc; Melody Cafe,"22g-226@627-sb9-649,22g-222@627-sb9-649",Drinking Places (Alcoholic Beverages),False
-GRP00263,2,Morris Park; Morris Park Subway Station,"zzy-224@627-rwy-8n5,zzy-224@627-rwc-nh5","Museums, Historical Sites, and Similar Institutions",False
-GRP00262,2,East River Promenade; East River Walk,"zzy-222@627-s8n-835,zzy-222@627-s8n-85f","Museums, Historical Sites, and Similar Institutions",False
-GRP00261,2,Jessica Supermarket; 1645 Grand Supermarket Jessica,"22b-228@627-s6b-bzf,29w-222@627-s6b-bzf",Grocery Stores,False
-GRP00260,2,257 Express Sullivan Food; 209 Sullivan Food,"23v-222@627-s8z-kpv,22h-222@627-s8z-kvf",Grocery Stores,False
-GRP00259,2,Five Star Wellness Center; Five Star Wellness & Weight Loss Center,"22p-222@627-vvm-rp9,22p-223@627-vvm-rp9",Personal Care Services,False
-GRP00258,2,Central Park - Scholars' Gate; Central Park - Miners' Gate - E. 79th St,"235-23y@627-s8k-rhq,235-22y@627-s8k-rhq","Museums, Historical Sites, and Similar Institutions",False
-GRP00257,2,Shake Shack; Shake Shack Dumbo,"225-222@627-wc8-v75,225-223@627-wc8-v75",Restaurants and Other Eating Places,False
-GRP00256,2,Food Plus Supermarket; Food Plus Kissena,"22x-224@627-s98-ygk,22x-223@627-s98-ygk",Grocery Stores,False
-GRP00246,2,Dragon King Chinese Restaurant; Dragon King Chinese Food Restaurant,"234-223@627-tmq-pd9,zzy-235@627-tmq-p9z",Restaurants and Other Eating Places,False
-GRP00254,2,Nuez Deli Grocery; Familia Nuez Deli Corp,"22m-229@627-s4t-59f,22m-228@627-s4t-59f",Grocery Stores,False
-GRP00253,2,Jean Danet Pastry; Jean Danet French Pastry,"22x-222@627-wgz-c3q,22x-223@627-wgz-c3q",Restaurants and Other Eating Places,False
-GRP00252,2,Best One Deli Grocery; 48th Street Deli & Grocery,"233-225@627-sbb-2x5,233-226@627-sbb-2x5",Grocery Stores,False
-GRP00251,2,Ground Central; Ground Central Coffee Company,"22g-22d@627-s8h-wrk,22g-22q@627-s8h-wrk",Restaurants and Other Eating Places,False
-GRP00250,2,City Pizza; M & Pizza,"22z-222@627-wbv-ju5,22z-227@627-wbv-ju5",Restaurants and Other Eating Places,False
-GRP00249,2,Al Nar Cafe; Al Nar Hookah Lounge,"zzy-22b@627-rz3-8qf,22g-222@627-rz3-8qf",Restaurants and Other Eating Places,False
-GRP00248,2,Eleventh Avenue Food Center; 11th Ave Food Center Of N,"22v-222@627-wgz-qcq,22v-223@627-wgz-qcq",Grocery Stores,False
-GRP00247,2,Jackson Hole Burgers; Jackson Hole (3rd Ave),"228-224@627-s8j-m49,228-225@627-s8j-m49",Restaurants and Other Eating Places,False
-GRP00255,2,Leos Casa Calamari; Leo's Casa Calamari,"227-225@627-wfc-n3q,227-226@627-wfc-n3q",Restaurants and Other Eating Places,False
-GRP00226,2,Ugly Donuts And Corn Dogs; Thank You Donuts & Corn Dogs,"228-223@627-rzm-5zz,zzy-22n@627-rzm-5zz",Restaurants and Other Eating Places,False
-GRP00227,2,Teriyaki One; Teriyaki One Japanese Gr,"224-225@627-vvc-tvz,225-222@627-vvc-tvz",Restaurants and Other Eating Places,False
-GRP00229,2,Cherry Valley Marketplace; Cherry valley Marketplace 925,"235-225@627-s7z-54v,235-228@627-s7z-54v",Grocery Stores,False
-GRP00230,2,Main Bakhtar Halal Kabab; Bakhtar Kabab,"225-225@627-sb2-syv,225-226@627-sb2-syv",Restaurants and Other Eating Places,False
-GRP00231,2,Kennedy Chicken Burger; Kennedy Fried Chicken & Pizza,"233-222@627-rwr-bc5,233-223@627-rwr-bc5",Restaurants and Other Eating Places,False
-GRP00208,2,G & R Deli; G And R Deli,"22x-223@627-rw8-f9f,22x-22c@627-rw8-f9f",Restaurants and Other Eating Places,True
-GRP00041,2,403 Chinese & Mexican Restaurant; 403 Chinese & Mexican Restaurant,"222-223@627-wh4-hdv,222-226@627-wh4-hdv",Restaurants and Other Eating Places,True
-GRP00042,2,New China 3; New China Iii Restaurant,"226-225@627-s7w-b49,23v-223@627-s7w-b49",Restaurants and Other Eating Places,False
-GRP00043,2,The Casbah - Halal Cart; Halal Cart,"zzy-223@627-s4r-tsq,zzy-232@627-s8r-f9f",Restaurants and Other Eating Places,False
-GRP00044,2,Torah Temimah Talmudical Seminary; Torah Temimah Talmudical Seminary,"22d-224@627-vsv-j7q,22b-224@627-wgw-tjv","Colleges, Universities, and Professional Schools",True
-GRP00045,2,Gallon Deli Grocery Ii; Katheryne Deli Grocery,"22p-223@627-s84-4gk,zzy-222@627-s84-4gk",Grocery Stores,False
-GRP00046,2,Zstar Deli; Z Deli,"22d-222@627-s7r-6ff,zzy-222@627-s7r-6ff",Restaurants and Other Eating Places,False
-GRP00047,2,M & M Restaurant Equipment Company; Athens Restaurant Equipment Company,"24r-222@627-sb9-g6k,24r-223@627-sb9-g6k",Restaurants and Other Eating Places,False
-GRP00048,2,Net Cost 3100 Ocean Ave; Net Cost Market,"226-223@627-wdj-gff,zzw-222@627-wdj-jn5",Grocery Stores,False
-GRP00049,2,The Salvation Army; The Salvation Army,"22k-222@627-s6k-8sq,zzw-222@627-s6k-8sq",Used Merchandise Stores,True
-GRP00132,2,Harbor Fitness - Marine Park; Harbor Fitness Go,"225-223@627-wg5-jsq,225-222@627-wg5-jsq",Other Amusement and Recreation Industries,False
-GRP00051,2,Robert Ray Hamilton Fountain; Hamilton Fountain,"zzy-225@627-s4r-mtv,zzy-22c@627-s4r-mtv","Museums, Historical Sites, and Similar Institutions",False
-GRP00052,2,Indian Xpress Restaurant; Indian Xpress 2,"227-222@627-wf7-wkz,227-226@627-wf7-wkz",Restaurants and Other Eating Places,False
-GRP00053,2,Pizza Garden; Pizza Garden,"22h-222@627-s9j-f75,zzy-226@627-s9j-dqf",Restaurants and Other Eating Places,True
-GRP00054,2,El Nuevo Valle; El Gran Valle,"229-225@627-s6h-nqz,229-226@627-s6h-nqz",Restaurants and Other Eating Places,False
-GRP00055,2,New York Public Library - Huguenot Park Library; NYPL Huguenot Park Library,"22g-222@627-vss-5s5,22g-223@627-vss-5s5",Other Information Services,False
-GRP00056,2,Starbucks; Starbucks,"222-223@627-s8n-hkf,223-222@627-s8n-hkf",Restaurants and Other Eating Places,True
-GRP00057,2,QC's Deli & Grocery; QCs Fresh Deli and Grocery,"229-223@627-wgz-rp9,229-224@627-wgz-rp9",Grocery Stores,False
-GRP00058,2,Union Square Park; 14th St. Union Square Park,"zzz-222@627-s8j-hdv,zzy-22c@627-s8j-hdv","Museums, Historical Sites, and Similar Institutions",False
-GRP00059,2,Ace Market NY; Z&z Market Inc,"224-222@627-wdh-7wk,224-224@627-wdh-7wk",Grocery Stores,False
-GRP00060,2,603 Avenue Z Deli; 603 Deli Pizza,"223-222@627-wdc-efz,223-223@627-wdc-efz",Restaurants and Other Eating Places,False
-GRP00061,2,194 Manhattan Superette; 194 Manhattan Ave Deli Pl,"zzw-223@627-s4v-7yv,22v-224@627-s4v-85f",Grocery Stores,False
-GRP00062,2,Dunkin'; Dunkin',"zzy-222@627-rwf-zzz,zzy-222@627-rwg-8y9",Restaurants and Other Eating Places,True
-GRP00063,2,Eagle Grocery & Deli; Eagle Deli and Grill,"222-222@627-s93-6hq,222-224@627-s93-6hq",Grocery Stores,False
-GRP00064,2,Yard With Style; Yard Style Jamaican Restaurant,"22n-223@627-wg7-hwk,22n-222@627-wg7-hwk",Restaurants and Other Eating Places,False
-GRP00065,2,Twist Seafood Restaurant & Bar; Twist Restaurant,"224-222@627-wgt-v9f,224-226@627-wgt-v9f",Restaurants and Other Eating Places,False
-GRP00050,2,Reyes Deli Grocery; My Place Deli Grocery Cor,"22j-222@627-s94-hqz,22j-223@627-s94-hqz",Grocery Stores,False
-GRP00264,2,So's Kosher Fish Market; Superior Kosher Fish,"237-222@627-wdh-j9z,237-224@627-wdh-j9z",Specialty Food Stores,False
-GRP00000,2,Baskin Robbins; Baskin Robbins,"224-222@627-s88-zcq,222-222@627-s88-zcq",Restaurants and Other Eating Places,True
-GRP00001,2,Seamorhen Fish & Chicken Catering; Rochdale Chicken And Fish,"224-222@627-tnw-py9,zzw-223@627-tnw-mkz",Restaurants and Other Eating Places,False
-GRP00003,2,Better Price; Better Price 99 Cent P,"229-224@627-s4v-k4v,229-228@627-s4v-k4v",Department Stores,False
-GRP00004,2,Frederick B. Judge Playground; Lincoln Park-Judge Playground,"zzy-224@627-tnz-n5z,zzy-222@627-tnz-pqf","Museums, Historical Sites, and Similar Institutions",False
 GRP00005,2,Queens South Ozone Park Richmond Hill; South Ozone Park Queens,"zzy-225@627-s9v-cwk,zzy-229@627-s89-dsq","Museums, Historical Sites, and Similar Institutions",False
+GRP00206,2,Utica Halal Live Poultry; Halal Live Poultry,"224-225@627-s8w-vfz,224-226@627-s8w-vfz",Specialty Food Stores,False
+GRP00024,2,277 Top Deli; Top Deli Grill,"22d-222@627-s8x-9zz,22d-223@627-s8x-9zz",Grocery Stores,False
+GRP00023,2,Supremo Food Market; Sabor Food Market,"22k-223@627-s7r-y9z,zzy-224@627-s7r-y9z",Grocery Stores,False
+GRP00022,2,Perez Almonte Meat Mark; Perez & Almonte Meat Market,"22c-224@627-s9r-ht9,22c-222@627-s9r-ht9",Specialty Food Stores,False
+GRP00021,2,Bravo Kosher Pizza; Bravo Kosher Downtown,"228-222@627-wbz-3nq,222-223@627-wbz-3nq",Restaurants and Other Eating Places,False
+GRP00020,2,Jfk Deli Grocery; Diamond & Jimmy Deli & Grocery,"222-222@627-tnw-hbk,222-223@627-tnw-hbk",Grocery Stores,False
+GRP00019,2,Top 99 Cents; Top 99 and Up,"22f-22n@627-s7s-jvz,22f-223@627-s7s-jvz","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
 GRP00006,2,Knapp Street Pizza; Knapp St Pizza,"22h-222@627-wgq-zj9,22h-224@627-wgq-zj9",Restaurants and Other Eating Places,True
-GRP00007,2,Kids Town Play Space; The Kids Town,"233-224@627-wh2-kxq,233-223@627-wh2-kxq",Other Amusement and Recreation Industries,False
-GRP00201,2,Santoor Indian Restaurant; Kuttanadan Indian Restaurant,"22f-222@627-rzv-8n5,22f-223@627-rzv-8n5",Restaurants and Other Eating Places,False
-GRP00202,2,Wakefield Deli & Grocery; Lolas Deli Grocery,"22z-222@627-rwd-ty9,22z-224@627-rwd-ty9",Grocery Stores,False
-GRP00203,2,Djoniba Dance Centre; Djoniba Centre,"228-222@627-s8j-2p9,228-22g@627-s8j-2p9",Other Amusement and Recreation Industries,False
-GRP00204,2,Chipotle Mexican Grill; Coming Soon - Chipotle Mexican Grill,"223-224@627-wdd-kcq,223-225@627-wdd-kcq",Restaurants and Other Eating Places,False
-GRP00205,2,Shawarma Al-Sham; Al-Sham restaurant,"232-222@627-wgz-nbk,232-229@627-wgz-nbk",Restaurants and Other Eating Places,False
-GRP00206,2,The Theater at Madison Square Garden; Madison Square Garden,"zzy-222@627-s8j-z2k,zzy-25q@627-s8j-z2k","Promoters of Performing Arts, Sports, and Similar Events",False
-GRP00207,2,Osteria Brooklyn; Osteria Brooklyn DeKalb,"235-224@627-s8y-k4v,227-24z@627-s8y-8vz",Restaurants and Other Eating Places,False
-GRP00225,2,Simin Aesthetic Laser; Simin Laser Clinique,"22b-222@627-wdb-fxq,22b-224@627-wdb-fxq",Personal Care Services,False
-GRP00224,2,Efe Market; Efe Gourmet Market,"22g-222@627-wdj-9j9,22g-223@627-wdj-9j9",Grocery Stores,False
-GRP00223,2,Jaya Yoga East; Jaya Yoga Center,"22v-222@627-wh4-bhq,22v-223@627-wh4-bhq",Other Amusement and Recreation Industries,False
-GRP00222,2,20 North 5th Street Deli Inc.; 20 N 5th St Deli,"222-224@627-s8m-9xq,2h5-222@627-s8m-9xq",Restaurants and Other Eating Places,False
-GRP00221,2,Bay Parkway Cafe; New Bay Pkwy Cafe,"22b-222@627-wdm-t35,22b-223@627-wdm-t35",Restaurants and Other Eating Places,False
-GRP00220,2,Halal Fried Chicken An; Hut Fried Chicken & Pizza,"227-224@627-s6j-2ff,227-222@627-s6j-2ff",Restaurants and Other Eating Places,False
-GRP00219,2,Staten Island Range Lighthouse; Staten Island Range Light,"zzy-222@627-vvg-n3q,zzy-224@627-vvg-n3q","Museums, Historical Sites, and Similar Institutions",False
-GRP00218,2,B&B Bagels; Bb Bagels,"22h-224@627-s4n-33q,22h-225@627-s4n-33q",Restaurants and Other Eating Places,False
-GRP00232,2,Nelly Mini Market CORP; Ruby Mini Market Corp.,"29m-222@627-s6f-5xq,zzy-222@627-s69-k9f",Grocery Stores,False
-GRP00216,2,La Mina Mini Market; Mini Market Bodega,"22c-222@627-s6c-cqz,29n-222@627-s6c-cqz",Grocery Stores,False
-GRP00215,2,Ideal Food Baskets; Ideal Food Basket,"239-224@627-wgb-mkz,239-223@627-wgb-mkz",Grocery Stores,False
-GRP00214,2,Vip Style Unisex Barber; VIP Style Unisex Baber Shop,"22d-224@627-rw9-v4v,22d-222@627-rw9-v4v",Personal Care Services,False
-GRP00213,2,Cantonese Beef Delight; Old Cantonese Beef Offal,"229-226@627-wdk-vxq,229-225@627-wdk-vxq",Restaurants and Other Eating Places,False
-GRP00212,2,Abounaji Deli Groce; Abounaji Deli & Grocery Inc.,"228-222@627-wfg-usq,228-224@627-wfg-usq",Grocery Stores,False
-GRP00211,2,Vista Hdeli Grocery; Vista Hermosa Grocery & Vegetable,"22c-222@627-rwx-rx5,22c-224@627-rwx-rx5",Grocery Stores,False
-GRP00210,2,Famous Fried Chicken & Pizza; Kennedys Fried Chicken,"227-223@627-s69-cnq,227-228@627-s69-cnq",Restaurants and Other Eating Places,False
-GRP00209,2,Delicias Calenas Bakery & Restaurant; Isabel Bakery Restaurant,"228-225@627-s9p-wzf,228-224@627-s9p-wzf",Restaurants and Other Eating Places,False
-GRP00217,2,Topaze West Indian & American Restaurant; Topaze Restaurant,"23g-225@627-wgb-mkz,23g-226@627-wgb-mkz",Restaurants and Other Eating Places,False
-GRP00101,2,Rudd Playground; Rudd Playground,"zzy-223@627-s94-hnq,zzy-227@627-s94-hnq",Other Amusement and Recreation Industries,True
-GRP00102,2,H K Live Poultry Inc; Hk Live Poultry,"228-223@627-wdm-fmk,228-222@627-wdm-fmk",Specialty Food Stores,False
-GRP00103,2,Campo Bello II; Campo Bello Restaurant 2,"225-222@627-wff-99f,225-224@627-wff-99f",Restaurants and Other Eating Places,False
-GRP00104,2,Maria Food Market; Maria Food African Market,"22j-224@627-s6b-q75,22j-228@627-s6b-q75",Grocery Stores,False
-GRP00105,2,Basketball Courts; Basketball courts,"zzy-222@627-vty-mx5,zzy-223@627-vty-mx5",Other Amusement and Recreation Industries,True
-GRP00106,2,Silver Lake Dog Run; Silver Lake Park,"zzw-222@627-vv7-bhq,222-223@627-vv7-9zz","Museums, Historical Sites, and Similar Institutions",False
-GRP00107,2,Oh K-Dog & Egg Toast; Oh K-dog Nyc,"22k-225@627-s4r-2kz,3gf-222@627-s4r-2kz",Restaurants and Other Eating Places,False
-GRP00108,2,Knapp Street Pizza; Knapp Pizza II,"22c-223@627-wd9-tqf,22c-222@627-wd9-tqf",Restaurants and Other Eating Places,False
-GRP00109,2,Knapp Street Bagel Cafe; Knapp St Bagel Cafe,"22m-222@627-wgq-zj9,22m-223@627-wgq-zj9",Restaurants and Other Eating Places,True
-GRP00110,2,Three Bowls Ramen; Three Bowls Noodle House,"235-223@627-s7w-2p9,zzw-223@627-s7w-2hq",Restaurants and Other Eating Places,False
-GRP00111,2,Legend Cookhouse Restaurant; Legend Cookhouse,"zzy-23q@627-tny-hqz,226-222@627-tny-hqz",Restaurants and Other Eating Places,False
-GRP00112,2,Kouchi Supermarket; Kouchi Supermarket,"22m-222@627-sb2-jsq,22p-222@627-sb2-jsq",Grocery Stores,True
-GRP00113,2,Tasty Co; Tasty & Co,"zzy-22m@627-s7t-s5z,22d-223@627-s7t-s5z",Restaurants and Other Eating Places,True
-GRP00114,2,Kw Grocery; K&w Grocery Inc,"22v-223@627-rwj-6kz,22v-222@627-rwj-6kz",Grocery Stores,False
-GRP00115,2,Nathan's Famous; Nathan's Famous,"226-222@627-wdg-bp9,zzy-223@627-wdg-bp9",Restaurants and Other Eating Places,True
-GRP00066,2,Villaggio Bistro; Villaggio Ristorante Italian Bistro,"23d-223@627-s9h-vpv,23d-224@627-s9h-vpv",Restaurants and Other Eating Places,False
+GRP00273,2,Morris Park; Morris Park Subway Station,"zzy-224@627-rwy-8n5,zzy-224@627-rwc-nh5","Museums, Historical Sites, and Similar Institutions",False
+GRP00025,2,Ralph's Italian ices & Ice Cream; Ralph's Italian Ices,"22b-222@627-vsr-q9f,22b-226@627-vsr-q9f",Restaurants and Other Eating Places,False
+GRP00049,2,M & M Restaurant Equipment Company; Athens Restaurant Equipment Company,"24r-222@627-sb9-g6k,24r-223@627-sb9-g6k",Restaurants and Other Eating Places,False
+GRP00048,2,Zstar Deli; Z Deli,"22d-222@627-s7r-6ff,zzy-222@627-s7r-6ff",Restaurants and Other Eating Places,False
+GRP00047,2,Gallon Deli Grocery Ii; Katheryne Deli Grocery,"22p-223@627-s84-4gk,zzy-222@627-s84-4gk",Grocery Stores,False
+GRP00046,2,Torah Temimah Talmudical Seminary; Torah Temimah Talmudical Seminary,"22d-224@627-vsv-j7q,22b-224@627-wgw-tjv","Colleges, Universities, and Professional Schools",True
+GRP00045,2,The Casbah - Halal Cart; Halal Cart,"zzy-223@627-s4r-tsq,zzy-232@627-s8r-f9f",Restaurants and Other Eating Places,False
+GRP00044,2,New China 3; New China Iii Restaurant,"226-225@627-s7w-b49,23v-223@627-s7w-b49",Restaurants and Other Eating Places,False
+GRP00043,2,403 Chinese & Mexican Restaurant; 403 Chinese & Mexican Restaurant,"222-223@627-wh4-hdv,222-226@627-wh4-hdv",Restaurants and Other Eating Places,True
+GRP00033,2,A & G Deli Grocery Iii; A&G Deli Grocery,"225-222@627-s6c-f9f,225-226@627-s6c-f9f",Grocery Stores,False
+GRP00041,2,FDP Ice Cream; Thomas Ice Cream,"22k-222@627-wgw-92k,239-227@627-wgw-92k",Restaurants and Other Eating Places,False
+GRP00040,2,Bronx Pk East Park; Bronx Park East Owner Association,"227-223@627-rwb-tjv,227-224@627-rwb-tjv","Museums, Historical Sites, and Similar Institutions",False
+GRP00039,2,Dunkin'; Dunkin',"zzy-223@627-wbz-249,223-228@627-s8g-zvf",Restaurants and Other Eating Places,True
+GRP00038,2,Lorenzo's Pizza; Lorenzo Pizza Of New York,"22f-224@627-vvk-575,22f-225@627-vvk-575",Restaurants and Other Eating Places,False
+GRP00037,2,Fresh Deli; B & A Deli,"227-222@627-s8v-zs5,227-223@627-s8v-zs5",Restaurants and Other Eating Places,False
+GRP00036,2,Kristy Restaurant; Kristy's,"233-222@627-s6g-gkz,233-223@627-s6g-gkz",Restaurants and Other Eating Places,False
+GRP00035,2,Mi Otra Casa Restaurant; Mi Otra Casa Michelada House,"236-222@627-s7s-kpv,zzy-22k@627-s7s-kpv",Restaurants and Other Eating Places,False
+GRP00034,2,Charlton-Thompson Garden; Charlton Garden,"22h-222@627-s6c-s5z,zzz-222@627-s6c-s5z","Museums, Historical Sites, and Similar Institutions",False
+GRP00042,2,Flamin Chicken & Pizza; Flamin Pizza And Wings,"23q-225@627-s94-9xq,285-222@627-s94-9xq",Restaurants and Other Eating Places,False
+GRP00253,2,Melody Nyc; Melody Cafe,"22g-226@627-sb9-649,22g-222@627-sb9-649",Drinking Places (Alcoholic Beverages),False
+GRP00252,2,Los Castillos Mini Market; Los Castillos Mini Market Corp.,"2gn-224@627-s6b-cwk,223-226@627-s6b-cwk",Grocery Stores,True
+GRP00251,2,H&H Bagels; Hh Bagels,"222-224@627-s4n-4sq,222-228@627-s4n-4sq",Restaurants and Other Eating Places,False
+GRP00003,2,Better Price; Better Price 99 Cent P,"229-224@627-s4v-k4v,229-228@627-s4v-k4v",Department Stores,False
+GRP00249,2,Malecon Restaurant Express; Malecn Express Restaurant,"22q-224@627-s4t-5zz,22q-225@627-s4t-5zz",Restaurants and Other Eating Places,False
+GRP00248,2,Morning Side Meat Market; Morning Side Meat Mark,"222-223@627-s4t-zcq,222-225@627-s4t-zcq",Specialty Food Stores,False
+GRP00247,2,Tairyo Japanese Fusion; Mikawa Japanese Fusion,"22g-222@627-wgz-ckf,22g-225@627-wgz-ckf",Restaurants and Other Eating Places,False
+GRP00272,2,East River Promenade; East River Walk,"zzy-222@627-s8n-835,zzy-222@627-s8n-85f","Museums, Historical Sites, and Similar Institutions",False
+GRP00245,2,Kang Sheng Grocery; Kang Sheng Grocery INC,"22g-222@627-wdm-tgk,22z-224@627-wdm-tgk",Grocery Stores,True
+GRP00244,2,Sabba Chicken and Ribs; Sabba's Chicken,"237-225@627-s6j-w6k,237-222@627-s6j-w6k",Restaurants and Other Eating Places,False
+GRP00243,2,The Broadway Wig Company; The Broadway Wig,"23z-222@627-s8r-vs5,23z-224@627-s8r-vs5",Restaurants and Other Eating Places,False
+GRP00210,2,Chipotle Mexican Grill; Coming Soon - Chipotle Mexican Grill,"223-224@627-wdd-kcq,223-225@627-wdd-kcq",Restaurants and Other Eating Places,False
+GRP00209,2,Djoniba Dance Centre; Djoniba Centre,"228-222@627-s8j-2p9,228-22g@627-s8j-2p9",Other Amusement and Recreation Industries,False
+GRP00208,2,Wakefield Deli & Grocery; Lolas Deli Grocery,"22z-222@627-rwd-ty9,22z-224@627-rwd-ty9",Grocery Stores,False
+GRP00207,2,Santoor Indian Restaurant; Kuttanadan Indian Restaurant,"22f-222@627-rzv-8n5,22f-223@627-rzv-8n5",Restaurants and Other Eating Places,False
+GRP00138,2,Privilege Restaurant And Lounge; Privilege Restaurant Lo,"23b-222@627-s9y-4y9,23b-224@627-s9y-4y9",Restaurants and Other Eating Places,False
+GRP00246,2,Mediterranean Foods; Mediterranean Foods Inc,"22n-222@627-sb9-kcq,22n-223@627-sb9-kcq",Grocery Stores,True
+GRP00271,2,Jessica Supermarket; 1645 Grand Supermarket Jessica,"22b-228@627-s6b-bzf,29w-222@627-s6b-bzf",Grocery Stores,False
+GRP00270,2,257 Express Sullivan Food; 209 Sullivan Food,"23v-222@627-s8z-kpv,22h-222@627-s8z-kvf",Grocery Stores,False
+GRP00269,2,Five Star Wellness Center; Five Star Wellness & Weight Loss Center,"22p-222@627-vvm-rp9,22p-223@627-vvm-rp9",Personal Care Services,False
+GRP00268,2,Central Park - Scholars' Gate; Central Park - Miners' Gate - E. 79th St,"235-23y@627-s8k-rhq,235-22y@627-s8k-rhq","Museums, Historical Sites, and Similar Institutions",False
+GRP00267,2,Shake Shack; Shake Shack Dumbo,"225-222@627-wc8-v75,225-223@627-wc8-v75",Restaurants and Other Eating Places,False
+GRP00266,2,Food Plus Supermarket; Food Plus Kissena,"22x-224@627-s98-ygk,22x-223@627-s98-ygk",Grocery Stores,False
+GRP00265,2,Alex Deli Grocery; Alex's Deli Of Ny Corp,"22b-228@627-wg4-pjv,22b-227@627-wg4-pjv",Grocery Stores,False
+GRP00264,2,Leos Casa Calamari; Leo's Casa Calamari,"227-225@627-wfc-n3q,227-226@627-wfc-n3q",Restaurants and Other Eating Places,False
+GRP00254,2,Dragon King Chinese Restaurant; Dragon King Chinese Food Restaurant,"234-223@627-tmq-pd9,zzy-235@627-tmq-p9z",Restaurants and Other Eating Places,False
+GRP00262,2,Jean Danet Pastry; Jean Danet French Pastry,"22x-222@627-wgz-c3q,22x-223@627-wgz-c3q",Restaurants and Other Eating Places,False
+GRP00261,2,Best One Deli Grocery; 48th Street Deli & Grocery,"233-225@627-sbb-2x5,233-226@627-sbb-2x5",Grocery Stores,False
+GRP00260,2,Ground Central; Ground Central Coffee Company,"22g-22d@627-s8h-wrk,22g-22q@627-s8h-wrk",Restaurants and Other Eating Places,False
+GRP00259,2,City Pizza; M & Pizza,"22z-222@627-wbv-ju5,22z-227@627-wbv-ju5",Restaurants and Other Eating Places,False
+GRP00258,2,Al Nar Cafe; Al Nar Hookah Lounge,"zzy-22b@627-rz3-8qf,22g-222@627-rz3-8qf",Restaurants and Other Eating Places,False
+GRP00257,2,Sofia Restaurant; Sofia's,"22x-223@627-wfc-mzf,22x-222@627-wfc-mzf",Restaurants and Other Eating Places,False
+GRP00256,2,Eleventh Avenue Food Center; 11th Ave Food Center Of N,"22v-222@627-wgz-qcq,22v-223@627-wgz-qcq",Grocery Stores,False
+GRP00255,2,Jackson Hole Burgers; Jackson Hole (3rd Ave),"228-224@627-s8j-m49,228-225@627-s8j-m49",Restaurants and Other Eating Places,False
+GRP00263,2,Nuez Deli Grocery; Familia Nuez Deli Corp,"22m-229@627-s4t-59f,22m-228@627-s4t-59f",Grocery Stores,False
+GRP00051,2,The Salvation Army; The Salvation Army,"22k-222@627-s6k-8sq,zzw-222@627-s6k-8sq",Used Merchandise Stores,True
+GRP00004,2,Frederick B. Judge Playground; Lincoln Park-Judge Playground,"zzy-224@627-tnz-n5z,zzy-222@627-tnz-pqf","Museums, Historical Sites, and Similar Institutions",False
+GRP00241,2,Salsa Y Sazon; Salsa Y Sazon Bar & Restaurant,"259-222@627-s6g-j7q,22c-224@627-s6g-j7q",Drinking Places (Alcoholic Beverages),False
+GRP00240,2,Triangle Deli & Grill; Triangle Deli Corp,"239-222@627-s94-mhq,239-224@627-s94-mhq",Grocery Stores,False
+GRP00239,2,Nelly Mini Market CORP; Ruby Mini Market Corp.,"29m-222@627-s6f-5xq,zzy-222@627-s69-k9f",Grocery Stores,False
+GRP00238,2,Kennedy Chicken Burger; Kennedy Fried Chicken & Pizza,"233-222@627-rwr-bc5,233-223@627-rwr-bc5",Restaurants and Other Eating Places,False
+GRP00237,2,Main Bakhtar Halal Kabab; Bakhtar Kabab,"225-225@627-sb2-syv,225-226@627-sb2-syv",Restaurants and Other Eating Places,False
+GRP00137,2,Harbor Fitness - Marine Park; Harbor Fitness Go,"225-223@627-wg5-jsq,225-222@627-wg5-jsq",Other Amusement and Recreation Industries,False
+GRP00234,2,Teriyaki One; Teriyaki One Japanese Gr,"224-225@627-vvc-tvz,225-222@627-vvc-tvz",Restaurants and Other Eating Places,False
+GRP00233,2,Ugly Donuts And Corn Dogs; Thank You Donuts & Corn Dogs,"228-223@627-rzm-5zz,zzy-22n@627-rzm-5zz",Restaurants and Other Eating Places,False
+GRP00232,2,Simin Aesthetic Laser; Simin Laser Clinique,"22b-222@627-wdb-fxq,22b-224@627-wdb-fxq",Personal Care Services,False
+GRP00231,2,Pasquale's Rigoletto; Pasquale Rigoletto Restaurant,"229-224@627-s6j-28v,229-222@627-s6j-28v",Restaurants and Other Eating Places,False
+GRP00230,2,Efe Market; Efe Gourmet Market,"22g-222@627-wdj-9j9,22g-223@627-wdj-9j9",Grocery Stores,False
+GRP00229,2,Jaya Yoga East; Jaya Yoga Center,"22v-222@627-wh4-bhq,22v-223@627-wh4-bhq",Other Amusement and Recreation Industries,False
+GRP00228,2,20 North 5th Street Deli Inc.; 20 N 5th St Deli,"222-224@627-s8m-9xq,2h5-222@627-s8m-9xq",Restaurants and Other Eating Places,False
+GRP00227,2,Bay Parkway Cafe; New Bay Pkwy Cafe,"22b-222@627-wdm-t35,22b-223@627-wdm-t35",Restaurants and Other Eating Places,False
+GRP00236,2,Cherry Valley Marketplace; Cherry valley Marketplace 925,"235-225@627-s7z-54v,235-228@627-s7z-54v",Grocery Stores,False
+GRP00068,2,Villaggio Bistro; Villaggio Ristorante Italian Bistro,"23d-223@627-s9h-vpv,23d-224@627-s9h-vpv",Restaurants and Other Eating Places,False
+GRP00067,2,Twist Seafood Restaurant & Bar; Twist Restaurant,"224-222@627-wgt-v9f,224-226@627-wgt-v9f",Restaurants and Other Eating Places,False
+GRP00066,2,Yard With Style; Yard Style Jamaican Restaurant,"22n-223@627-wg7-hwk,22n-222@627-wg7-hwk",Restaurants and Other Eating Places,False
+GRP00065,2,Eagle Grocery & Deli; Eagle Deli and Grill,"222-222@627-s93-6hq,222-224@627-s93-6hq",Grocery Stores,False
+GRP00064,2,Dunkin'; Dunkin',"zzy-222@627-rwf-zzz,zzy-222@627-rwg-8y9",Restaurants and Other Eating Places,True
+GRP00063,2,194 Manhattan Superette; 194 Manhattan Ave Deli Pl,"zzw-223@627-s4v-7yv,22v-224@627-s4v-85f",Grocery Stores,False
+GRP00062,2,603 Avenue Z Deli; 603 Deli Pizza,"223-222@627-wdc-efz,223-223@627-wdc-efz",Restaurants and Other Eating Places,False
+GRP00052,2,Reyes Deli Grocery; My Place Deli Grocery Cor,"22j-222@627-s94-hqz,22j-223@627-s94-hqz",Grocery Stores,False
+GRP00060,2,Union Square Park; 14th St. Union Square Park,"zzz-222@627-s8j-hdv,zzy-22c@627-s8j-hdv","Museums, Historical Sites, and Similar Institutions",False
+GRP00059,2,QC's Deli & Grocery; QCs Fresh Deli and Grocery,"229-223@627-wgz-rp9,229-224@627-wgz-rp9",Grocery Stores,False
+GRP00058,2,Starbucks; Starbucks,"222-223@627-s8n-hkf,223-222@627-s8n-hkf",Restaurants and Other Eating Places,True
+GRP00057,2,New York Public Library - Huguenot Park Library; NYPL Huguenot Park Library,"22g-222@627-vss-5s5,22g-223@627-vss-5s5",Other Information Services,False
+GRP00056,2,El Nuevo Valle; El Gran Valle,"229-225@627-s6h-nqz,229-226@627-s6h-nqz",Restaurants and Other Eating Places,False
+GRP00055,2,Pizza Garden; Pizza Garden,"22h-222@627-s9j-f75,zzy-226@627-s9j-dqf",Restaurants and Other Eating Places,True
+GRP00054,2,Indian Xpress Restaurant; Indian Xpress 2,"227-222@627-wf7-wkz,227-226@627-wf7-wkz",Restaurants and Other Eating Places,False
+GRP00053,2,Robert Ray Hamilton Fountain; Hamilton Fountain,"zzy-225@627-s4r-mtv,zzy-22c@627-s4r-mtv","Museums, Historical Sites, and Similar Institutions",False
+GRP00061,2,Ace Market NY; Z&z Market Inc,"224-222@627-wdh-7wk,224-224@627-wdh-7wk",Grocery Stores,False
+GRP00274,2,So's Kosher Fish Market; Superior Kosher Fish,"237-222@627-wdh-j9z,237-224@627-wdh-j9z",Specialty Food Stores,False
+GRP00026,2,Panini Cafe; Panini Tozt Cafe,"229-225@627-s8f-8gk,225-22b@627-s8f-8gk",Restaurants and Other Eating Places,False
+GRP00242,2,Ananda Bazar And Grocery; Ananda Bazar Bengali Indian Grocery,"23m-223@627-s9r-8gk,23m-224@627-s9r-8gk",Grocery Stores,False
+GRP00250,2,superfresh; Superfresh,"226-225@627-wgz-8jv,226-222@627-wgz-8jv",Grocery Stores,True
+GRP00050,2,Net Cost 3100 Ocean Ave; Net Cost Market,"226-223@627-wdj-gff,zzw-222@627-wdj-jn5",Grocery Stores,False
+GRP00218,2,Abounaji Deli Groce; Abounaji Deli & Grocery Inc.,"228-222@627-wfg-usq,228-224@627-wfg-usq",Grocery Stores,False
+GRP00018,2,One More Charm; One More Charm Thai Restaurant,"222-222@627-wh3-8n5,222-225@627-wh3-8n5",Restaurants and Other Eating Places,False
+GRP00226,2,Halal Fried Chicken An; Hut Fried Chicken & Pizza,"227-224@627-s6j-2ff,227-222@627-s6j-2ff",Restaurants and Other Eating Places,False
 GRP00016,2,McDonald's; McDonald's,"zzw-225@627-s8j-xwk,222-222@627-s8j-xwk",Restaurants and Other Eating Places,True
-GRP00131,2,533 Dekalb Gourmet Deli; 533 Gourmet Deli,"22g-222@627-s8v-73q,zzy-225@627-s8v-73q",Restaurants and Other Eating Places,False
-GRP00130,2,Citarella; Citarella,"zzw-224@627-s4n-2c5,226-225@627-s4n-3wk",Specialty Food Stores,True
-GRP00129,2,Lilis Deli Grocery; Westchester Deli & Grocery,"293-222@627-s6c-dqf,22p-222@627-s6c-dqf",Grocery Stores,False
-GRP00128,2,La Antigua restaurante & Bar; La Antigua Taqueria,"234-224@627-wdm-f2k,234-225@627-wdm-f2k",Restaurants and Other Eating Places,False
-GRP00127,2,Central Park - Conservatory Water; Conservatory Water,"23t-223@627-s4n-j5f,zzy-227@627-s4n-f2k","Museums, Historical Sites, and Similar Institutions",False
-GRP00126,2,Marketplace by Key Food; Key Food,"236-223@627-wh3-3wk,236-225@627-wh3-3wk",Grocery Stores,False
-GRP00116,2,Our Community Grocery; Our Community Deli Grocery,"22p-224@627-s4v-qfz,22p-227@627-s4v-qfz",Grocery Stores,False
-GRP00124,2,Plaza Discount; Willis Discount,"227-222@627-s6g-jjv,227-223@627-s6g-jjv","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
-GRP00123,2,Ruby Falls Cafe; The Grand at Ruby Falls,"222-222@627-w7h-9zz,222-224@627-w7h-9zz",Special Food Services,False
-GRP00122,2,Superfresh; superfresh,"22n-222@627-wgz-g8v,22n-228@627-wgz-g8v",Grocery Stores,True
-GRP00121,2,Spring Food Spot; Spring food Spot CORP,"229-222@627-s8n-kpv,zzy-223@627-s8n-kpv",Restaurants and Other Eating Places,True
-GRP00120,2,City Fresh Market; City Fresh Market Place,"zzw-222@627-s4t-zcq,22p-223@627-s4t-zcq",Grocery Stores,True
-GRP00119,2,Allied Productions Le Petit Versailles; Le Petit Versailles Garden,"zzy-222@627-s8k-zfz,zzy-227@627-s8k-zfz","Museums, Historical Sites, and Similar Institutions",False
-GRP00118,2,Deno's Wonder Wheel Park; Deno's Wonder Wheel Amusement & Kiddie Park,"225-224@627-wdg-c89,225-225@627-wdg-c89",Amusement Parks and Arcades,False
-GRP00117,2,Amici Pizza; Amici Brick Oven Pizza,"22g-222@627-w7d-q9f,22g-223@627-w7d-q9f",Restaurants and Other Eating Places,False
-GRP00125,2,No.1 Chinese Kitchen; Number One Chinese Kitchen,"22k-223@627-vty-2rk,22k-225@627-vty-2rk",Restaurants and Other Eating Places,False
-GRP00067,2,Dvk Up; Dvk Inc,"224-223@627-s2c-g49,224-224@627-s2c-g49","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
-GRP00068,2,Atlantis Strip Club NYC; Atlantis Gentlemen's Club,"23h-222@627-s86-wff,22b-227@627-s86-wff",Drinking Places (Alcoholic Beverages),False
-GRP00069,2,Giovanni's Brooklyn Eats; Giovannis Brooklyn Eats,"22t-223@627-wh2-mx5,22t-226@627-wh2-mx5",Restaurants and Other Eating Places,False
-GRP00070,2,Associated Fresh; Associated Fresh of Livonia Ave,"288-223@627-s84-75z,288-225@627-s84-75z",Grocery Stores,False
-GRP00071,2,Berman Z Hebrew Books; Z Berman Books Bp,"223-222@627-wgv-yjv,223-223@627-wgv-yjv",Book Stores and News Dealers,False
-GRP00072,2,Mikes Dakota Diner; Dakota Diner Staten Island,"227-223@627-vv2-y35,227-227@627-vv2-y35",Restaurants and Other Eating Places,False
-GRP00073,2,Jacob Deli Grocery; Deli Grocery,"zzy-22b@627-s69-87q,22b-224@627-s6b-435",Grocery Stores,False
-GRP00074,2,Trade Fair 7; Trade Fair Supermarket,"228-224@627-sb9-h5z,zzy-222@627-sb9-h5z",Grocery Stores,False
-GRP00075,2,Afghan Kebab House Ii; Afghanistan Kebab House 2,"229-222@627-s4n-4d9,229-225@627-s4n-4d9",Restaurants and Other Eating Places,False
-GRP00077,2,Farm Boy Country Market; Farmboy Country Market,"zzy-223@627-tny-x5z,zzy-22c@627-tny-x5z",Grocery Stores,False
-GRP00078,2,All From 1 Supplier; All From 1 Supplier Ll,"zzy-227@627-s9v-qzz,zzy-22z@627-s9v-qzz",Grocery Stores,False
-GRP00079,2,Kum Fung Chinese Restaurant; Kum Fung Kitchen,"222-222@627-wff-yvz,222-223@627-wff-yvz",Restaurants and Other Eating Places,False
-GRP00080,2,Dunkin'; Dunkin',"zzw-22c@627-s9p-yjv,zzw-22d@627-s9p-yjv",Restaurants and Other Eating Places,True
-GRP00081,2,West Indian Direct; West Indian Fresh Inc,"222-222@627-wfz-6x5,222-223@627-wfz-6x5",Grocery Stores,False
-GRP00082,2,El Nuevo Barzola Restaurant; El Nuevo Barzela Inc.,"239-222@627-s82-5j9,239-224@627-s82-5j9",Restaurants and Other Eating Places,False
-GRP00100,2,Caffeine Underground; Creative Factory Club at Caffeine Underground,"222-222@627-s95-f75,222-224@627-s95-f75",Restaurants and Other Eating Places,False
-GRP00099,2,Tacos El Bronco; Tacos El Bronco,"23f-222@627-wgt-tvz,zzy-222@627-wgt-tvz",Restaurants and Other Eating Places,True
-GRP00098,2,Sm 534 Grocery; S M 534 Grocery Corporation,"22v-222@627-s82-2kz,22v-224@627-s82-2kz",Grocery Stores,False
-GRP00097,2,Luk & Bart Homemade Food; L and B Homemade Food,"223-222@627-vv8-hbk,223-224@627-vv8-hbk",Restaurants and Other Eating Places,False
-GRP00096,2,Dimattina Playground; Dimattina Playground,"zzy-224@627-wc3-66k,zzy-223@627-wc3-66k","Museums, Historical Sites, and Similar Institutions",True
-GRP00095,2,Winfield Street Coffee- 72nd Street; Winfield Coffe -72nd St,"zzy-22k@627-s4n-45f,zzy-22q@627-s4n-45f",Restaurants and Other Eating Places,False
-GRP00094,2,Dragon Sea Restaurant; Dragon Sea,"23c-222@627-rwc-bhq,23c-225@627-rwc-bhq",Restaurants and Other Eating Places,False
-GRP00093,2,Three Star Production Inc; Three Star Juice Lounge,"229-224@627-s8w-ty9,229-222@627-s8w-ty9",Restaurants and Other Eating Places,False
-GRP00083,2,Or-yehuda Restaurant; Or Yehuda Restaurant,"zzy-222@627-s87-r6k,22j-222@627-s9q-cnq",Restaurants and Other Eating Places,True
-GRP00091,2,New Golden Sparkling Chinese Restaurant; New Golden Sparkling,"22b-222@627-s7s-jvz,zzy-23h@627-s7s-jvz",Grocery Stores,False
-GRP00090,2,Dyckman House Museum; Dyckman Farmhouse Museum,"zzz-222@627-s5x-c89,22f-222@627-s5x-c89","Museums, Historical Sites, and Similar Institutions",False
-GRP00089,2,Mariya A. Balayage and Hair Extensions Artist; Mariya Aronova Balayage and Extensions Artist,"zzy-222@627-vvc-2kz,234-223@627-vvc-3nq",Personal Care Services,False
-GRP00088,2,L&B Spumoni Gardens; Lb Spumoni Gardens,"zzw-222@627-wd8-tgk,22w-223@627-wd8-t5f",Restaurants and Other Eating Places,False
-GRP00087,2,H F Dollar & Up Fruit And Vegetable; Dollar Up Fruit,"zzw-223@627-s7v-y9z,zzy-22n@627-s7v-y9z",Grocery Stores,False
-GRP00086,2,Ralph's Italian ices & Ice Cream; Ralph's Famous Italian Ices,"222-222@627-vvc-xt9,222-228@627-vvc-xt9",Restaurants and Other Eating Places,False
-GRP00085,2,Trattoria; Trattoria 35,"222-222@627-rzx-3t9,zzy-22c@627-rzx-3t9",Restaurants and Other Eating Places,False
-GRP00084,2,Sol Maya; Taqueria Sol Maya,"229-223@627-s4t-zcq,22k-223@627-s4t-zcq",Restaurants and Other Eating Places,False
-GRP00092,2,Your Choice Deli Grocery; Valentine Deli Grocery,"22f-222@627-s6h-wtv,22k-225@627-s6h-w49",Grocery Stores,False
+GRP00015,2,Lattanzio Joseph Grocery; Lattanzio Grocery Stor,"22j-222@627-wgz-zcq,22j-223@627-wgz-zcq",Grocery Stores,False
+GRP00014,2,Ralph Food Center; Marbelly Food Center,"22m-222@627-wg7-8vz,22m-223@627-wg7-8vz",Grocery Stores,False
+GRP00013,2,Gun Hill Deli & Grocery; Marquenses Deli Grocery,"22c-226@627-rwb-3kf,22c-222@627-rwb-3kf",Grocery Stores,False
+GRP00012,2,Ts Halal Food; T&s Halal Food Inc,"2f5-222@627-sb8-8n5,27m-222@627-sb8-8n5",Restaurants and Other Eating Places,False
+GRP00011,2,Antillana Fresh Meat Market; Asociados Meat Market,"22z-223@627-s6c-ch5,22z-222@627-s6c-ch5",Specialty Food Stores,False
+GRP00010,2,Starbucks; Starbucks,"zzw-224@627-rwm-y9z,zzy-223@627-rwm-y9z",Restaurants and Other Eating Places,True
+GRP00009,2,Yer Man's Irish Pub; Yermans Irish Pub,"zzw-223@627-s7m-j7q,229-223@627-s7m-jd9",Drinking Places (Alcoholic Beverages),False
+GRP00017,2,Dunkin'; Dunkin',"225-222@627-s6g-ndv,22c-225@627-s6g-ndv",Restaurants and Other Eating Places,True
+GRP00225,2,Staten Island Range Lighthouse; Staten Island Range Light,"zzy-222@627-vvg-n3q,zzy-224@627-vvg-n3q","Museums, Historical Sites, and Similar Institutions",False
+GRP00224,2,B&B Bagels; Bb Bagels,"22h-224@627-s4n-33q,22h-225@627-s4n-33q",Restaurants and Other Eating Places,False
+GRP00223,2,Topaze West Indian & American Restaurant; Topaze Restaurant,"23g-225@627-wgb-mkz,23g-226@627-wgb-mkz",Restaurants and Other Eating Places,False
+GRP00222,2,La Mina Mini Market; Mini Market Bodega,"22c-222@627-s6c-cqz,29n-222@627-s6c-cqz",Grocery Stores,False
+GRP00221,2,Ideal Food Baskets; Ideal Food Basket,"239-224@627-wgb-mkz,239-223@627-wgb-mkz",Grocery Stores,False
+GRP00220,2,Vip Style Unisex Barber; VIP Style Unisex Baber Shop,"22d-224@627-rw9-v4v,22d-222@627-rw9-v4v",Personal Care Services,False
+GRP00219,2,Cantonese Beef Delight; Old Cantonese Beef Offal,"229-226@627-wdk-vxq,229-225@627-wdk-vxq",Restaurants and Other Eating Places,False
+GRP00000,2,Baskin Robbins; Baskin Robbins,"224-222@627-s88-zcq,222-222@627-s88-zcq",Restaurants and Other Eating Places,True
+GRP00217,2,Vista Hdeli Grocery; Vista Hermosa Grocery & Vegetable,"22c-222@627-rwx-rx5,22c-224@627-rwx-rx5",Grocery Stores,False
+GRP00216,2,Famous Fried Chicken & Pizza; Kennedys Fried Chicken,"227-223@627-s69-cnq,227-228@627-s69-cnq",Restaurants and Other Eating Places,False
+GRP00215,2,Delicias Calenas Bakery & Restaurant; Isabel Bakery Restaurant,"228-225@627-s9p-wzf,228-224@627-s9p-wzf",Restaurants and Other Eating Places,False
+GRP00214,2,G & R Deli; G And R Deli,"22x-223@627-rw8-f9f,22x-22c@627-rw8-f9f",Restaurants and Other Eating Places,True
+GRP00213,2,Osteria Brooklyn; Osteria Brooklyn DeKalb,"235-224@627-s8y-k4v,227-24z@627-s8y-8vz",Restaurants and Other Eating Places,False
+GRP00212,2,The Theater at Madison Square Garden; Madison Square Garden,"zzy-222@627-s8j-z2k,zzy-25q@627-s8j-z2k","Promoters of Performing Arts, Sports, and Similar Events",False
+GRP00211,2,Shawarma Al-Sham; Al-Sham restaurant,"232-222@627-wgz-nbk,232-229@627-wgz-nbk",Restaurants and Other Eating Places,False
+GRP00001,2,Seamorhen Fish & Chicken Catering; Rochdale Chicken And Fish,"224-222@627-tnw-py9,zzw-223@627-tnw-mkz",Restaurants and Other Eating Places,False
+GRP00007,2,Kids Town Play Space; The Kids Town,"233-224@627-wh2-kxq,233-223@627-wh2-kxq",Other Amusement and Recreation Industries,False
+GRP00120,2,Amici Pizza; Amici Brick Oven Pizza,"22g-222@627-w7d-q9f,22g-223@627-w7d-q9f",Restaurants and Other Eating Places,False
+GRP00119,2,Our Community Grocery; Our Community Deli Grocery,"22p-224@627-s4v-qfz,22p-227@627-s4v-qfz",Grocery Stores,False
+GRP00118,2,Nathan's Famous; Nathan's Famous,"226-222@627-wdg-bp9,zzy-223@627-wdg-bp9",Restaurants and Other Eating Places,True
+GRP00117,2,Kw Grocery; K&w Grocery Inc,"22v-223@627-rwj-6kz,22v-222@627-rwj-6kz",Grocery Stores,False
+GRP00116,2,Tasty Co; Tasty & Co,"zzy-22m@627-s7t-s5z,22d-223@627-s7t-s5z",Restaurants and Other Eating Places,True
+GRP00115,2,Kouchi Supermarket; Kouchi Supermarket,"22m-222@627-sb2-jsq,22p-222@627-sb2-jsq",Grocery Stores,True
+GRP00114,2,Legend Cookhouse Restaurant; Legend Cookhouse,"zzy-23q@627-tny-hqz,226-222@627-tny-hqz",Restaurants and Other Eating Places,False
+GRP00069,2,Dvk Up; Dvk Inc,"224-223@627-s2c-g49,224-224@627-s2c-g49","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
+GRP00112,2,Knapp Street Bagel Cafe; Knapp St Bagel Cafe,"22m-222@627-wgq-zj9,22m-223@627-wgq-zj9",Restaurants and Other Eating Places,True
+GRP00111,2,Knapp Street Pizza; Knapp Pizza II,"22c-223@627-wd9-tqf,22c-222@627-wd9-tqf",Restaurants and Other Eating Places,False
+GRP00110,2,Oh K-Dog & Egg Toast; Oh K-dog Nyc,"22k-225@627-s4r-2kz,3gf-222@627-s4r-2kz",Restaurants and Other Eating Places,False
+GRP00109,2,Silver Lake Dog Run; Silver Lake Park,"zzw-222@627-vv7-bhq,222-223@627-vv7-9zz","Museums, Historical Sites, and Similar Institutions",False
+GRP00108,2,Basketball Courts; Basketball courts,"zzy-222@627-vty-mx5,zzy-223@627-vty-mx5",Other Amusement and Recreation Industries,True
+GRP00107,2,Maria Food Market; Maria Food African Market,"22j-224@627-s6b-q75,22j-228@627-s6b-q75",Grocery Stores,False
+GRP00106,2,Campo Bello II; Campo Bello Restaurant 2,"225-222@627-wff-99f,225-224@627-wff-99f",Restaurants and Other Eating Places,False
+GRP00105,2,H K Live Poultry Inc; Hk Live Poultry,"228-223@627-wdm-fmk,228-222@627-wdm-fmk",Specialty Food Stores,False
+GRP00113,2,Three Bowls Ramen; Three Bowls Noodle House,"235-223@627-s7w-2p9,zzw-223@627-s7w-2hq",Restaurants and Other Eating Places,False
+GRP00008,2,Los Limones Deli; Los Limones Grocery Corp.,"22f-222@627-s94-zzz,22f-224@627-s94-zzz",Grocery Stores,False
+GRP00136,2,533 Dekalb Gourmet Deli; 533 Gourmet Deli,"22g-222@627-s8v-73q,zzy-225@627-s8v-73q",Restaurants and Other Eating Places,False
+GRP00135,2,Citarella; Citarella,"zzw-224@627-s4n-2c5,226-225@627-s4n-3wk",Specialty Food Stores,True
+GRP00134,2,Lilis Deli Grocery; Westchester Deli & Grocery,"293-222@627-s6c-dqf,22p-222@627-s6c-dqf",Grocery Stores,False
+GRP00133,2,La Antigua restaurante & Bar; La Antigua Taqueria,"234-224@627-wdm-f2k,234-225@627-wdm-f2k",Restaurants and Other Eating Places,False
+GRP00132,2,Central Park - Conservatory Water; Conservatory Water,"23t-223@627-s4n-j5f,zzy-227@627-s4n-f2k","Museums, Historical Sites, and Similar Institutions",False
+GRP00131,2,Marketplace by Key Food; Key Food,"236-223@627-wh3-3wk,236-225@627-wh3-3wk",Grocery Stores,False
+GRP00121,2,Deno's Wonder Wheel Park; Deno's Wonder Wheel Amusement & Kiddie Park,"225-224@627-wdg-c89,225-225@627-wdg-c89",Amusement Parks and Arcades,False
+GRP00129,2,Plaza Discount; Willis Discount,"227-222@627-s6g-jjv,227-223@627-s6g-jjv","General Merchandise Stores, including Warehouse Clubs and Supercenters",False
+GRP00128,2,Ruby Falls Cafe; The Grand at Ruby Falls,"222-222@627-w7h-9zz,222-224@627-w7h-9zz",Special Food Services,False
+GRP00127,2,St Michael Grocery; St Michael's Grocery Corporation,"226-222@627-s6c-hkf,275-222@627-s6c-hkf",Grocery Stores,True
+GRP00126,2,Alex's Tacos; Alex Tacos Deli,"25q-222@627-s6k-q75,25q-223@627-s6k-q75",Restaurants and Other Eating Places,False
+GRP00125,2,Superfresh; superfresh,"22n-222@627-wgz-g8v,22n-228@627-wgz-g8v",Grocery Stores,True
+GRP00124,2,Spring Food Spot; Spring food Spot CORP,"229-222@627-s8n-kpv,zzy-223@627-s8n-kpv",Restaurants and Other Eating Places,True
+GRP00123,2,City Fresh Market; City Fresh Market Place,"zzw-222@627-s4t-zcq,22p-223@627-s4t-zcq",Grocery Stores,True
+GRP00122,2,Allied Productions Le Petit Versailles; Le Petit Versailles Garden,"zzy-222@627-s8k-zfz,zzy-227@627-s8k-zfz","Museums, Historical Sites, and Similar Institutions",False
+GRP00130,2,No.1 Chinese Kitchen; Number One Chinese Kitchen,"22k-223@627-vty-2rk,22k-225@627-vty-2rk",Restaurants and Other Eating Places,False
+GRP00086,2,Or-yehuda Restaurant; Or Yehuda Restaurant,"zzy-222@627-s87-r6k,22j-222@627-s9q-cnq",Restaurants and Other Eating Places,True
+GRP00085,2,El Nuevo Barzola Restaurant; El Nuevo Barzela Inc.,"239-222@627-s82-5j9,239-224@627-s82-5j9",Restaurants and Other Eating Places,False
+GRP00084,2,West Indian Direct; West Indian Fresh Inc,"222-222@627-wfz-6x5,222-223@627-wfz-6x5",Grocery Stores,False
+GRP00083,2,Richard's Diner & Catering; Richard Dining Catering,"22r-222@627-wg8-jqf,22r-223@627-wg8-jqf",Restaurants and Other Eating Places,False
+GRP00082,2,Dunkin'; Dunkin',"zzw-22c@627-s9p-yjv,zzw-22d@627-s9p-yjv",Restaurants and Other Eating Places,True
+GRP00081,2,Kum Fung Chinese Restaurant; Kum Fung Kitchen,"222-222@627-wff-yvz,222-223@627-wff-yvz",Restaurants and Other Eating Places,False
+GRP00080,2,All From 1 Supplier; All From 1 Supplier Ll,"zzy-227@627-s9v-qzz,zzy-22z@627-s9v-qzz",Grocery Stores,False
+GRP00104,2,Rudd Playground; Rudd Playground,"zzy-223@627-s94-hnq,zzy-227@627-s94-hnq",Other Amusement and Recreation Industries,True
+GRP00077,2,Afghan Kebab House Ii; Afghanistan Kebab House 2,"229-222@627-s4n-4d9,229-225@627-s4n-4d9",Restaurants and Other Eating Places,False
+GRP00076,2,Trade Fair 7; Trade Fair Supermarket,"228-224@627-sb9-h5z,zzy-222@627-sb9-h5z",Grocery Stores,False
+GRP00075,2,Jacob Deli Grocery; Deli Grocery,"zzy-22b@627-s69-87q,22b-224@627-s6b-435",Grocery Stores,False
+GRP00074,2,Mikes Dakota Diner; Dakota Diner Staten Island,"227-223@627-vv2-y35,227-227@627-vv2-y35",Restaurants and Other Eating Places,False
+GRP00073,2,Berman Z Hebrew Books; Z Berman Books Bp,"223-222@627-wgv-yjv,223-223@627-wgv-yjv",Book Stores and News Dealers,False
+GRP00072,2,Associated Fresh; Associated Fresh of Livonia Ave,"288-223@627-s84-75z,288-225@627-s84-75z",Grocery Stores,False
+GRP00071,2,Giovanni's Brooklyn Eats; Giovannis Brooklyn Eats,"22t-223@627-wh2-mx5,22t-226@627-wh2-mx5",Restaurants and Other Eating Places,False
+GRP00070,2,Atlantis Strip Club NYC; Atlantis Gentlemen's Club,"23h-222@627-s86-wff,22b-227@627-s86-wff",Drinking Places (Alcoholic Beverages),False
+GRP00079,2,Farm Boy Country Market; Farmboy Country Market,"zzy-223@627-tny-x5z,zzy-22c@627-tny-x5z",Grocery Stores,False
+GRP00103,2,Caffeine Underground; Creative Factory Club at Caffeine Underground,"222-222@627-s95-f75,222-224@627-s95-f75",Restaurants and Other Eating Places,False
+GRP00102,2,Tacos El Bronco; Tacos El Bronco,"23f-222@627-wgt-tvz,zzy-222@627-wgt-tvz",Restaurants and Other Eating Places,True
+GRP00101,2,Sm 534 Grocery; S M 534 Grocery Corporation,"22v-222@627-s82-2kz,22v-224@627-s82-2kz",Grocery Stores,False
+GRP00100,2,Luk & Bart Homemade Food; L and B Homemade Food,"223-222@627-vv8-hbk,223-224@627-vv8-hbk",Restaurants and Other Eating Places,False
+GRP00099,2,Dimattina Playground; Dimattina Playground,"zzy-224@627-wc3-66k,zzy-223@627-wc3-66k","Museums, Historical Sites, and Similar Institutions",True
+GRP00098,2,Winfield Street Coffee- 72nd Street; Winfield Coffe -72nd St,"zzy-22k@627-s4n-45f,zzy-22q@627-s4n-45f",Restaurants and Other Eating Places,False
+GRP00097,2,Dragon Sea Restaurant; Dragon Sea,"23c-222@627-rwc-bhq,23c-225@627-rwc-bhq",Restaurants and Other Eating Places,False
+GRP00087,2,Sol Maya; Taqueria Sol Maya,"229-223@627-s4t-zcq,22k-223@627-s4t-zcq",Restaurants and Other Eating Places,False
+GRP00095,2,Your Choice Deli Grocery; Valentine Deli Grocery,"22f-222@627-s6h-wtv,22k-225@627-s6h-w49",Grocery Stores,False
+GRP00094,2,New Golden Sparkling Chinese Restaurant; New Golden Sparkling,"22b-222@627-s7s-jvz,zzy-23h@627-s7s-jvz",Grocery Stores,False
+GRP00093,2,Dyckman House Museum; Dyckman Farmhouse Museum,"zzz-222@627-s5x-c89,22f-222@627-s5x-c89","Museums, Historical Sites, and Similar Institutions",False
+GRP00092,2,Mariya A. Balayage and Hair Extensions Artist; Mariya Aronova Balayage and Extensions Artist,"zzy-222@627-vvc-2kz,234-223@627-vvc-3nq",Personal Care Services,False
+GRP00091,2,L&B Spumoni Gardens; Lb Spumoni Gardens,"zzw-222@627-wd8-tgk,22w-223@627-wd8-t5f",Restaurants and Other Eating Places,False
+GRP00090,2,H F Dollar & Up Fruit And Vegetable; Dollar Up Fruit,"zzw-223@627-s7v-y9z,zzy-22n@627-s7v-y9z",Grocery Stores,False
+GRP00089,2,Ralph's Italian ices & Ice Cream; Ralph's Famous Italian Ices,"222-222@627-vvc-xt9,222-228@627-vvc-xt9",Restaurants and Other Eating Places,False
+GRP00088,2,Trattoria; Trattoria 35,"222-222@627-rzx-3t9,zzy-22c@627-rzx-3t9",Restaurants and Other Eating Places,False
+GRP00096,2,Three Star Production Inc; Three Star Juice Lounge,"229-224@627-s8w-ty9,229-222@627-s8w-ty9",Restaurants and Other Eating Places,False

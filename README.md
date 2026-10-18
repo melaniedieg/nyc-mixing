@@ -323,6 +323,50 @@ visitor-sampling-variance inputs reproduced the existing 4,871 and every individ
 `pool_persistence.py` and the RAW `pooled_persistence_2026.{pkl,csv}` have been corrected and
 recommitted alongside this Note 8 extension.
 
+*Fragment-consolidation device dedup, cross-checked against the vendor's own duplicate/overlap
+flags (Note 9, a seventh round of external review).* `consolidate_fragments.py` sums each merged
+group's q1-q5_devices across its member fragments (see Known limitations, POI fragmentation) --
+a real concern raised in external review is that this could double-count if the vendor's own
+visit-to-POI attribution isn't fully exclusive, or under-count if genuinely duplicate catalog
+entries are missed by the 75ft/name-Jaccard>=0.4 thresholds. The vendor's raw
+`analysis_pois_<PERIOD>.csv` already carries three authoritative signals for exactly this --
+`parent_placekey` (explicit parent/child POI relationships), `shared_candidate`, and
+`polygon_class` (`OWNED_POLYGON`/`SHARED_POLYGON`) -- present in all 8 periods' raw exports but
+previously unused anywhere in the pipeline. `fragment_dedup_crosscheck.py` re-joins these onto the
+union of eligible venues and checks both directions. **Double-count risk:** of 535 parent/child
+pairs where both placekeys are eligible, only 2 are currently merged into the same fragment group
+(both benign-looking -- "Torah Temimah Talmudical Seminary" x2 and "Dyckman Farmhouse/House
+Museum" -- not a double-count in any real sense), and the other 533 are correctly kept separate;
+double-counting via parent/child POIs is not a material problem in this pipeline. **Under-count
+risk:** of 10,477 SHARED_POLYGON-flagged eligible venues, 97.3% are not in any fragment group
+(expected -- most shared-polygon venues are genuinely distinct businesses sharing a building, not
+duplicates); widening the search to 150ft/same-category/any name-token overlap among the unmerged
+ones surfaced 291 near-duplicate candidates, none involving any of the four named venues or the
+Jacob Riis cluster. Recomputing the borderline candidates with the production `name_tokens`
+function (not a simplified stand-in) found a real, if modest, gap: `name_tokens` kept a trailing
+possessive `'s` as part of its token (ASCII apostrophe only -- the regex `[a-z0-9']+` doesn't
+split on it), so "Lorenzo's Pizza" tokenized to `{"lorenzo's", "pizza"}` while "Lorenzo Pizza Of
+New York" tokenized to `{"lorenzo", "pizza", "new", "york"}` -- `lorenzo's` and `lorenzo` never
+matched, holding their Jaccard below the 0.4 threshold (0.25) despite being the same place. Three
+such pairs were found this way (the other two: "Alex's Deli Of Ny Corp"/"Alex Deli Grocery" and
+"Alex's Tacos"/"Alex Tacos Deli"). ADOPTED FIX: `name_tokens` now strips a trailing possessive `'s`
+(both the ASCII apostrophe and the curly `'` a handful of vendor records use) before tokenizing,
+so "Lorenzo's" tokenizes the same as "Lorenzo." Rerunning the full citywide pass with this fix
+merges those 3 pairs (265 groups/534 placekeys -> 275 groups/554 placekeys) and drops the
+cross-check's own near-dupe candidate count from 291 to 288 -- exactly the 3 pairs it closed, no
+side effects elsewhere. Effect on the full consolidated table, checked directly rather than
+assumed: the ADOPTED REML+Hartung-Knapp FDR survivor count is unchanged at **4,871** (same
+31,645-venue tested family, down from 31,652 only because 10 more fragments merged into existing
+venues rather than counting separately); around 30 individual venues' `q_bh_hk` move across the
+q<=0.05 boundary in either direction, but nearly all of those are the SAME entity shifting
+`fragment_groups_report.csv` group-ID numbers (new groups inserted mid-sequence renumber later
+ones) with a third- or fourth-decimal q-value change from the BH procedure's family-size shift, not
+a real change in that venue's own evidence. None of the four named venues (Chens Fresh Food
+Market, Amenazel Organic, Hunts Point Floating Pier, or the Jacob Riis cluster/Jacob Riis Beach)
+move at all -- confirmed by direct before/after comparison, not inferred. See
+`fragment_dedup_crosscheck.py`, `fragment_dedup_crosscheck_parent_child.csv`, and
+`fragment_dedup_crosscheck_near_dupes.csv`.
+
 *Neighborhood income diversity (omitted-variable check).* `sensitivity_neighborhood_diversity.py`
 tests a specific concern raised in external review: the contextual baseline conditions on a block
 group's mean income (`income_proxy_v2`) and racial composition, but not on how spread out that
@@ -467,9 +511,10 @@ consolidate_fragments.py        Citywide pass that groups POI-catalog fragments 
                                  own bootstrap above was updated to match (resamples each fragment's
                                  own counts independently and averages their scores, rather than
                                  pooling counts before scoring). Produces fragment_groups_report.csv
-                                 (265 groups, 46 flagged as exact-name matches worth a manual glance
-                                 -- the grouping itself is unaffected by Note 5 or Note 6, unchanged
-                                 from the prior commit) and
+                                 (275 groups, 49 flagged as exact-name matches worth a manual glance
+                                 -- grouping unaffected by Note 5 or Note 6; UPDATED by Note 9's
+                                 possessive-apostrophe normalization in name_tokens, see Validation
+                                 checks already run above) and
                                  consolidated_pooled_persistence_2026.{pkl,csv} -- this is the
                                  canonical, current persistence table; prefer it over
                                  pooled_persistence_2026.{pkl,csv} above.
@@ -503,6 +548,28 @@ sensitivity_fragments.py        Stress-tests the two consolidation thresholds in
                                  visitor_sampling_variance_dm_<PERIOD>.csv and
                                  model_prediction_variance_<PERIOD>.csv; produces
                                  sensitivity_fragments_results.csv.
+
+fragment_dedup_crosscheck.py     Cross-checks consolidate_fragments.py's clustering against the
+                                 vendor's OWN authoritative duplicate/overlap signals -- Note 9, a
+                                 seventh round of external review, on the concern that summing
+                                 q1-q5_devices across fragment members (see Known limitations, POI
+                                 fragmentation) could double- or under-count if the vendor's own
+                                 visit attribution isn't as exclusive as assumed. Re-joins
+                                 parent_placekey/shared_candidate/polygon_class from the raw
+                                 analysis_pois_<PERIOD>.csv (present in all 8 periods' raw exports,
+                                 but only build_features_2026_04.py currently carries them into
+                                 model_ready -- a minor, separate inconsistency, not yet fixed) onto
+                                 the union of eligible venues, then checks (a) parent/child pairs
+                                 that are BOTH eligible against fragment_groups_report.csv's actual
+                                 grouping (double-count risk), and (b) SHARED_POLYGON/shared_candidate
+                                 venues NOT in any group, widened to 150ft/any name-token overlap, for
+                                 plausible same-place duplicates the 75ft/Jaccard>=0.4 production
+                                 thresholds missed (under-count risk). See Validation checks already
+                                 run above for the findings and the apostrophe-normalization fix this
+                                 surfaced. Reads model_ready_<PERIOD>.pkl, analysis_pois_<PERIOD>.csv,
+                                 and fragment_groups_report.csv; produces
+                                 fragment_dedup_crosscheck_parent_child.csv and
+                                 fragment_dedup_crosscheck_near_dupes.csv.
 
 sensitivity_eligibility_floor.py  Stress-tests the 50-device eligibility floor in
                                  build_features_2026_0X.py at four other floors (30, 75, 100,
@@ -1215,14 +1282,17 @@ data licenses restrict redistribution even of aggregated results.
   (~23m) of each other spatially, name-token Jaccard similarity >=0.4 after stripping stopwords
   (including street-suffix words like "street"/"ave"/"blvd" -- added after an early version of
   this check nearly merged "Knapp Street Pizza" with the unrelated "Knapp Street Bagel Cafe" on
-  shared street-name tokens alone), AND the same vendor `top_category`. Run across the union of
-  all 8 periods' eligible venues (34,943 placekeys -- this grows each time a new period is folded
-  in, since it's a union across periods, not a fixed catalog size), this finds 265 fragment groups
-  (534 placekeys merged down to 265 entities); 46 of those groups are flagged separately as
-  exact-name matches (e.g. two "Starbucks" entries, two "The Salvation Army" entries) -- a real
-  chain/franchise sitting twice in the same spot is plausible, but so is a genuine chain having
-  two nearby-but-distinct locations, so these 46 are listed in `fragment_groups_report.csv` for a
-  manual glance rather than auto-merged with full confidence.
+  shared street-name tokens alone) and normalizing a trailing possessive `'s` so "Lorenzo's"
+  tokenizes the same as "Lorenzo" (UPDATE, Note 9 -- see "Fragment-consolidation device dedup"
+  under Validation checks already run above: the vendor's own parent/child and shared-polygon
+  flags surfaced this as a real, if modest, apostrophe-driven near-miss gap), AND the same vendor
+  `top_category`. Run across the union of all 8 periods' eligible venues (34,943 placekeys -- this
+  grows each time a new period is folded in, since it's a union across periods, not a fixed catalog
+  size), this finds 275 fragment groups (554 placekeys merged down to 275 entities); 49 of those
+  groups are flagged separately as exact-name matches (e.g. two "Starbucks" entries, two "The
+  Salvation Army" entries) -- a real chain/franchise sitting twice in the same spot is plausible,
+  but so is a genuine chain having two nearby-but-distinct locations, so these 49 are listed in
+  `fragment_groups_report.csv` for a manual glance rather than auto-merged with full confidence.
 
   Merging a confirmed fragment group sets its merged `income_mixing_score` as a device-count-
   weighted average of each PRESENT fragment's OWN `income_mixing_score` that month (UPDATE, Note 6

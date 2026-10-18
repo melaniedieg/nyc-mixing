@@ -1,0 +1,536 @@
+check,group_id,pk_a,pk_b,name_a,name_b
+A_merged_parent_child,GRP00046,22d-224@627-vsv-j7q,22b-224@627-wgw-tjv,Torah Temimah Talmudical Seminary,Torah Temimah Talmudical Seminary
+A_merged_parent_child,GRP00093,22f-222@627-s5x-c89,zzz-222@627-s5x-c89,Dyckman Farmhouse Museum,Dyckman House Museum
+A_separate_parent_child,,222-225@627-s4v-789,zzy-228@627-s4v-789,Dunkin',110th and Central Park
+A_separate_parent_child,,zzw-223@627-s7t-qcq,222-222@627-s7t-m8v,West Side Tennis Club,Forest Hills Stadium
+A_separate_parent_child,,zzy-222@627-rwb-sbk,zzz-222@627-rwc-9pv,Bronx Zoo Treetop Adventure,Bronx Park
+A_separate_parent_child,,226-222@627-s8y-6c5,226-226@627-s8y-6c5,Brooklyn Ballet,The Mark O'Donnell Theater at Entertainment Community Fund Arts Center
+A_separate_parent_child,,23b-223@627-s8k-psq,zzy-22f@627-s8k-psq,Starbucks,Temperance Fountain
+A_separate_parent_child,,22b-222@627-wdg-bp9,zzw-222@627-wdb-zzz,Petes Clam Stop,Luna Park
+A_separate_parent_child,,zzy-222@627-s6m-pjv,zzz-222@627-s6d-5zz,Tennis World NYC,Fort Washington Park
+A_separate_parent_child,,22b-224@627-wc3-835,zzz-222@627-wc3-835,Scavenger Hunt Walking Tours - Brooklyn,Columbus Park
+A_separate_parent_child,,22h-222@627-s8r-jy9,zzy-227@627-s8r-zzz,Morton Williams,Central Park Conservancy Dairy Visitor Center and Gift Shop
+A_separate_parent_child,,222-224@627-sb2-h89,zzw-22p@627-s99-d9z,Student Union,CUNY Queens College
+A_separate_parent_child,,226-222@627-s8p-y7q,224-227@627-s8p-y35,Goodwill Industries,City Ice Pavilion
+A_separate_parent_child,,2n6-222@627-s9x-9s5,zzy-223@627-s9x-9zz,Montgoris,Carnesecca Arena
+A_separate_parent_child,,zzw-223@627-s7s-skf,zzy-238@627-s7s-skf,Taste of Dolly's,Jurassic Playground at Flushing Meadow Park
+A_separate_parent_child,,222-223@627-vv6-dvz,zzz-223@627-vv6-kmk,Silver Lake Golf Course,Silver Lake Park
+A_separate_parent_child,,zzw-224@627-s8q-sbk,22r-22h@627-s8y-kxq,Casa Lever,Park Avenue Associates
+A_separate_parent_child,,zzy-222@627-sb2-ty9,zzw-22p@627-s99-d9z,Department of Computer Science,CUNY Queens College
+A_separate_parent_child,,2j5-222@627-s8r-hbk,zzy-244@627-s8r-hbk,Highball Times Square,Bryant Park 5th Ave. 42nd St NY.
+A_separate_parent_child,,22c-222@627-s6b-8vz,zzz-222@627-s6b-8vz,Wendy's,Keltch Park
+A_separate_parent_child,,222-226@627-wc9-5zz,224-22b@627-wc9-5xq,Oneyogahouse,Harbor View Lawn
+A_separate_parent_child,,222-223@627-s4v-t7q,zzw-222@627-s4v-t9z,Tom's Dog Run,Thomas Jefferson Park
+A_separate_parent_child,,227-225@627-wc7-jy9,zzy-259@627-wc7-jy9,Chipotle Mexican Grill,Long Island Sound
+A_separate_parent_child,,225-222@627-s8r-6p9,zzy-22w@627-s8r-92k,Ocean Prime,Morningside Park Harlem Nyc
+A_separate_parent_child,,22r-222@627-wc7-qcq,224-22c@627-wc7-qcq,The Bar Method,Shecky's
+A_separate_parent_child,,222-22s@627-rvw-f4v,222-222@627-rvw-f4v,Admissions and Welcome Center,SUNY Maritime College
+A_separate_parent_child,,zzw-223@627-s83-7kf,zzz-222@627-s83-7kf,Starbucks,157-41 Cross Bay Boulevard
+A_separate_parent_child,,227-224@627-wc2-7bk,zzy-22h@627-wc2-7dv,Petite Maman,Tiffany Reynolds
+A_separate_parent_child,,222-223@627-vty-gc5,zzz-222@627-vty-gc5,Staten Island Funpark,Sports Park
+A_separate_parent_child,,226-222@627-wf8-xqz,zzw-222@627-wf8-y7q,St. John's University - Office of Residence Life - Staten Island,St. John's University-new York - Staten Island Campus
+A_separate_parent_child,,222-223@627-vvf-tvz,zzz-222@627-vvg-z4v,Historic Richmond Town,LaTourette Park & Golf Course
+A_separate_parent_child,,zzy-224@627-s8n-7wk,zzz-222@627-s8n-7wk,Playground,St. Catherine's Park
+A_separate_parent_child,,zzy-229@627-s96-yn5,zzy-22f@627-s96-yn5,El Torito Brisket,Marsha P. Johnson State Park
+A_separate_parent_child,,zzy-22x@627-wbz-t35,zzy-27j@627-wbz-t35,Whole Foods Market,Verdi Park - upper west side nyc
+A_separate_parent_child,,zzy-22b@627-s8p-9s5,zzy-228@627-s8p-9s5,39th Street Bridge,New York Sports Clubs
+A_separate_parent_child,,zzy-223@627-s9q-4gk,zzy-222@627-s9q-3dv,Hoover Playground,Hoover - Manton Playgrounds
+A_separate_parent_child,,22f-225@627-s8y-fj9,222-22r@627-s8y-fvf,Just Salad,Barclays Center
+A_separate_parent_child,,zzz-222@627-rwr-tn5,zzy-222@627-rwr-tn5,MacNeil Park Alliance College Point NY,Hermon A. MacNeil Park
+A_separate_parent_child,,23q-222@627-s7w-9s5,zzy-224@627-s7w-92k,Blink Fitness,Blink Moto 652
+A_separate_parent_child,,23s-222@627-s8v-f75,zzy-222@627-s8v-f75,Doctor's Cave Cafe,Harriman State Park New York
+A_separate_parent_child,,225-223@627-rwc-c5z,zzz-222@627-rwc-9pv,The Children's Zoo,Bronx Park
+A_separate_parent_child,,zzy-223@627-vvk-5mk,zzz-222@627-vvk-5mk,General Douglas Mini Pool,Gen. Douglas MacArthur Park
+A_separate_parent_child,,zzy-22j@627-rwt-k75,zzz-222@627-rwt-k75,Owen Dolen Recreation Center,Owen F. Dolen Park
+A_separate_parent_child,,zzy-22n@627-s8h-t5f,zzz-222@627-s8h-t35,Shake Shack,Madison Square Park
+A_separate_parent_child,,zzw-222@627-wbt-q4v,zzy-22b@627-wbt-pvz,Whitmans Hudson Yards,High Line Plinth
+A_separate_parent_child,,zzy-2b7@627-s8k-3dv,zzy-23s@627-s8j-z2k,The Theater at MSG,Madison Square Garden
+A_separate_parent_child,,zzy-223@627-rwb-whq,zzz-222@627-rwc-9pv,NYC Parks - Bronx Technical Services,Bronx Park
+A_separate_parent_child,,zzy-222@627-rwb-qfz,zzz-222@627-rwc-9pv,Bronx River Park Dog Run,Bronx Park
+A_separate_parent_child,,zzy-228@627-s8n-y9z,zzz-222@627-s8n-y9z,John Jay Pool and Recreation,John Jay Park
+A_separate_parent_child,,227-22b@627-s8p-bzf,zzy-22y@627-s8p-bzf,Avalon Events Planning,Two Roses' Events
+A_separate_parent_child,,zzy-226@627-s6g-fvf,zzy-22x@627-s6g-fxq,Los Torres,Joseph Yancey Track and Field
+A_separate_parent_child,,zzy-222@627-s9x-9zz,zzy-223@627-s9w-vs5,Carnesecca Arena,St John's University
+A_separate_parent_child,,zzy-224@627-s8k-dn5,zzy-224@627-s8k-z4v,East River Park Field 7,John V. Lindsay East River Park
+A_separate_parent_child,,zzy-223@627-rw9-bhq,zzz-222@627-rwb-7kf,Frank Frisch Field,Mosholu Parkway
+A_separate_parent_child,,zzy-22s@627-s8r-fzz,zzy-23j@627-s8r-fvf,Van Leeuwen Artisan Ice Cream,F.A.O Schwarz Central Park NYC
+A_separate_parent_child,,224-222@627-tm7-c3q,zzy-224@627-wgm-t5f,Scotts Corner,Gateway National Recreation Area
+A_separate_parent_child,,zzy-222@627-s8k-whq,zzz-222@627-s8k-z2k,Basketball Court,Baruch Playground
+A_separate_parent_child,,zzy-225@627-wc9-4y9,zzz-223@627-wc9-52k,William Jay Gaynor Memorial,Cadman Plaza Park
+A_separate_parent_child,,235-22k@627-s8k-rhq,235-22y@627-s8k-rhq,Bistro Truck,Central Park - Miners' Gate - E. 79th St
+A_separate_parent_child,,zzw-222@627-s4t-k9f,zzy-229@627-s6d-r8v,Riverbank State Park - Ice and Roller Skating Rinks in New York NY,River Bank Park
+A_separate_parent_child,,zzy-222@627-s7z-wx5,zzy-223@627-s7z-wx5,GallopNYC Sunrise Stables,Gemini Fields
+A_separate_parent_child,,229-224@627-s92-4jv,zzz-222@627-s92-4n5,Morris Truck,Brower Park
+A_separate_parent_child,,222-225@627-rwq-8n5,222-228@627-rwq-8n5,Golden City Chinese Kitchen,Clason Point Medical PC
+A_separate_parent_child,,227-222@627-s8x-b49,zzy-222@627-s8x-b49,Blessing Food Corporation,Amboy Neighborhood Garden
+A_separate_parent_child,,225-224@627-rwc-c5z,zzz-222@627-rwc-9pv,Bronx Zoo,Bronx Park
+A_separate_parent_child,,zzy-224@627-rwv-yjv,zzy-225@627-rwv-yjv,Silver Beach Playground,Green Grass Silver Beach
+A_separate_parent_child,,zzy-226@627-rwb-r6k,zzz-222@627-rwc-9pv,Ben Abrams Playground,Bronx Park
+A_separate_parent_child,,zzy-222@627-s4q-wzf,zzy-223@627-s4m-5mk,Ellington in the Park,Duke Ellington And Riverside Park
+A_separate_parent_child,,zzy-229@627-s6g-gzf,zzy-22d@627-s6g-gzf,Clubhouse Cafe,Yankee Stadium Children's Park
+A_separate_parent_child,,227-228@627-s8j-5cq,227-22k@627-s8j-5cq,Allure Models NYC,Vanderbilt Avenue Plaza
+A_separate_parent_child,,222-223@627-wdb-f9f,zzy-224@627-wdb-f9f,Boardwalk Beer Garden,Brighton Boardwalk E
+A_separate_parent_child,,226-222@627-s92-59f,22p-222@627-s92-59f,King Tai,1100 Block Bergen Street Community Garden
+A_separate_parent_child,,zzw-224@627-s8r-fzz,zzy-23j@627-s8r-fvf,Top of the Rock Observation Deck,F.A.O Schwarz Central Park NYC
+A_separate_parent_child,,zzy-223@627-vsg-t35,222-222@627-vs9-g49,The Greenbelt at Latourette Park,Costco
+A_separate_parent_child,,zzw-223@627-s8h-xt9,zzy-239@627-s8h-xt9,Pret A Manger,390 Park Avenue S LLC
+A_separate_parent_child,,zzz-222@627-tm7-f4v,zzy-224@627-wgm-t5f,Gene Gray Playground,Gateway National Recreation Area
+A_separate_parent_child,,225-22r@627-rwc-c5z,zzz-222@627-rwc-9pv,Tiger Mountain at Bronx Zoo,Bronx Park
+A_separate_parent_child,,22k-22b@627-wh4-zpv,22k-224@627-wh4-zpv,Wonder,Target
+A_separate_parent_child,,222-22f@627-rwc-vxq,zzz-222@627-rwc-9pv,LuEsther T Mertz Library,Bronx Park
+A_separate_parent_child,,zzy-226@627-s9b-skf,zzw-22p@627-s99-d9z,Colden Auditorium,CUNY Queens College
+A_separate_parent_child,,222-222@627-vvp-789,zzz-222@627-vvp-8y9,Greenbelt Nature Center,Willowbrook Parkway
+A_separate_parent_child,,zzy-223@627-s6d-pjv,zzz-222@627-s6d-snq,Ten Mile River Playground,Recreational Area
+A_separate_parent_child,,223-222@627-rzw-gkz,zzw-222@627-rzw-4gk,Towers Restaurant,Towers Country Club
+A_separate_parent_child,,zzy-222@627-s6c-835,zzw-222@627-s6c-835,St. Mary's Playground East,St. Mary's Park
+A_separate_parent_child,,22y-223@627-s96-mkz,zzy-22c@627-s96-mkz,H&H Reserve,Marci Triangle Park
+A_separate_parent_child,,zzy-222@627-s6f-b8v,zzz-222@627-s6d-5zz,Sisyphus Stones,Fort Washington Park
+A_separate_parent_child,,zzw-223@627-wdb-fpv,zzy-22d@627-wdb-fpv,Palace Fried Chicken,Brighton Beach Brooklyn NYC
+A_separate_parent_child,,26h-222@627-s7t-pvz,222-227@627-s7t-dqf,Trader Joe's,Federoff Triangle
+A_separate_parent_child,,225-222@627-tm2-7bk,zzy-224@627-wgm-t5f,All American Bagel & Barista II,Gateway National Recreation Area
+A_separate_parent_child,,zzw-222@627-vv4-49z,zzz-222@627-vsh-egk,Carousel For All Children,Willowbrook Park
+A_separate_parent_child,,22h-224@627-s4w-2rk,zzy-22g@627-s4w-2rk,T.J. Maxx,Harlem Worlds Imperial courts
+A_separate_parent_child,,zzw-224@627-s7s-q75,zzy-22b@627-s7s-q75,Capy,Corona Plaza
+A_separate_parent_child,,224-22g@627-s8j-nyv,224-26m@627-s8j-nyv,Blink Fitness,New York Yankees
+A_separate_parent_child,,225-223@627-wbt-jd9,zzy-22d@627-wbt-snq,Paradis in the Park,Bella Abzug Park
+A_separate_parent_child,,zzy-223@627-s6f-8gk,zzz-222@627-s6d-5zz,Discovery Playground,Fort Washington Park
+A_separate_parent_child,,zzy-226@627-s6g-gzf,zzy-22d@627-s6g-gzf,South Bronx United,Yankee Stadium Children's Park
+A_separate_parent_child,,22r-225@627-s4r-wtv,zzy-22n@627-s4r-s3q,Simply Noodles,Cherry Hill Central Park
+A_separate_parent_child,,223-223@627-rzw-gkz,zzw-222@627-rzw-4gk,Towers On the Green,Towers Country Club
+A_separate_parent_child,,zzy-225@627-wg3-pjv,zzw-222@627-wg3-kmk,Brooklyn Center for the Performing Arts,CUNY Brooklyn College
+A_separate_parent_child,,227-224@627-s9t-q9f,zzy-222@627-s9t-k9f,Rinconcito De Los Sabores 5,Eight Oaks Triangle
+A_separate_parent_child,,22f-224@627-wbz-s89,zzy-2ct@627-wbz-s89,FDNY Ten House,Edgar Park
+A_separate_parent_child,,zzy-224@627-rwb-sbk,zzz-222@627-rwc-9pv,Bronx Zoo-Bronx River Pkwy Gate,Bronx Park
+A_separate_parent_child,,223-225@627-s4r-s3q,zzy-22v@627-s4n-7kf,Synergy Therapy,Central Park - 72nd St Transverse
+A_separate_parent_child,,zzy-222@627-wdb-yqf,zzw-222@627-wdb-zzz,Asser Levy Seaside Park,Luna Park
+A_separate_parent_child,,225-22s@627-rwc-c5z,zzz-222@627-rwc-9pv,Madagascar at Bronx Zoo,Bronx Park
+A_separate_parent_child,,229-222@627-s92-4jv,zzz-222@627-s92-4n5,Brooklyn Children's Museum,Brower Park
+A_separate_parent_child,,22f-222@627-s8r-9pv,22f-22p@627-s8r-9pv,Broadway Comedy Club,The Industry Room
+A_separate_parent_child,,227-222@627-s9p-v9f,zzz-222@627-s9p-xnq,King Manor Museum,Rufus King Park
+A_separate_parent_child,,225-222@627-s4r-4sq,zzz-222@627-s4r-249,Lincoln Ristorante,Lincoln Center Plaza
+A_separate_parent_child,,zzw-222@627-wc7-73q,zzy-227@627-s8x-sqz,Starbucks,Betty Carter Park
+A_separate_parent_child,,222-22m@627-wg3-pqf,zzw-222@627-wg3-kmk,Lily Pond,CUNY Brooklyn College
+A_separate_parent_child,,224-227@627-s8h-v2k,224-229@627-s8h-v2k,I'Milky - Flatiron,Gramercy Theatre
+A_separate_parent_child,,zzy-224@627-wgn-3yv,zzy-224@627-wgm-t5f,ROC Race,Gateway National Recreation Area
+A_separate_parent_child,,zzy-23s@627-s8j-z2k,zzy-222@627-s8j-z2k,Madison Square Garden,The Theater at Madison Square Garden
+A_separate_parent_child,,224-222@627-wc9-nyv,zzy-227@627-wc9-nyv,May May Kitchen,East River Paper Company
+A_separate_parent_child,,zzw-223@627-sb9-7bk,zzy-22d@627-sb9-7bk,New York Sports Club,New York Sports Clubs
+A_separate_parent_child,,222-222@627-wg7-td9,zzz-222@627-s8x-7dv,Betsy Head Pool,Betsy Head Park
+A_separate_parent_child,,zzy-222@627-s88-sh5,zzz-222@627-s7z-nqz,Pals Oval,Tudor Park
+A_separate_parent_child,,zzy-22g@627-s8q-w49,223-224@627-s8q-w49,Pilates Personal Training,Central Park Air
+A_separate_parent_child,,226-22s@627-s8h-xt9,zzy-239@627-s8h-xt9,The Bar Caterers,390 Park Avenue S LLC
+A_separate_parent_child,,23m-22m@627-s8r-fj9,zzy-23j@627-s8r-fvf,Starbucks,F.A.O Schwarz Central Park NYC
+A_separate_parent_child,,zzy-22t@627-s8r-6kz,zzy-22m@627-s8r-6kz,West Park Beer Garden,Pocket Park with Waterfall Walkway Portal
+A_separate_parent_child,,224-22d@627-wbn-d9z,22f-222@627-wbn-cyv,Voss Events,Chelsea Waterside Playground
+A_separate_parent_child,,223-222@627-wc8-pn5,zzy-225@627-wc8-py9,Concord Market,Tillary Park
+A_separate_parent_child,,22k-222@627-rwm-kfz,22k-224@627-rwm-kfz,Food Fair,Key Food
+A_separate_parent_child,,2qm-224@627-wbz-t35,zzy-27j@627-wbz-t35,65 Market Place,Verdi Park - upper west side nyc
+A_separate_parent_child,,zzz-222@627-wdd-vj9,zzw-222@627-wdd-vj9,Nellie Bly Park,Adventurers Amusement Park
+A_separate_parent_child,,2qm-222@627-wbz-t35,zzy-27j@627-wbz-t35,WFM Coffee Bar,Verdi Park - upper west side nyc
+A_separate_parent_child,,zzy-222@627-wdc-5fz,zzz-222@627-wgh-x3q,City Ice Sports Inc,Manhattan Beach Park
+A_separate_parent_child,,222-224@627-s4n-wp9,zzz-222@627-s4n-wtv,Agsoccerclub,Asphalt Green
+A_separate_parent_child,,22t-224@627-wdk-gff,zzz-222@627-wdk-33q,Dolgan Field,Herman Dolgon Playground
+A_separate_parent_child,,223-22d@627-wc9-py9,zzy-222@627-s6m-r6k,Foodtown Deli Market,Bennett Park
+A_separate_parent_child,,zzy-225@627-sb6-gtv,zzy-222@627-sb6-gtv,Louis C. Moser Playground,Bulova Park
+A_separate_parent_child,,zzw-222@627-s8x-7qz,zzy-222@627-s8x-b49,Tropical Coffee Shop,Amboy Neighborhood Garden
+A_separate_parent_child,,zzy-232@627-s8r-f9f,zzy-226@627-s4r-4qf,Halal Cart,Richard Tucker Park
+A_separate_parent_child,,zzy-223@627-wbt-n89,226-228@627-s4r-sh5,Halal Food Cart,88 Central Park West
+A_separate_parent_child,,zzw-222@627-s4v-89z,zzy-22r@627-s4v-89z,Cafe Amrita,7 Ave Bike Lane
+A_separate_parent_child,,zzy-226@627-s9t-7h5,zzy-222@627-s9s-qxq,Sobelsohn Playground,Forest Park
+A_separate_parent_child,,226-224@627-s6c-7wk,zzw-222@627-s6c-835,St. Mary's Playground West,St. Mary's Park
+A_separate_parent_child,,zzz-222@627-rw9-vpv,222-222@627-rw9-vzz,Nyc Open Space 164,CUNY Lehman College
+A_separate_parent_child,,zzy-225@627-vv3-47q,zzy-222@627-vv3-2rk,Basketball Courts,The Big Park
+A_separate_parent_child,,zzy-223@627-s9w-vs5,zzy-228@627-s9x-9zz,St John's University,St. John's University-New York
+A_separate_parent_child,,zzy-225@627-s4t-4sq,zzw-222@627-s6d-pn5,Uptown Night Market,Riverside Park
+A_separate_parent_child,,2b5-223@627-wc2-7yv,222-225@627-wc7-kxq,Charley's,Jeff Koons' Balloon Flower Sculpture at WTC
+A_separate_parent_child,,zzy-227@627-s9t-dvz,zzy-22c@627-s9t-dvz,Taan Thai Kitchen,Forest Park Pine Grove
+A_separate_parent_child,,222-223@627-s8r-3yv,zzy-22k@627-s8r-3yv,UN Plaza Grill,First Avenue Tunnel
+A_separate_parent_child,,223-224@627-s88-r6k,zzy-225@627-s88-r6k,Dollar Tree,Cross Bay Blvd Howard Beach NY
+A_separate_parent_child,,223-224@627-s86-9s5,223-222@627-s86-9s5,Wings Out,Dave & Buster's
+A_separate_parent_child,,zzy-222@627-rwv-p35,zzz-222@627-rwv-wzf,Dakotas On The Cove,Locust Point Marina
+A_separate_parent_child,,zzw-224@627-s6j-bp9,22h-224@627-s6j-bkz,Panda Express,Blink 708
+A_separate_parent_child,,zzz-222@627-s6d-xkf,zzw-224@627-s6d-wx5,Mitchel Square,Columbia University College of Dental Medicine
+A_separate_parent_child,,222-222@627-s8f-89z,zzz-222@627-s8f-89z,sweetgreen,Rivergate
+A_separate_parent_child,,zzz-222@627-wdb-rff,222-22g@627-wdg-bhq,Maimonides Park,Steeplechase Park
+A_separate_parent_child,,zzy-224@627-s8g-w49,zzy-223@627-s8g-xkf,Traditional Tribal Fitness,McCarren Park
+A_separate_parent_child,,22q-222@627-wgq-zfz,zzy-225@627-wg6-4gk,Key Food,Gerritsen Creek
+A_separate_parent_child,,zzy-227@627-rwc-649,zzz-222@627-rwc-9pv,Thain Family Forest,Bronx Park
+A_separate_parent_child,,zzy-223@627-s6d-wx5,223-226@627-s6d-wrk,Green Market,New York Armory Track and Field
+A_separate_parent_child,,22d-222@627-rwt-mhq,zzy-223@627-rwt-mhq,7-Eleven,Wilkinson Park
+A_separate_parent_child,,225-226@627-s8k-249,225-248@627-s8k-249,Poke Bar,CodeGreen Solutions
+A_separate_parent_child,,zzz-222@627-s69-835,zzy-223@627-s69-835,Dred Scott Bird Sanctuary,Grant Park
+A_separate_parent_child,,22r-222@627-s4r-wtv,zzy-22n@627-s4r-s3q,Utopia,Cherry Hill Central Park
+A_separate_parent_child,,zzy-222@627-rwv-xbk,zzz-222@627-rwv-wzf,MrBeast Burger,Locust Point Marina
+A_separate_parent_child,,226-222@627-wdg-bp9,zzw-222@627-wdb-zzz,Nathan's Famous,Luna Park
+A_separate_parent_child,,22c-22g@627-wg8-mhq,zzy-222@627-wg8-pgk,BKLA Summer Camp,Paerdegat Basin Park
+A_separate_parent_child,,23w-222@627-s8r-jd9,zzy-228@627-s8s-2p9,Le Pain Quotidien,Central Park - 65th St Transverse
+A_separate_parent_child,,22b-222@627-wc9-p5f,zzy-227@627-wc9-nyv,Saluggi's East,East River Paper Company
+A_separate_parent_child,,223-225@627-wc7-789,zzy-227@627-s8x-sqz,Civic Deli,Betty Carter Park
+A_separate_parent_child,,225-224@627-wdg-c89,zzz-222@627-wdg-c5z,Deno's Wonder Wheel Park,Coney Island Beach
+A_separate_parent_child,,224-226@627-s8j-6zf,zzy-22t@627-s8j-bhq,Fle Fla & Bagel,The Trailer Park
+A_separate_parent_child,,228-224@627-s4v-m6k,zzy-229@627-s4v-m6k,Bagel Tree,Dream Street Park
+A_separate_parent_child,,22b-223@627-s4v-9mk,zzy-22f@627-s4v-9mk,Jukebox,A Philip Randolph Square
+A_separate_parent_child,,zzy-226@627-s6h-v75,226-223@627-s6h-v75,Baskin Robbins,Bryan Park
+A_separate_parent_child,,22g-222@627-s6j-bp9,22h-224@627-s6j-bkz,Twin Donuts,Blink 708
+A_separate_parent_child,,223-229@627-rw8-dvz,225-222@627-rw8-dvz,Albert Einstein College of Medicine,Albert Einstein College of Medicine of Yeshiva
+A_separate_parent_child,,227-222@627-wc9-kj9,229-223@627-wc9-kj9,Forever Taste,Lower East Side People Care Community Garden
+A_separate_parent_child,,zzy-227@627-wc7-6c5,22p-22b@627-wc9-kj9,Kennedy Fried Chicken,New York Central Park
+A_separate_parent_child,,zzy-225@627-wc7-ysq,zzz-222@627-wc7-ysq,NYC Bike Polo Club,Sara D. Roosevelt Park
+A_separate_parent_child,,224-223@627-s8h-x3q,zzy-234@627-s8h-x3q,Starbucks,29th & Park
+A_separate_parent_child,,zzw-222@627-s9x-9s5,zzy-223@627-s9x-9zz,Starbucks,Carnesecca Arena
+A_separate_parent_child,,227-222@627-w9g-rrk,224-225@627-w9g-rff,Subway,Promenade At Lighthouse Point
+A_separate_parent_child,,226-222@627-wc7-s5z,zzy-22t@627-wc7-s5z,Estela,Houston Street
+A_separate_parent_child,,237-223@627-tm7-f75,zzy-224@627-wgm-t5f,My Mothers Place 2,Gateway National Recreation Area
+A_separate_parent_child,,zzy-222@627-s9w-xyv,zzy-223@627-s9w-vs5,Rittenberg Law Library,St John's University
+A_separate_parent_child,,225-222@627-wgk-5j9,zzy-224@627-wgm-t5f,Breezy Point Tennis Courts,Gateway National Recreation Area
+A_separate_parent_child,,234-223@627-s99-99f,zzy-25c@627-s99-99f,Top Hot Spicy Stew,TB Park
+A_separate_parent_child,,222-22j@627-rvw-f4v,222-222@627-rvw-f4v,Marvin Tode Hall,SUNY Maritime College
+A_separate_parent_child,,224-222@627-s64-xbk,223-222@627-s64-nyv,Gaelic Park,Manhattan College
+A_separate_parent_child,,229-222@627-s6g-vfz,22t-223@627-s6f-4d9,Organic Deli Food,Rucker Park Streetball
+A_separate_parent_child,,zzy-22y@627-s8j-dsq,zzz-222@627-wc7-v9f,Meat Factory,Washington Square Park
+A_separate_parent_child,,zzw-223@627-s9r-cwk,zzy-22g@627-s9r-cwk,Dollar Tree,South Jamaica Infinity Garden
+A_separate_parent_child,,22v-224@627-s9q-8n5,zzy-224@627-s9q-8n5,Planet Fitness,Forest Park Nature Trails
+A_separate_parent_child,,222-222@627-rw9-ghq,zzw-222@627-rwc-7dv,Collins Auditorium,Fordham University
+A_separate_parent_child,,zzw-223@627-wbt-q2k,zzy-22b@627-wbt-pvz,Think Coffee,High Line Plinth
+A_separate_parent_child,,22q-222@627-s8h-x3q,zzy-234@627-s8h-x3q,Sabai Thai,29th & Park
+A_separate_parent_child,,zzw-222@627-s6d-r8v,222-22h@627-s6d-qxq,Sofrito New York,Carousel
+A_separate_parent_child,,222-223@627-wby-zj9,zzy-224@627-wby-z75,Rao's Specialty Foods,The Labyrinth for Contemplation
+A_separate_parent_child,,224-222@627-rw8-dvz,223-229@627-rw8-dvz,Albert Einstein College of Medicine of Yeshiva University,Albert Einstein College of Medicine
+A_separate_parent_child,,22k-222@627-wgk-s5z,zzy-224@627-wgm-t5f,Blarney Castle,Gateway National Recreation Area
+A_separate_parent_child,,zzw-228@627-wbz-w6k,zzy-22y@627-wbz-tqf,Dunkin',McCarren Park Field
+A_separate_parent_child,,222-222@627-s6d-qxq,zzy-229@627-s6d-r8v,Link Fitness,River Bank Park
+A_separate_parent_child,,22d-222@627-s96-yn5,zzy-22f@627-s96-yn5,Rocka Rolla,Marsha P. Johnson State Park
+A_separate_parent_child,,zzw-225@627-s8d-x89,zzy-228@627-s8d-x3q,Skinny's Cantina,Avalon Riverview Dog Park
+A_separate_parent_child,,zzy-226@627-wff-nt9,zzy-224@627-wff-snq,Pearl Lounge,Homeport Pier
+A_separate_parent_child,,233-222@627-s8k-pjv,237-223@627-s8k-pjv,Blink Fitness,96th Street Playground
+A_separate_parent_child,,zzw-226@627-s8q-9pv,zzy-222@627-sbb-2kz,Mars Deli - Woodside,St. Michael's Park
+A_separate_parent_child,,zzw-228@627-s8r-4n5,22g-233@627-s8r-249,Pret A Manger,Quikpark
+A_separate_parent_child,,22c-222@627-s8j-nbk,zzy-22d@627-s8j-nbk,Domino's Pizza,Riverside running path
+A_separate_parent_child,,zzw-222@627-rvv-cwk,222-222@627-rvw-f4v,Maritime Industry Museum At Fort Schuyler,SUNY Maritime College
+A_separate_parent_child,,22g-223@627-wc7-q75,22b-223@627-wc7-q4v,SoulCycle,MLB Fan Cave
+A_separate_parent_child,,zzy-225@627-vv5-4qf,zzz-222@627-vv5-52k,West Brighton Pool,CPL. Thompson Park
+A_separate_parent_child,,22s-222@627-tmm-rp9,zzy-229@627-tmm-rp9,Oasis Ramen House,Far Rockaway Beach Queens NYC
+A_separate_parent_child,,22v-222@627-s8x-wc5,22v-225@627-s8x-wc5,Walter's,VxmpSkates
+A_separate_parent_child,,22m-222@627-s4v-m6k,zzy-229@627-s4v-m6k,Tropical Grill,Dream Street Park
+A_separate_parent_child,,zzy-228@627-wdb-ce5,zzz-222@627-wdb-zvf,Dynamo Soccer Club,Asser Levy Park
+A_separate_parent_child,,222-23f@627-s8j-zmk,28p-224@627-s8j-zmk,CAVA,New York Festival of Song
+A_separate_parent_child,,22c-224@627-s6k-qvf,22c-225@627-s6k-qvf,Iglesia Pentecostal Jardin Del Eden,Park
+A_separate_parent_child,,22b-222@627-s7s-ygk,zzy-223@627-s7s-ysq,The Lemon Ice King,La Canchita 108
+A_separate_parent_child,,22b-222@627-s4k-ct9,zzy-22d@627-s4k-ct9,Housing Works Thrift Shop - Broadway & 96th,Central Park
+A_separate_parent_child,,232-225@627-wbz-45f,zzy-225@627-wbz-3nq,LAZ Parking,Elizabeth H. Berger Plaza
+A_separate_parent_child,,225-223@627-wbz-59f,223-226@627-wbz-3t9,Lifetime Vending And Amusement,Battery Park Green Line
+A_separate_parent_child,,2px-223@627-s8j-y7q,zzy-23d@627-s8j-y7q,Sendo,New York Long Beach
+A_separate_parent_child,,222-224@627-wg7-9xq,zzz-222@627-wg7-9xq,Brownsville Recreation Center,Brownsville Playground
+A_separate_parent_child,,23b-222@627-s8p-qpv,zzy-227@627-s8p-qpv,sweetgreen,Rafferty Triangle
+A_separate_parent_child,,zzy-222@627-wgg-tgk,zzy-224@627-wgm-t5f,Breezy Dogs Food Truck,Gateway National Recreation Area
+A_separate_parent_child,,222-222@627-w7h-fpv,zzw-222@627-w7d-3yv,South Shore Little League,Nyc Open Space 224
+A_separate_parent_child,,zzy-226@627-s9h-vs5,zzz-222@627-rvx-7wk,Little Bay Park Dog Run,Little Bay Park
+A_separate_parent_child,,23k-223@627-s8g-rzf,23k-22c@627-s8g-rzf,The Post BK (100 Dobbin Street),The Post BK
+A_separate_parent_child,,223-222@627-s7t-pn5,223-225@627-s7t-pn5,Starbucks,Target
+A_separate_parent_child,,zzy-225@627-s8r-vfz,zzy-222@627-s4t-7bk,Ed Koch Queensboro Bridge,New York Central Park 59 Street
+A_separate_parent_child,,223-222@627-wf5-9pv,zzy-224@627-wgm-t5f,Coast Guard Exchange,Gateway National Recreation Area
+A_separate_parent_child,,zzy-227@627-s8h-28v,zzy-223@627-s8g-xkf,Tuesday Night Lights - TNL sm. AKA McCarren Park Softball,McCarren Park
+A_separate_parent_child,,22q-222@627-s8r-qcq,22n-22m@627-s8r-qcq,Best Pizza Of First,Sutton Place Parks Conservancy
+A_separate_parent_child,,zzy-223@627-s4v-7nq,zzy-224@627-s4v-7qz,Belin Sport and Fitness,110th Street
+A_separate_parent_child,,222-222@627-wc2-7wk,zzy-225@627-wc2-4sq,Le Pain Quotidien,Baterry Park
+A_separate_parent_child,,226-26j@627-wc3-bkz,226-279@627-wc3-bkz,Jimmy John's,Seaside Summer Concert Series Inc
+A_separate_parent_child,,22n-222@627-s4r-syv,zzy-22f@627-s4r-sh5,Westside Restaurant,Central Park - W 69th St Entrance Garden
+A_separate_parent_child,,23m-27q@627-s8r-fj9,zzy-23j@627-s8r-fvf,Blue Ribbon Sushi Bar - Rock Center,F.A.O Schwarz Central Park NYC
+A_separate_parent_child,,22d-228@627-s8y-5xq,zzz-222@627-s8y-5xq,BAMCafe,Brooklyn Academy Of Music
+A_separate_parent_child,,224-222@627-wg4-jn5,22d-224@627-wg4-jn5,Anna's Luncheonette,REA Creative Studios
+A_separate_parent_child,,222-224@627-vty-gc5,zzz-222@627-vty-gc5,AB7 Soccer Academy,Sports Park
+A_separate_parent_child,,22g-222@627-wbn-kvf,zzw-224@627-wbn-kvf,Juice Press,Jackson Square
+A_separate_parent_child,,222-222@627-wdg-7nq,222-22f@627-wdg-bhq,Abe Stark Arena,Abe Stark Skating Rink
+A_separate_parent_child,,229-223@627-s8j-2zf,227-22d@627-s8j-2zf,Trader Joe's,NYU Palladium Athletic Facility
+A_separate_parent_child,,zzw-222@627-wfd-7nq,zzy-224@627-wfd-75z,Fort Hamilton Senior Recreation Center,John J. Carty Park Pickleball Courts
+A_separate_parent_child,,226-222@627-s7v-3wk,zzz-222@627-s7v-3wk,Forest Hills Youth Athletic Association,Nyc Open Space 64
+A_separate_parent_child,,23j-223@627-s8g-qmk,zzy-22c@627-s8g-qmk,Poke Zest,Greenpoint Beach
+A_separate_parent_child,,224-222@627-s69-rkz,222-223@627-s69-rkz,Family Dollar Stores,Yankee Stadium garage
+A_separate_parent_child,,22c-223@627-s4t-y7q,zzy-22n@627-s4v-zj9,Dunkin',Harlem Run
+A_separate_parent_child,,zzy-222@627-s9w-v9f,zzy-223@627-s9w-vs5,St. John's University Residence Life,St John's University
+A_separate_parent_child,,23n-223@627-s7s-q4v,zzy-22b@627-s7s-q75,Tlayuda Oaxaquea Sr San Pablo,Corona Plaza
+A_separate_parent_child,,zzy-222@627-s86-4jv,zzy-225@627-s86-4jv,Moe Finkelstein Athletic Complex,Thomas Jefferson HS Field
+A_separate_parent_child,,zzw-228@627-s4m-cqz,zzw-224@627-s4m-cqz,WFM Coffee Bar,Whole Foods Market
+A_separate_parent_child,,225-222@627-rw8-pjv,zzy-22k@627-rw8-pjv,Peghe Deli,Mta Pelham Bay Park (6)
+A_separate_parent_child,,228-22y@627-s8k-3dv,zzy-23s@627-s8j-z2k,Jamba,Madison Square Garden
+A_separate_parent_child,,23b-223@627-s9v-8qf,zzy-22d@627-s7z-sdv,Shahjalal Super Market,Arabella's Castle
+A_separate_parent_child,,223-22d@627-s4r-575,223-22h@627-s4r-575,New York City Ballet,David H. Koch Theater
+A_separate_parent_child,,223-222@627-s4m-vfz,22c-243@627-s4m-vfz,Butterfield Market,Core Fitness Inc
+A_separate_parent_child,,22f-222@627-s8j-nbk,zzy-22d@627-s8j-nbk,Lite Delights,Riverside running path
+A_separate_parent_child,,224-222@627-wgk-5pv,zzy-224@627-wgm-t5f,Kennedy's Restaurant,Gateway National Recreation Area
+A_separate_parent_child,,228-222@627-rwb-2ff,223-225@627-rw9-ysq,Bronx Historical Society,Willamsbridge Oval Dog Run New York
+A_separate_parent_child,,22f-222@627-s8x-v75,22f-223@627-s8x-v75,Brooklyn Public House,Drayfair
+A_separate_parent_child,,zzw-223@627-s8p-9s5,zzy-228@627-s8p-9s5,Dollar Tree,New York Sports Clubs
+A_separate_parent_child,,224-222@627-wc9-p35,zzy-226@627-wc9-p35,Ernestos,Montgomery Triangle Park
+A_separate_parent_child,,232-223@627-s7q-ysq,zzy-226@627-s7q-ysq,Bar Freda,The Underground Open Mic
+A_separate_parent_child,,22c-224@627-s4t-y7q,zzy-22n@627-s4v-zj9,Popeyes Louisiana Kitchen,Harlem Run
+A_separate_parent_child,,222-24q@627-rw9-fcq,zzw-222@627-rwc-7dv,Moglia Stadium at Jack Coffey Field,Fordham University
+A_separate_parent_child,,zzy-228@627-s4v-7nq,zzy-229@627-s4v-7nq,Butterfly Gardens of Central Park,Andromeda Style
+A_separate_parent_child,,zzy-22y@627-s8j-2zf,zzy-24b@627-s8j-h3q,Beth's Farm Kitchen,14st Union Square Park
+A_separate_parent_child,,226-222@627-wfg-x89,zzy-229@627-wfg-x89,Pier 76,Hudson River Park's Pier 76 South
+A_separate_parent_child,,222-222@627-w79-dgk,zzz-222@627-w79-c3q,Conference House,Conference House Park
+A_separate_parent_child,,26s-226@627-wh4-yy9,zzy-228@627-wh4-q2k,2 Girls & a Cookshop,Caton Ave
+A_separate_parent_child,,223-222@627-wdb-rkz,zzw-222@627-wdb-zzz,Lunatics Ice Cream,Luna Park
+A_separate_parent_child,,zzy-22d@627-wc7-yjv,zzz-222@627-wc7-ysq,Hester St. Playground,Sara D. Roosevelt Park
+A_separate_parent_child,,zzy-224@627-tk6-k9f,zzy-224@627-wgm-t5f,Riis Park Par 3 GC,Gateway National Recreation Area
+A_separate_parent_child,,zzy-225@627-s8s-28v,zzy-228@627-s8s-2p9,Herbert & Eileen Bernard Museum of Judaica,Central Park - 65th St Transverse
+A_separate_parent_child,,22d-222@627-s8k-xkf,zzy-22y@627-s8k-xkf,Moishes Kosher Bakery,Willowtown
+A_separate_parent_child,,222-223@627-s4n-wp9,zzz-222@627-s4n-wtv,AGUA Swim Team,Asphalt Green
+A_separate_parent_child,,zzy-23r@627-wbz-syv,223-22f@627-wbz-syv,Cipriani Club 55,Gc Ballroom Operator
+A_separate_parent_child,,zzy-22j@627-s8n-y9z,zzz-222@627-s8n-y9z,Tennis Court,John Jay Park
+A_separate_parent_child,,zzy-22j@627-s7v-z75,zzy-228@627-s7v-zxq,Ludwig van Beethoven Bust,Little Manila Park
+A_separate_parent_child,,22d-223@627-s4k-ct9,zzy-22d@627-s4k-ct9,Chipotle Mexican Grill,Central Park
+A_separate_parent_child,,zzy-222@627-rw9-z4v,zzy-223@627-rwb-2ff,Williamsbridge Oval Skate Park,Williamsbridge Oval
+A_separate_parent_child,,239-223@627-s8j-grk,228-22c@627-s8j-grk,Five Iron Golf,4g Fitness
+A_separate_parent_child,,zzw-225@627-w9g-rc5,224-225@627-w9g-rff,ZZ's Pizza,Promenade At Lighthouse Point
+A_separate_parent_child,,22b-223@627-wgk-t7q,zzy-224@627-wgm-t5f,Breezy Point Square Club,Gateway National Recreation Area
+A_separate_parent_child,,23n-222@627-s8q-tqf,zzy-22w@627-s8r-92k,Swiss Re Ny Catering,Morningside Park Harlem Nyc
+A_separate_parent_child,,22q-223@627-s6d-zfz,zzy-222@627-s6d-xyv,172 Presbyterian Deli,Highbridge Park Washington Heights
+A_separate_parent_child,,222-22m@627-wdg-bhq,222-22g@627-wdg-bhq,Coney Island Sandbar,Steeplechase Park
+A_separate_parent_child,,26s-222@627-rwc-bc5,222-222@627-rwc-bc5,Md 183 Deli,Deli Grocery Corp.
+A_separate_parent_child,,26s-227@627-wh4-yy9,zzy-228@627-wh4-q2k,Yawdie,Caton Ave
+A_separate_parent_child,,zzy-225@627-s6h-v75,226-223@627-s6h-v75,Dunkin',Bryan Park
+A_separate_parent_child,,222-224@627-vts-hdv,zzz-222@627-vts-gkz,South Shore Golf Course,South Shore Country Club
+A_separate_parent_child,,22x-222@627-rwb-t9z,zzy-223@627-rwc-xqz,Subway,Bronx Park Greenway
+A_separate_parent_child,,zzy-222@627-tmk-zxq,zzy-228@627-tmk-zxq,Caracas Arepa Bar - Rockaway Park,Rockaway Beach 108
+A_separate_parent_child,,22n-22s@627-wc3-85f,22j-227@627-wc3-85f,Passion Cafe & Juice Bar,r nBrian Cant Ollie
+A_separate_parent_child,,zzy-22c@627-wdm-gc5,zzy-222@627-wgw-6zf,Bensonhurst Green Market,18th Ave Bench Park
+A_separate_parent_child,,zzw-224@627-wbv-kcq,222-223@627-wbv-kfz,Junior's,Minskoff Theatre
+A_separate_parent_child,,22d-224@627-tm7-f4v,23j-224@627-tm2-389,Hamberry's Food Market,Far Rockaway Beach - 91st Street
+A_separate_parent_child,,zzy-23b@627-wbz-4gk,zzy-225@627-wbz-4gk,Fearless Girl,Bowling Green
+A_separate_parent_child,,zzy-227@627-wc7-mtv,22b-223@627-wc7-2c5,NYC Parks and Recreation,Festival Hub at Spring Studios
+A_separate_parent_child,,223-222@627-rvh-vvf,223-223@627-rvh-vvf,Johnny's Reef Restaurant,Belden Point
+A_separate_parent_child,,zzy-228@627-wfg-w49,224-225@627-w9g-rff,Dunkin',Promenade At Lighthouse Point
+A_separate_parent_child,,236-222@627-wc9-kj9,22p-22b@627-wc9-kj9,Lamars Bagel Express,New York Central Park
+A_separate_parent_child,,22n-224@627-s92-rx5,zzy-225@627-s92-rx5,City Fresh Market,Knickerbocker Park
+A_separate_parent_child,,22h-222@627-s7k-wtv,zzy-228@627-s7k-wtv,Rego Marketplace,Fleetwood Triangle
+A_separate_parent_child,,zzy-223@627-s8n-zcq,zzz-222@627-s8n-y5f,Manhattan Park Pool Club,Nyc Open Space 115
+A_separate_parent_child,,zzy-222@627-sb2-f2k,zzw-22p@627-s99-d9z,Macaulay Honors College,CUNY Queens College
+A_separate_parent_child,,22b-226@627-s4r-2hq,3c7-224@627-s4r-2hq,Sushi Damo,Songwriters Hall of Fame
+A_separate_parent_child,,zzy-222@627-wdg-7qz,zzy-222@627-wdg-cbk,Pat Auletta Steeplechase Pier,Coney Island Beach & Boardwalk
+A_separate_parent_child,,22b-222@627-wdb-rc5,zzw-222@627-wdb-zzz,Salt & Sizzle,Luna Park
+A_separate_parent_child,,234-222@627-wgk-z4v,zzy-224@627-wgm-t5f,The Sugar Bowl,Gateway National Recreation Area
+A_separate_parent_child,,22v-222@627-s4t-ct9,zzz-222@627-s4v-9j9,JTW Fit,Adam Clayton Powell Jr. Malls
+A_separate_parent_child,,222-223@627-wdg-7nq,222-22f@627-wdg-bhq,Abe Stark Sports Center,Abe Stark Skating Rink
+A_separate_parent_child,,22n-222@627-wdb-9xq,zzy-22d@627-wdb-b8v,Sachiko,Bay 1 Brighton Beach
+A_separate_parent_child,,238-222@627-wc8-j9z,237-22j@627-wc8-j9z,The Archway Bar & Grill,World Music Institute
+A_separate_parent_child,,zzy-224@627-s8z-s3q,zzy-222@627-s8z-nh5,Osborne Garden,Native Flora Garden
+A_separate_parent_child,,222-222@627-wdg-bp9,zzw-222@627-wdb-zzz,William's Candy Shop,Luna Park
+A_separate_parent_child,,zzy-222@627-tmh-sh5,zzy-224@627-wgm-t5f,Two Dudes,Gateway National Recreation Area
+A_separate_parent_child,,24x-224@627-s7w-qvf,zzy-22d@627-s7w-z2k,Premium Supermarket,Elmjack Mall
+A_separate_parent_child,,234-223@627-tm2-2hq,zzy-224@627-wgm-t5f,Channel Market,Gateway National Recreation Area
+A_separate_parent_child,,zzw-222@627-tnr-zzz,zzy-224@627-wgm-t5f,New York Beach Ferry,Gateway National Recreation Area
+A_separate_parent_child,,222-224@627-s7p-y5f,zzy-227@627-s7p-y5f,Shelly's Deli & Cafe,Whitefish Triangle
+A_separate_parent_child,,222-22h@627-wf8-5j9,zzw-222@627-wf8-vzz,Horrmann Library,Wagner College
+A_separate_parent_child,,22h-224@627-wdb-rkz,zzw-222@627-wdb-zzz,The Freak Bar,Luna Park
+A_separate_parent_child,,zzw-224@627-w9g-rc5,224-225@627-w9g-rff,Statue of Liberty Deli,Promenade At Lighthouse Point
+A_separate_parent_child,,zzy-222@627-rwg-54v,zzz-222@627-rwg-54v,Haffen Pool,Haffen Park
+A_separate_parent_child,,zzy-223@627-s9b-tn5,zzw-22p@627-s99-d9z,Active Pickleball Tennis Center Queens College Tennis Center,CUNY Queens College
+A_separate_parent_child,,222-225@627-tm7-7yv,zzy-224@627-wgm-t5f,Broad Channel Athletic Club,Gateway National Recreation Area
+A_separate_parent_child,,226-225@627-s8f-t35,zzy-223@627-s8f-t5f,First Person Xperience,Pulaski Bridge Pedestrian & Bike Path
+A_separate_parent_child,,225-225@627-rwb-435,229-223@627-rwb-435,Key Food,Sachkerah Woods Playground
+A_separate_parent_child,,22k-22d@627-wh4-zpv,22k-224@627-wh4-zpv,Starbucks,Target
+A_separate_parent_child,,zzy-224@627-wf4-zzz,zzy-224@627-wgm-t5f,Fort Wadsworth,Gateway National Recreation Area
+A_separate_parent_child,,22f-222@627-s8y-fs5,zzz-222@627-s8y-fs5,Dean Basketball Courts,Dean Playground
+A_separate_parent_child,,zzy-224@627-rwv-nt9,zzy-227@627-rwv-zvf,NYPL Throg's Neck Branch Library,Derosa O'Boyle Triangle
+A_separate_parent_child,,zzy-222@627-wdg-bx5,zzw-222@627-wdb-zzz,Bar-B-Que Island,Luna Park
+A_separate_parent_child,,224-223@627-wg4-jn5,22d-224@627-wg4-jn5,Anna's Cafe,REA Creative Studios
+A_separate_parent_child,,225-222@627-wgg-hbk,zzy-224@627-wgm-t5f,Bishops Barn Catering,Gateway National Recreation Area
+A_separate_parent_child,,22b-225@627-wdb-rc5,zzw-222@627-wdb-zzz,Cai Foods At Luna Park,Luna Park
+A_separate_parent_child,,222-225@627-wby-z75,zzy-226@627-wby-z75,Twisted Statue of Liberty Tour,Battery Bosque Park
+A_separate_parent_child,,222-223@627-s7t-x3q,222-227@627-s7t-x3q,Lost Battalion Senior Citizen Center,Lost Battalion Hall Recreation Center
+A_separate_parent_child,,zzy-222@627-s8k-pn5,zzz-222@627-s8k-pn5,The Movement Creative,Tompkins Square Park
+A_separate_parent_child,,zzy-223@627-wdg-bx5,zzw-222@627-wdb-zzz,Steve's Grill House,Luna Park
+A_separate_parent_child,,zzw-222@627-wdg-bp9,zzw-222@627-wdb-zzz,It'sugar,Luna Park
+A_separate_parent_child,,222-223@627-wdc-4vz,zzy-225@627-wdb-fj9,Tashkent Supermarket,Manhanttan Beach
+A_separate_parent_child,,222-222@627-s62-q4v,zzz-222@627-s6d-5zz,The Hudson,Fort Washington Park
+A_separate_parent_child,,233-222@627-tm7-f4v,zzy-224@627-wgm-t5f,Crossbay Grocery,Gateway National Recreation Area
+A_separate_parent_child,,zzz-222@627-wdb-zzz,zzw-222@627-wdb-zzz,The Cyclone,Luna Park
+A_separate_parent_child,,zzy-222@627-rw9-mp9,222-222@627-rw9-vzz,T-3 Building,CUNY Lehman College
+A_separate_parent_child,,zzy-222@627-wf8-6p9,zzw-222@627-wf8-vzz,Foundation Hall Wagner Colleges,Wagner College
+A_separate_parent_child,,zzy-22g@627-wc7-y9z,zzz-222@627-wc7-ysq,Lion's Gate Field,Sara D. Roosevelt Park
+A_separate_parent_child,,26s-226@627-wdb-q4v,zzw-222@627-wdb-zzz,Space. Sharks,Luna Park
+A_separate_parent_child,,zzy-22d@627-s6f-qj9,zzw-222@627-s6f-qj9,Hostos - Center for Teaching and Learning,City University of New York
+A_separate_parent_child,,zzy-223@627-s6f-8d9,zzz-222@627-s6d-5zz,Fort Washington Park Soccer Field,Fort Washington Park
+A_separate_parent_child,,222-222@627-wdb-rff,zzw-222@627-wdb-zzz,Pio Pio Rico,Luna Park
+A_separate_parent_child,,228-224@627-wdb-rkz,zzw-222@627-wdb-zzz,White Castle,Luna Park
+A_separate_parent_child,,zzy-222@627-w79-cnq,zzz-222@627-w79-c3q,Conference House Dog Park,Conference House Park
+A_separate_parent_child,,zzy-223@627-tmk-rp9,223-224@627-tmm-dy9,La Cevicheria,Rockaway Beach Club
+A_separate_parent_child,,zzy-222@627-s8g-mzf,zzw-222@627-s8g-jn5,Basketball Court,Cooper Park
+A_separate_parent_child,,zzy-222@627-s6h-ygk,zzw-222@627-rwc-7dv,Center for Medieval Studies Fordham University,Fordham University
+A_separate_parent_child,,zzy-223@627-s8g-w49,zzy-223@627-s8g-xkf,McCarren Park Farmers Market,McCarren Park
+A_separate_parent_child,,zzy-222@627-s4q-x5z,zzy-223@627-s4m-8gk,72nd Street Dog Run,Riverside Park
+A_separate_parent_child,,zzy-223@627-s8j-5cq,zzz-222@627-s8j-hdv,Stokes Farm,Union Square Park
+A_separate_parent_child,,zzy-223@627-wdg-bp9,zzw-222@627-wdb-zzz,Nathan's Famous,Luna Park
+A_separate_parent_child,,222-222@627-vst-99f,zzz-222@627-vss-zzz,Princess Bay Boatmen's Association,Lemon Creek Park
+A_separate_parent_child,,zzy-227@627-wdg-cdv,zzw-222@627-wdb-zzz,Coney Island Batting Range & Go Kart City,Luna Park
+A_separate_parent_child,,226-222@627-wf5-68v,zzz-222@627-wf5-wc5,Wu Tang Clan,Buono Beach
+A_separate_parent_child,,zzy-222@627-wgg-rp9,zzy-224@627-wgm-t5f,Fort Tilden Baseball Fields,Gateway National Recreation Area
+A_separate_parent_child,,223-223@627-wg8-nyv,zzy-222@627-wg8-pgk,Sebago Canoe Club,Paerdegat Basin Park
+A_separate_parent_child,,226-222@627-s8n-75z,zzy-22c@627-s8n-75z,Subway,Meditation Steps
+A_separate_parent_child,,22z-222@627-wc8-j5f,zzy-22y@627-wc8-j5f,The Little Gym,Neil Marshall
+A_separate_parent_child,,zzy-224@627-s8g-zvf,zzy-223@627-s8g-xkf,McCarren Parkhouse,McCarren Park
+A_separate_parent_child,,zzy-224@627-wdg-9cq,zzw-222@627-wdb-zzz,Auntie Anne's,Luna Park
+A_separate_parent_child,,zzy-224@627-s88-r6k,zzy-225@627-s88-r6k,Ozone Howard Convenience,Cross Bay Blvd Howard Beach NY
+A_separate_parent_child,,zzy-223@627-s8m-gtv,zzz-222@627-s8m-ghq,Stuytown Ice Rink,Nyc Open Space 106
+A_separate_parent_child,,224-224@627-vv2-rx5,zzy-222@627-vv2-pd9,West Shore Little League,Nyc Open Space 212
+A_separate_parent_child,,zzy-229@627-wdb-ce5,zzz-222@627-wdb-zvf,Playground,Asser Levy Park
+A_separate_parent_child,,224-223@627-wdb-rrk,zzw-222@627-wdb-zzz,Astroland Park,Luna Park
+A_separate_parent_child,,226-222@627-s9y-q4v,zzz-222@627-s9y-q2k,Liberty Pool,Detective Keith L Williams Park
+A_separate_parent_child,,22q-222@627-wgk-4y9,zzy-224@627-wgm-t5f,Sugar Bowl,Gateway National Recreation Area
+A_separate_parent_child,,226-223@627-vv5-td9,zzz-222@627-vv5-vxq,Staten Island Cricket Club,Walker Park
+A_separate_parent_child,,227-22d@627-s4k-kxq,zzy-224@627-s4k-kxq,Cream of the Crop CSA,West End Theatre New York
+A_separate_parent_child,,zzy-225@627-s8r-6kz,zzy-22m@627-s8r-6kz,Chipotle Mexican Grill,Pocket Park with Waterfall Walkway Portal
+A_separate_parent_child,,22x-222@627-s69-t7q,226-222@627-s69-tgk,Dong King Restaurant,Target Community Garden
+A_separate_parent_child,,zzy-225@627-rwc-649,zzz-222@627-rwc-9pv,Fountain of Life,Bronx Park
+A_separate_parent_child,,zzy-226@627-s4n-w49,zzz-222@627-s4n-wtv,DeKovats Playground,Asphalt Green
+A_separate_parent_child,,22v-223@627-s8x-wc5,22v-225@627-s8x-wc5,Karasu,VxmpSkates
+A_separate_parent_child,,227-225@627-s4m-9cq,zzy-22g@627-s4m-9cq,Perfect Picnic,Boys' Gate
+A_separate_parent_child,,224-222@627-wdg-bx5,zzw-222@627-wdb-zzz,Tom's Coney Island,Luna Park
+A_separate_parent_child,,zzy-222@627-wgk-26k,zzy-224@627-wgm-t5f,Cancun Cafe,Gateway National Recreation Area
+A_separate_parent_child,,222-222@627-wdg-bx5,zzw-222@627-wdb-zzz,Place To Beach,Luna Park
+A_separate_parent_child,,222-227@627-vtz-8d9,zzz-222@627-vv6-zs5,Stonehenge Staten Island Department of Parks & Recreation,Clove Lakes Park
+A_separate_parent_child,,22d-222@627-s7r-33q,22m-223@627-s7r-389,San Remo Pizzeria Restaurant,Ridgewood Veterans Triangle
+A_separate_parent_child,,zzy-222@627-vvc-66k,zzy-224@627-wgm-t5f,Battery Weed,Gateway National Recreation Area
+A_separate_parent_child,,zzy-222@627-wdb-zmk,zzz-222@627-wdg-c5z,Coney Island Beach & Boardwalk,Coney Island Beach
+A_separate_parent_child,,zzy-226@627-s6m-45f,229-222@627-s6m-dy9,Mendel Gottesman Library,Yeshiva University
+A_separate_parent_child,,222-22n@627-s8r-y35,222-22x@627-s8r-y35,Nougatine Restaurant by Jean-Georges,1 Central Park West- 25G
+A_separate_parent_child,,224-22r@627-s8j-h3q,zzz-222@627-s8j-hdv,George Washington Statue,Union Square Park
+A_separate_parent_child,,zzy-22g@627-s8r-fzz,zzy-22m@627-s8r-6kz,Adel's Famous Halal Food,Pocket Park with Waterfall Walkway Portal
+A_separate_parent_child,,zzw-225@627-s8q-ysq,22c-224@627-wc7-qvf,Dag Hammarskjld Plaza Greenmarket,Anthology Film Archives
+A_separate_parent_child,,223-222@627-wby-zcq,223-24g@627-wby-zcq,Subway,William St
+A_separate_parent_child,,zzy-222@627-s4s-dsq,zzy-223@627-s4m-8gk,Claremont Playground,Riverside Park
+A_separate_parent_child,,22h-222@627-tm2-2ff,zzy-224@627-wgm-t5f,American Littoral Society - Northeast Chapter,Gateway National Recreation Area
+A_separate_parent_child,,zzy-224@627-wdb-ce5,zzz-222@627-wdb-zvf,Creativity Soccer,Asser Levy Park
+A_separate_parent_child,,zzy-222@627-wbt-kxq,zzy-22g@627-s4n-b6k,Classic Car Club Manhattan,Corner of 77th & Central Park West
+A_separate_parent_child,,zzy-224@627-wgj-zpv,zzy-224@627-wgm-t5f,Breezy Point Athletic Field,Gateway National Recreation Area
+A_separate_parent_child,,zzw-222@627-sb9-6p9,23n-224@627-sb9-6p9,Super China Pagoda,Shillelagh Tavern
+A_separate_parent_child,,zzy-222@627-s6d-qxq,zzy-229@627-s6d-r8v,Riverbank Playground,River Bank Park
+A_separate_parent_child,,zzy-23h@627-wgh-5j9,zzy-224@627-wgm-t5f,Top Halal Chef,Gateway National Recreation Area
+A_separate_parent_child,,zzy-22b@627-s8m-89z,222-222@627-s8m-8gk,Williamsburg Park,Bushwick Inlet Park
+A_separate_parent_child,,zzy-223@627-s9x-9zz,zzy-223@627-s9w-vs5,Carnesecca Arena,St John's University
+A_separate_parent_child,,224-224@627-s8r-6p9,zzy-22w@627-s8r-92k,Osteria La Baia,Morningside Park Harlem Nyc
+A_separate_parent_child,,zzy-226@627-s8g-w49,zzy-223@627-s8g-xkf,McCarren Park Track,McCarren Park
+A_separate_parent_child,,2g9-222@627-wc8-4d9,222-223@627-wc8-4d9,Jeff Croiter,Bedford Triangle Park
+A_separate_parent_child,,zzy-222@627-s64-ysq,223-222@627-s64-nyv,New York GAA,Manhattan College
+A_separate_parent_child,,zzy-225@627-s8g-w49,zzy-223@627-s8g-xkf,McCarren Park Handball Courts,McCarren Park
+A_separate_parent_child,,zzw-222@627-s4v-zj9,zzy-22n@627-s4v-zj9,Fine Fare Supermarkets,Harlem Run
+A_separate_parent_child,,22n-22m@627-wc7-qfz,22n-22f@627-wc7-qfz,Shiva Theater at The Public Theater,The Public Theater
+A_separate_parent_child,,zzy-234@627-s8f-pd9,zzy-22f@627-s8f-pd9,5 Star Indian Restaurant,Scenery Roof
+A_separate_parent_child,,223-223@627-wdb-rff,zzw-222@627-wdb-zzz,Margarita Island,Luna Park
+A_separate_parent_child,,22v-222@627-tmq-p9z,zzy-22v@627-tmq-p9z,Last Stop Gourmet Shop,Rockapulco Beach
+A_separate_parent_child,,23v-222@627-s7s-bx5,28s-222@627-s7s-bx5,Starbucks,Target
+A_separate_parent_child,,227-222@627-tmq-cnq,zzy-22m@627-tmq-cnq,The Wharf Bar & Grill,Warf Rockaway Beach
+A_separate_parent_child,,22d-222@627-s6m-nwk,225-222@627-s6m-nwk,LaRay's,Fort Washington Park
+A_separate_parent_child,,23j-223@627-s7s-s3q,zzy-238@627-s7s-skf,111 Corona Discount And C,Jurassic Playground at Flushing Meadow Park
+A_separate_parent_child,,22f-222@627-tkz-yjv,zzy-224@627-wgm-t5f,Queens Public Library - Broad Channel,Gateway National Recreation Area
+A_separate_parent_child,,22h-22b@627-s8j-nbk,zzy-22d@627-s8j-nbk,Lidl,Riverside running path
+A_separate_parent_child,,224-222@627-s4q-tvz,zzz-222@627-s4q-wzf,Pier I Cafe,Riverside Park South
+A_separate_parent_child,,zzy-22v@627-s8q-sh5,228-224@627-s8q-sh5,The Lunch Box,Paley Park
+A_separate_parent_child,,22h-222@627-s8j-bhq,zzy-22t@627-s8j-bhq,The Cell Theatre,The Trailer Park
+A_separate_parent_child,,zzy-227@627-wbv-brk,zzy-22f@627-wbt-mp9,Coffee Cart,Sunset Park
+A_separate_parent_child,,22k-223@627-s8k-rc5,zzy-22d@627-s8k-rc5,Dunkin',Delaware (rivier)
+A_separate_parent_child,,22j-225@627-s8j-3dv,22r-22n@627-s8j-3dv,Boongs Grab and Go,PuppyVibe
+A_separate_parent_child,,zzy-222@627-vtz-mtv,zzz-222@627-vv6-zs5,Staten Island Forestry,Clove Lakes Park
+A_separate_parent_child,,zzy-22b@627-s8n-zs5,224-22b@627-s8p-2zf,Diva Nails & Spa,East River- Charles Shultz Park
+A_separate_parent_child,,zzy-222@627-vsx-q4v,zzy-222@627-vsx-t35,Pirate Park,Seaside Wildlife Nature Park
+A_separate_parent_child,,zzw-222@627-s7r-zj9,zzy-226@627-s7r-zj9,Momentos Pizza,Wildwood Park Long Island Ny
+A_separate_parent_child,,22m-222@627-vvk-t35,22m-225@627-vvk-t35,The Willow Pilates & Yoga,M&J Ballroom Dance
+A_separate_parent_child,,227-222@627-wbz-rrk,zzy-232@627-wbz-rrk,China Chalet Inc,Central park
+A_separate_parent_child,,22q-223@627-s8r-dd9,zzw-226@627-wbv-k9f,Cafe 22,New Amsterdam Theatre
+A_separate_parent_child,,224-226@627-s8k-psq,zzy-22f@627-s8k-psq,TabeTomo,Temperance Fountain
+A_separate_parent_child,,22c-223@627-wc2-7bk,zzy-22h@627-wc2-7dv,Battery Place Market,Tiffany Reynolds
+A_separate_parent_child,,23f-223@627-wd8-x5z,zzy-226@627-wd9-ndv,007 New Century 99 Up,Lady Moody Triangle
+A_separate_parent_child,,22h-222@627-s4v-m6k,22c-225@627-s4v-m6k,125th Street Library,Harlem River Greenway Bike Path (Harlem River Drive - East Harlem to Inwood)
+A_separate_parent_child,,zzy-224@627-wdb-rff,zzw-222@627-wdb-zzz,The Tasty Place,Luna Park
+A_separate_parent_child,,zzy-226@627-s8f-kfz,zzy-222@627-s8f-kfz,Murray Athletic Field,Murray Playground
+A_separate_parent_child,,zzw-222@627-rwc-6kz,zzz-222@627-rwc-9pv,Pine Tree Cafe,Bronx Park
+A_separate_parent_child,,zzw-222@627-s8p-d5f,zzy-228@627-s8p-9s5,New York Sports Club,New York Sports Clubs
+A_separate_parent_child,,22c-227@627-wg8-mhq,zzy-222@627-wg8-pgk,Lights Out Performance,Paerdegat Basin Park
+A_separate_parent_child,,zzy-225@627-s6k-ht9,zzy-225@627-s6k-n89,East 174th Street Bridge,Park Versailles New York
+A_separate_parent_child,,zzy-225@627-wbm-ty9,zzy-229@627-wbm-ty9,Drift In,Pier 57 at Hudson River Park
+A_separate_parent_child,,223-225@627-s8j-33q,223-227@627-s8j-33q,Van Leeuwen Artisan Ice Cream,Abraham Lincoln Statue
+A_separate_parent_child,,225-222@627-s7v-75z,zzy-225@627-s7v-6x5,ChoSen Garden,Natural Foods Inc.
+A_separate_parent_child,,zzy-222@627-wgk-tn5,zzy-224@627-wgm-t5f,Deirde Maeve's Sup,Gateway National Recreation Area
+A_separate_parent_child,,zzy-22c@627-wc7-v75,zzz-222@627-wc7-v9f,Nyc Back In the Day night Walking Tour,Washington Square Park
+A_separate_parent_child,,222-222@627-wg8-p9z,zzy-222@627-wg8-pgk,Hudson River Yacht Club,Paerdegat Basin Park
+A_separate_parent_child,,222-222@627-vsf-pqf,zzy-222@627-vsf-qfz,Richmond County Baseball Club,Nyc Open Space 192
+A_separate_parent_child,,22v-223@627-s7w-9mk,zzy-22c@627-s7w-dgk,El Sabor Del Rancho,Woodside Memorial Park
+A_separate_parent_child,,226-222@627-tm7-dd9,zzy-224@627-wgm-t5f,VFW (Veterans of Foreign Wars),Gateway National Recreation Area
+A_separate_parent_child,,zzy-222@627-wgk-r8v,zzy-224@627-wgm-t5f,Colony Inn,Gateway National Recreation Area
+A_separate_parent_child,,222-223@627-wdg-bx5,zzw-222@627-wdb-zzz,Coney Island Raceway,Luna Park
+A_separate_parent_child,,zzy-222@627-rzp-gkz,zzy-222@627-rzp-j35,Commonpoint Queens Tennis and Athletic Center,Alley Athletic Playground
+A_separate_parent_child,,zzy-223@627-vv5-4y9,zzz-222@627-vv5-52k,Softball Field,CPL. Thompson Park
+A_separate_parent_child,,zzy-22d@627-wbm-v9f,zzy-22p@627-wc8-5j9,JMG Restaurant & Bakery,High Tech Park
+A_separate_parent_child,,22q-223@627-wg4-tvz,zzy-228@627-wh4-q2k,MintPorch Cafe,Caton Ave
+A_separate_parent_child,,zzy-22h@627-s7m-35z,zzy-224@627-wgm-t5f,Yogurberry,Gateway National Recreation Area
+A_separate_parent_child,,zzy-225@627-wdb-zpv,zzw-222@627-wdb-zzz,Coney's Cones,Luna Park
+A_separate_parent_child,,zzy-222@627-s4s-hnq,zzz-222@627-s4v-brk,Basketball Courts,Morningside Park
+A_separate_parent_child,,22n-23m@627-s8j-pvz,22z-222@627-s8j-pvz,Printsasia,National Race Masters
+A_separate_parent_child,,zzy-22g@627-s8d-y5f,zzy-222@627-s8f-td9,Basketball court,Notorious LIC Park
+A_separate_parent_child,,zzy-227@627-wc8-rtv,zzz-222@627-wc8-rhq,Commodore Barry Pool,Commodore Barry Park
+A_separate_parent_child,,zzy-226@627-s6n-94v,zzz-222@627-s6n-75z,Jacob Javits Playground,Fort Tryon Park
+A_separate_parent_child,,22d-222@627-wdb-rkz,zzw-222@627-wdb-zzz,Eldorado Auto Skooters,Luna Park
+A_separate_parent_child,,22b-225@627-s96-nt9,23c-224@627-wc8-2hq,Canvas Collectives,Key Park
+A_separate_parent_child,,234-222@627-wgt-xh5,228-222@627-s8f-c3q,The Muslimah Centre LLC,New York University
+A_separate_parent_child,,zzy-224@627-s4s-dd9,zzz-222@627-s4s-dd9,Sakura,Sakura Park
+A_separate_parent_child,,zzy-226@627-rvx-6tv,zzw-222@627-rvx-xyv,Frankys Souvlaki,Cross Island Parkway
+A_separate_parent_child,,222-22d@627-s8p-2hq,zzz-222@627-s8n-y5f,Octagon Pony Baseball Field,Nyc Open Space 115
+A_separate_parent_child,,zzy-22c@627-wfd-kfz,zzy-225@627-wfb-s3q,Public Restroom,Shore Park and Parkway
+A_separate_parent_child,,225-225@627-wdg-c89,zzz-222@627-wdg-c5z,Deno's Wonder Wheel Amusement & Kiddie Park,Coney Island Beach
+A_separate_parent_child,,225-222@627-vvg-49z,zzz-222@627-vsv-xnq,Great Kills Swim Club,Nyc Open Space 244
+A_separate_parent_child,,222-232@627-s9x-9s5,zzy-223@627-s9w-vs5,College of Insurance,St John's University
+A_separate_parent_child,,22j-222@627-s4r-wtv,zzy-22n@627-s4r-s3q,Haagen Dazs,Cherry Hill Central Park
+A_separate_parent_child,,222-229@627-wc7-z2k,zzy-22f@627-wc7-z4v,Blue Peak Villa,Peretz Square
+A_separate_parent_child,,zzy-226@627-s9x-9zz,zzy-223@627-s9x-9zz,Carnesecca Arena Gym,Carnesecca Arena
+A_separate_parent_child,,222-228@627-s6d-qxq,zzy-229@627-s6d-r8v,Riverbank State Park Outdoor Pool,River Bank Park
+A_separate_parent_child,,zzy-222@627-wdb-g6k,zzw-222@627-wdb-zzz,Seebreeze Park,Luna Park
+A_separate_parent_child,,zzy-22j@627-wgg-wc5,zzy-224@627-wgm-t5f,Shanty's,Gateway National Recreation Area
+A_separate_parent_child,,zzy-22g@627-s8h-tjv,zzz-222@627-s8h-t35,Hong Kong Street Cart,Madison Square Park
+A_separate_parent_child,,226-224@627-s6c-7nq,zzy-222@627-sbg-rzf,Free Fit Camp,St. Mary's Dog Run
+A_separate_parent_child,,zzy-224@627-wfd-jsq,zzy-225@627-wfb-s3q,Baseball Field,Shore Park and Parkway
+A_separate_parent_child,,zzy-224@627-s85-t35,zzz-222@627-s85-syv,Breukelen Ballfields,Breukelen Ballfields
+A_separate_parent_child,,zzy-224@627-wdb-zpv,zzw-222@627-wdb-zzz,Paul's Daughter,Luna Park
+A_separate_parent_child,,zzy-22z@627-sb5-789,22p-227@627-sb5-7bk,Grippos Christmas Tree Stand,Target
+A_separate_parent_child,,228-222@627-vvj-zzz,zzy-222@627-vvk-4d9,S I Little League,Nyc Open Space 256
+A_separate_parent_child,,zzy-223@627-wc7-whq,zzz-222@627-wc7-ysq,Rivington Street Playground,Sara D. Roosevelt Park
+A_separate_parent_child,,22q-222@627-wc7-s5z,zzy-22t@627-wc7-s5z,Botanica Bar,Houston Street
+A_separate_parent_child,,235-222@627-wc8-68v,zzy-224@627-s8j-f4v,The Spaniard,Sheridan Square Viewing Garden
+A_separate_parent_child,,26s-229@627-wdb-q4v,zzw-222@627-wdb-zzz,New York Aquarium Education Department,Luna Park
+A_separate_parent_child,,zzy-223@627-s8h-249,zzy-223@627-s8g-xkf,McCarren Park Field,McCarren Park
+A_separate_parent_child,,zzy-222@627-wf8-5j9,zzw-222@627-wf8-vzz,Spiro Sports Center,Wagner College
+A_separate_parent_child,,zzy-222@627-s9h-47q,zzz-222@627-s9h-4y9,George U. Harvey Park Rink,Harvey Park
+A_separate_parent_child,,zzy-224@627-s8k-sqz,zzz-222@627-s8k-pn5,Tompkins Square Park,Tompkins Square Park
+A_separate_parent_child,,zzy-225@627-wdb-rkz,zzw-222@627-wdb-zzz,Mexsalvador Pupusas in Coney Island,Luna Park
+A_separate_parent_child,,zzy-222@627-s6k-f4v,zzz-222@627-rwc-9pv,Wild Asia Monorail,Bronx Park
+A_separate_parent_child,,zzw-23d@627-s8r-fzz,zzy-23j@627-s8r-fvf,Jamba,F.A.O Schwarz Central Park NYC
+A_separate_parent_child,,zzy-225@627-s8j-59f,zzz-222@627-s8j-hdv,Sycamore Farms at Union Square Greenmarket,Union Square Park
+A_separate_parent_child,,222-22b@627-s62-q4v,zzz-222@627-s6d-5zz,Dyckman Marina Ramp,Fort Washington Park
+A_separate_parent_child,,zzy-224@627-s8m-7yv,222-222@627-s8m-8gk,Sophia,Bushwick Inlet Park
+A_separate_parent_child,,22h-228@627-s4w-2rk,zzy-22g@627-s4w-2rk,Wonder,Harlem Worlds Imperial courts
+A_separate_parent_child,,22p-223@627-s7t-wff,224-222@627-s7t-wff,Metropolitan Learning Institute,St Paul's School of Nursing-Queens
+A_separate_parent_child,,22p-223@627-wgk-tqf,zzy-224@627-wgm-t5f,The Bayhouse,Gateway National Recreation Area
+A_separate_parent_child,,zzy-223@627-wgg-sh5,zzy-224@627-wgm-t5f,Rockaway by Katharina Grosse,Gateway National Recreation Area
+A_separate_parent_child,,225-223@627-wc7-3qz,225-227@627-wc7-3qz,Forty Carrots,Bloomingdale's
+A_separate_parent_child,,224-279@627-s8j-nyv,224-26m@627-s8j-nyv,Chipotle Mexican Grill,New York Yankees
+A_separate_parent_child,,zzy-222@627-rwv-y9z,zzz-222@627-rwv-y9z,Throgs Neck Little League Field,Nyc Open Space 132
+A_separate_parent_child,,224-223@627-wbv-fxq,223-22b@627-wbv-ks5,Playwrights Horizons,Stage 42
+A_separate_parent_child,,zzy-223@627-rwb-8y9,zzz-222@627-rwc-9pv,Nybgtaco,Bronx Park
+A_separate_parent_child,,zzy-22g@627-s8j-z2k,zzy-23s@627-s8j-z2k,Kabooz,Madison Square Garden
+A_separate_parent_child,,zzy-22c@627-s9x-9zz,zzy-223@627-s9x-9zz,Taffner Field House,Carnesecca Arena
+A_separate_parent_child,,227-222@627-wff-nwk,zzy-224@627-wff-snq,Blue Pearl,Homeport Pier
+A_separate_parent_child,,zzy-228@627-wg3-pjv,zzw-222@627-wg3-kmk,Brooklyn Center for the Performing Arts,CUNY Brooklyn College
+A_separate_parent_child,,223-225@627-wdg-c89,zzw-222@627-wdb-zzz,Steeplechase,Luna Park
+A_separate_parent_child,,222-22k@627-s9x-9s5,zzy-223@627-s9x-9zz,Marketmarillac Cafe,Carnesecca Arena
+A_separate_parent_child,,zzy-222@627-wgh-jvz,zzz-222@627-wgh-x3q,Dynamo Soccer Club,Manhattan Beach Park
+A_separate_parent_child,,226-222@627-s8z-tqf,zzy-227@627-s8z-tqf,Lincoln Market,Prospect Park (BMT Brighton Line)
+A_separate_parent_child,,zzy-225@627-wdh-3yv,222-22d@627-wdg-9cq,Bar Society,Coney Island Amphitheater
+A_separate_parent_child,,zzy-224@627-sb2-f2k,zzw-22p@627-s99-d9z,Reach Into Cultural Heights Inc. (RICH),CUNY Queens College
+A_separate_parent_child,,22m-224@627-s9x-9s5,zzy-223@627-s9w-vs5,Belson Stadium,St John's University
+A_separate_parent_child,,22h-22h@627-wdb-rkz,zzw-222@627-wdb-zzz,Conny Island Beach Brooklyn,Luna Park
+A_separate_parent_child,,zzy-228@627-s6m-45f,229-222@627-s6m-dy9,The Seforim Sale,Yeshiva University
+A_separate_parent_child,,zzy-223@627-s8n-xt9,zzz-222@627-s8n-y5f,The Octagon Soccer Field,Nyc Open Space 115
+A_separate_parent_child,,zzy-229@627-wdg-c89,zzw-222@627-wdb-zzz,Ocean pkwy Brighton Beach,Luna Park
+A_separate_parent_child,,zzw-222@627-wf5-ct9,zzy-224@627-wgm-t5f,United States Coast Guard Galley,Gateway National Recreation Area
+A_separate_parent_child,,zzy-22c@627-s4m-5fz,zzy-223@627-s4m-8gk,Ellington in the Park,Riverside Park
+A_separate_parent_child,,zzy-26y@627-s8r-dd9,zzw-226@627-wbv-k9f,Miniso,New Amsterdam Theatre

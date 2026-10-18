@@ -20,7 +20,8 @@ Method:
      grid-cell spatial CV blocking) and build a KD-tree; find all pairs within
      DIST_THRESHOLD_FT (75ft =~ 23m).
   3. For each candidate pair, require (a) same top_category, and (b) name-token
-     Jaccard similarity >= NAME_JACCARD_THRESHOLD (0.4) after lowercasing and
+     Jaccard similarity >= NAME_JACCARD_THRESHOLD (0.4) after lowercasing, normalizing
+     possessive apostrophes (so "Lorenzo's" tokenizes the same as "Lorenzo"), and
      stripping common stopwords/punctuation. Both conditions must hold -- proximity
      alone would merge distinct businesses sharing a building/block; name similarity
      alone would merge distant same-named venues (exactly the Brooklyn Jacob Riis
@@ -167,7 +168,13 @@ STOPWORDS = {
 def name_tokens(name):
     if not isinstance(name, str):
         return set()
-    toks = re.findall(r"[a-z0-9']+", name.lower())
+    #Strip possessive 's (ASCII and curly apostrophe) before tokenizing. Without this,
+    #"Lorenzo's" keeps the apostrophe as a token character and survives as the single
+    #token "lorenzo's", which never matches the plain "lorenzo" token from a sibling
+    #catalog entry like "Lorenzo Pizza Of New York" for the same place -- an
+    #apostrophe-driven near-miss the Note 9 fragment-dedup cross-check surfaced.
+    normalized = re.sub(r"['’]s\b", "", name.lower())
+    toks = re.findall(r"[a-z0-9']+", normalized)
     return {t for t in toks if t not in STOPWORDS and len(t) > 1}
 
 
