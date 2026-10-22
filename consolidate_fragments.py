@@ -108,6 +108,31 @@ pooling fragments' counts into one draw and scoring the pool -- so the bootstrap
 consistent with what the point estimate is actually averaging. See the README's "Note 6" bullet
 for the real numbers (magnitude, which named venues are affected, and confirmation this changes
 no FDR-survival call).
+
+MISSING MODEL-REFIT VARIANCE, FIXED (Note 13, the same class of bug Note 11 fixed in
+pool_persistence.py): var_combined above used to silently treat a consolidated entity-month's
+missing model_pred_var (its constituent fragment(s)' grid cell was never drawn across
+estimate_model_prediction_variance.py's bootstrap replicates) as if model-refit uncertainty were
+exactly ZERO for that entity-month, via a bare .fillna(0.0) -- the identical pattern Note 11
+fixed in pool_persistence.py, just never applied here since this script's own var_combined line
+is a separate copy, not a shared import. Same fix, same reasoning: a venue-month with no
+model_pred_var estimate is one we know LESS about, not one with zero refit uncertainty, and
+silently zero-filling it understated var_combined, overweighted that month in the GLS pooling
+below, and could tip a borderline entity's q_bh_hk under 0.05 on artificially narrowed
+uncertainty rather than real evidence. ADOPTED FIX: var_combined is no longer filled; an
+entity-month missing model_pred_var is instead excluded from the ADOPTED REML+Hartung-Knapp
+pooling specifically (n_months_adopted, computed below, counts only entity-months with a real
+model_pred_var estimate). n_months/persistence_tier/the DerSimonian-Laird diagnostic columns,
+which never depended on model_pred_var, are UNCHANGED. The FDR-tested family (q_bh_hk/
+fdr_sig_05_hk, and q_bh/fdr_sig_05 since this script shares one family_mask for both) now
+requires n_months_adopted>=2, not just n_months>=2. Verified with the same boundary-case
+synthetic test pool_persistence.py's Note 11 used (0/1/2/3/4 of 4 months retained), adapted to
+this script's build_sigma/reml_tau2/hartung_knapp copies -- no crash at 0 or 1 remaining months,
+and a venue previously computed from 1 real + 3 zero-filled months now correctly returns NaN and
+drops out of the tested family. Expected to be a no-op on the current real data, since Note 12
+already guarantees every real venue gets a model_pred_var estimate every period (zero NaN in
+practice) -- but implemented defensively rather than left as a latent bug, same as Note 11 was
+before ITS real-data effect turned out to also be zero.
 """
 import math
 import os
@@ -452,10 +477,17 @@ for mm in MODEL_READY_PATHS:
 long = pd.DataFrame(long_rows)
 long = long[long["resid_vs_var"] > 0].copy()
 #ADOPTED pooling variance, same as pool_persistence.py: visitor-sampling + model-refit/
-#prediction, falling back to sampling-only for the rare entity-period missing the latter.
-long["var_combined"] = long["resid_vs_var"] + long["model_pred_var"].fillna(0.0)
+#prediction. Note 13: no .fillna(0.0) here anymore -- see module docstring. An entity-month
+#missing model_pred_var now stays NaN in var_combined/w_combined instead of being silently
+#treated as zero model-refit uncertainty; the per-entity loop below filters to non-NaN
+#var_combined rows before running the ADOPTED REML+Hartung-Knapp pooling.
+long["var_combined"] = long["resid_vs_var"] + long["model_pred_var"]
 long["w"] = 1.0 / long["resid_vs_var"]
 long["month_idx"] = long["month"].map(MONTH_IDX)  #calendar position, for GLS lag-1 adjacency (Note 10)
+n_missing_combined = int(long["var_combined"].isna().sum())
+print(f"Note 13: {n_missing_combined} of {len(long)} entity-months "
+      f"({n_missing_combined / len(long) * 100:.2f}%) have no model_pred_var estimate and are "
+      f"excluded from the ADOPTED pooling below (n_months_adopted < n_months for those entities)")
 print(f"\nconsolidated venue-months: {len(long)}, distinct entities: {long['placekey'].nunique()} "
       f"(was 33767 distinct placekeys before consolidation)")
 print(f"median inflation factor (var_combined / resid_vs_var): "
@@ -515,21 +547,30 @@ for pk, g in long.groupby("placekey"):
     p_re = 2.0 * (1.0 - 0.5 * (1 + math.erf(abs(z_re) / np.sqrt(2))))
 
     #ADOPTED pooling result -- see note above reml_tau2/hartung_knapp, over var_combined.
+    #Note 13: restricted to the subset of this entity's eligible months that have a real
+    #var_combined (i.e. a real model_pred_var estimate) -- an entity-month missing it is
+    #excluded from THIS pooling specifically, not treated as zero model-refit uncertainty.
+    #n_months_adopted can be less than n_months; it does not affect n_months/persistence_tier/
+    #the DL diagnostic columns above, none of which depend on model_pred_var.
+    adopted_mask = ~np.isnan(v_combined)
+    m_adopted = int(adopted_mask.sum())
+    r_a, v_a, midx_a = r[adopted_mask], v_combined[adopted_mask], midx[adopted_mask]
     tau2_reml = mu_hk = var_hk = ci_hk_lo = ci_hk_hi = p_hk = pred_lo = pred_hi = np.nan
-    if m >= 2:
-        tau2_reml = reml_tau2(r, v_combined, midx)
-        mu_hk, var_hk = hartung_knapp(r, v_combined, midx, tau2_reml)
-        t_crit_ci = t_dist.ppf(0.975, df=m - 1)
+    if m_adopted >= 2:
+        tau2_reml = reml_tau2(r_a, v_a, midx_a)
+        mu_hk, var_hk = hartung_knapp(r_a, v_a, midx_a, tau2_reml)
+        t_crit_ci = t_dist.ppf(0.975, df=m_adopted - 1)
         ci_hk_lo, ci_hk_hi = mu_hk - t_crit_ci * np.sqrt(var_hk), mu_hk + t_crit_ci * np.sqrt(var_hk)
         t_stat_hk = mu_hk / np.sqrt(var_hk)
-        p_hk = 2.0 * t_dist.sf(abs(t_stat_hk), df=m - 1)
-        if m >= 3:
-            t_crit_pi = t_dist.ppf(0.975, df=m - 2)
+        p_hk = 2.0 * t_dist.sf(abs(t_stat_hk), df=m_adopted - 1)
+        if m_adopted >= 3:
+            t_crit_pi = t_dist.ppf(0.975, df=m_adopted - 2)
             half_width = t_crit_pi * np.sqrt(tau2_reml + var_hk)
             pred_lo, pred_hi = mu_hk - half_width, mu_hk + half_width
 
     records.append({
         "placekey": pk, "n_months": m, "persistence_tier": persistence_tier(m),
+        "n_months_adopted": m_adopted,  #Note 13 -- see module docstring
         "months": ",".join(sorted(g["month"])),
         "mu_fe": mu_fe, "var_fe": var_fe, "Q": Q, "tau2": tau2, "I2": I2,
         "mu_re": mu_re, "var_re": var_re, "ci_re_lo": ci_re[0], "ci_re_hi": ci_re[1],
@@ -541,7 +582,9 @@ for pk, g in long.groupby("placekey"):
     })
 
 pooled = pd.DataFrame(records).set_index("placekey").join(static).reset_index().sort_values("mu_hk", ascending=False)
-family_mask = (pooled["n_months"] >= 2).to_numpy()
+#Note 13: requires n_months_adopted>=2 (a real ADOPTED pooled estimate exists), not just
+#n_months>=2 -- see module docstring for why these two counts can now differ.
+family_mask = (pooled["n_months_adopted"] >= 2).to_numpy()
 pooled["q_bh"] = np.nan
 q_vals, _ = benjamini_hochberg(pooled.loc[family_mask, "p_re"].to_numpy(), alpha=0.05)
 pooled.loc[family_mask, "q_bh"] = q_vals
