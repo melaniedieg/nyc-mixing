@@ -995,6 +995,54 @@ data licenses restrict redistribution even of aggregated results.
   floor_fdr.py` was unaffected throughout, since it shells out to `pool_persistence.py` as a
   subprocess and so inherited this fix automatically without any changes of its own.
 
+- **Lag 2+ temporal dependence beyond lag 1 -- validated as real, but still unexplained (ninth
+  round of external review):** Note 10's adopted rho=+0.1683 lag-1 correlation was checked against
+  a dedicated validation script, `validate_temporal_estimator.py`, which reimplements
+  `estimate_temporal_dependence.py`'s exact demeaning + pooled-correlation procedure and runs it
+  against six Monte Carlo scenarios at the real panel's exact scale (N=7,838 venues, T=8 periods,
+  300 replicates each): a null with homoskedastic per-venue noise (scenario A), a null with
+  heteroskedastic/persistent true variance (B), a null with heteroskedastic/noisy variance
+  *estimates* (C), a known lag-1-only MA(1) signal (D), per-venue random linear trend heterogeneity
+  with no serial correlation at all (E), and trend+MA(1) combined (F). Under all three null
+  scenarios the real lag-1 excess sits 32-41 simulated-null standard deviations away from the null
+  mean -- the lag-1 finding adopted in Note 10 is not a demeaning artifact or a small-sample fluke,
+  and this holds regardless of which null's variance structure is assumed. That part of Note 10 is
+  now independently confirmed, not just internally consistent.
+
+  What the same validation also surfaced, and does NOT yet explain: the real data's lag 2-7 excess
+  keeps growing more negative with lag (roughly -0.012, -0.016, -0.054, -0.070, -0.107, -0.143 at
+  lags 2 through 7) rather than fading toward the null benchmark the way a pure lag-1-only MA(1)
+  process does (scenario D, calibrated to the real lag-1 size, fades toward zero by lag 2-3 --
+  the wrong shape). A synthetic trend-plus-MA(1) model (scenario F, calibrated with per-venue trend
+  SD sigma_b=0.11) reproduces the real lag1-7 shape almost exactly, which first looked like an
+  explanation. A follow-up script, `fit_real_venue_trends.py`, fit each venue's own closed-form
+  OLS trend slope directly on the real 8-period panel and tested it against a within-venue
+  permutation null (shuffling each venue's own 8 values across months, which destroys any real
+  across-month structure while exactly preserving that venue's own marginal distribution -- an
+  assumption-light test). Real per-venue trend heterogeneity IS statistically present (26.5
+  permutation-null SDs above the null mean, Monte Carlo p<0.0001) but its magnitude
+  (sigma_b_hat=0.0045, about 8% of one period's residual SD) is roughly 24x too small to be
+  scenario F's explanation -- real, but nowhere near large enough on its own. A further diagnostic
+  attempt (removing each venue's own fitted trend, then re-running the lag analysis on the
+  residuals to see if lag 2-7 collapsed) was tried and abandoned as invalid: a pure-null control
+  with zero true structure of any kind, run through the identical detrend-then-lag-analyze
+  procedure, reproduced nearly the same dramatic shape -- fitting two OLS parameters to only T=8
+  points mechanically induces spurious endpoint-concentrated correlation in the residuals (a
+  classic hat-matrix leverage artifact at this sample size), not evidence either way. That
+  diagnostic is recorded in `fit_real_venue_trends.py` only as a cautionary negative result so it
+  isn't retried and mistaken for a finding.
+
+  Net status: the lag 2-7 pattern is real (it isn't noise -- the null scenarios rule that out) but
+  its mechanism remains an open question after testing pure lag-1 MA(1), trend heterogeneity at its
+  real estimated magnitude, and AR(1) (checked informally, wrong shape -- bows rather than
+  decreasing monotonically). This does not call the adopted Note 10 fix into question: the GLS
+  structure in `pool_persistence.py`/`consolidate_fragments.py` only ever modeled lag-1 (calendar-
+  adjacent-month) correlation, which is the part independently confirmed here, and zeroes out
+  everything beyond it already -- so an unexplained lag 2+ pattern is a documented gap in how much
+  of the real temporal structure is being modeled (potentially still leaving some real correlation
+  unmodeled at longer lags), not a defect in what's currently adopted. No pipeline code changed as
+  a result of this validation; no survivor counts or named-venue numbers above are affected.
+
   **Model-refit stability bootstrap doesn't reproduce the published scoring procedure (external
   review caught this):** the "30-iteration bootstrap-stability check" described above resamples
   individual VENUES (rows) with replacement, refits one RandomForest, and predicts on every venue
