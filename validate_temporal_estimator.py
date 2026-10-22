@@ -55,16 +55,21 @@ down:
   F. COMBINED: scenario E's trend term PLUS a smaller genuine MA(1) lag-1 correlation on top,
      grid-searched (by sum of squared error against the real 7-point lag1..7 vector) over
      sigma_b in [0.09..0.12] and rho_ma in [0.06..0.12]. The best fit (sigma_b=0.11, rho_ma=0.12)
-     reproduces the ENTIRE real 7-point pattern closely (see printed comparison) -- substantially
-     better than either mechanism alone. This suggests the real "temporal dependence" signal is a
-     MIX of genuine short-range (lag-1) serial correlation and per-venue secular drift that the
-     current GLS model (Note 10's lag-1-adjacency-only covariance bump) does not represent at
-     all. If real, this has two implications worth following up on real data (not done here,
-     since that requires fitting an actual per-venue trend term against real r_vm, not a
-     synthetic panel): the genuine lag-1 dependence correction may be somewhat smaller than the
-     single-point rho_lag1_point=0.1683 currently adopted (part of that number may be trend
-     bleeding into the lag-1 pair specifically), and there may be real, currently unmodeled
-     negative covariance between FAR-APART months that Note 10's lag-1-only GLS bump ignores.
+     reproduces the ENTIRE real 7-point pattern closely (see printed comparison) -- a
+     demonstration that trend heterogeneity of SOME magnitude is geometrically CAPABLE of
+     producing this shape, not evidence that it actually does.
+
+CORRECTION (follow-up, fit_real_venue_trends.py): fitting real per-venue trend slopes on the
+actual balanced panel and testing against a permutation null finds genuine trend heterogeneity
+IS statistically real (p<0.001, ~26 permutation-null SDs) but with sigma_b_hat ~ 0.0045 -- about
+24x SMALLER than the 0.11 scenario F needed. Real per-venue drift is nowhere near large enough to
+be the (sole) explanation for the lag2..7 pattern. A follow-on attempt to confirm this by removing
+each venue's fitted trend and re-running the lag-analysis on the residuals turned out to be an
+INVALID diagnostic at T=8 (confirmed via a pure-null control reproducing nearly the same dramatic
+shape with zero true structure -- a hat-matrix leverage artifact of fitting 2 parameters to only
+8 points). Net: the lag2..7 pattern remains a genuine, UNEXPLAINED open question -- scenario F's
+apparent fit was a coincidence of a model family that *could* produce the shape, not the actual
+mechanism. This does not call the lag-1 finding (scenarios A/B/C above) into question.
 
 Each scenario runs N_REPLICATES independent synthetic panels; we report the Monte Carlo mean and
 SD of rho_lag1_point (and the lag-2..7 excess vector) across replicates, which is the sampling
@@ -246,5 +251,7 @@ print("\n\n=== Real-data reference (from estimate_temporal_dependence_run.log) =
 print("rho_lag1_point = +0.1683; lag1..7 raw excess = "
       "[+0.1563, -0.0120, -0.0162, -0.0537, -0.0701, -0.1071, -0.1430]; "
       "lag1..7 std excess = [+0.1804, +0.0210, -0.0159, -0.0419, -0.0385, -0.0785, -0.1475]")
-print("Scenario F (combined trend + smaller genuine lag-1 correlation) is the best match to this")
-print("full 7-point shape found in this script -- see module docstring for what that implies.")
+print("Scenario F (combined trend + smaller genuine lag-1 correlation) is the best SHAPE match")
+print("found in this script -- but see fit_real_venue_trends.py and the CORRECTION in the module")
+print("docstring: the real per-venue trend magnitude is ~24x too small to actually be this. The")
+print("lag2..7 pattern remains an open, unexplained question.")
