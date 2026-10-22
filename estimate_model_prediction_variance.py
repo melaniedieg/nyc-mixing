@@ -16,23 +16,64 @@ month, so pool_persistence.py can combine it with resid_vs_var into one inverse-
 (var_combined = resid_vs_var + model_pred_var) instead of using resid_vs_var alone -- this is now
 the ADOPTED pooling variance; see that script's docstring.
 
+VARIABLE, LOW DRAW COUNT, FIXED (Note 12, external review): the original design resampled grid
+CELLS with replacement into a per-replicate boot_df, then ran a fresh GroupKFold(5) WITHIN that
+replicate's (variably-sized, variably-composed) resampled universe -- so a venue only got a
+prediction that replicate if its own grid cell happened to be drawn into boot_df at all. Since an
+individual cell has only a ~63.2% chance of appearing in any one bootstrap draw (standard
+non-selection-probability math: 1-(1-1/n)^n -> 1-1/e as n grows), draw counts across the default
+N_BOOT=15 replicates came out highly variable in practice on real data -- median 10, min 3, with
+110 of ~27k July venues drawing fewer than 5 of the 15 replicates. A handful of venues even risked
+n_draws<2 (model_pred_var undefined, silently falls back to resid_vs_var alone) if they were ever
+unlucky across all N_BOOT draws, though that never actually happened on real data checked so far.
+
+The fix: separate "which cells make it into training" (the thing that should bootstrap-vary) from
+"which venues get a held-out prediction" (which should NOT depend on the luck of a cell being
+resampled). The grid-cell-blocked, BUFFERED GroupKFold(5) split is now computed ONCE, up front,
+over the FULL venue universe (same BUFFER_FT=1500 spatial buffer and the same
+shuffle=True/random_state=42 fold assignment as fit_mixing_model_2026_0X.py's own PRIMARY CV --
+see that script's docstring -- so this script's fold membership is reproducible the same way).
+Every venue is in exactly one of the 5 folds every replicate, so every venue gets exactly one
+genuinely held-out prediction every replicate: n_draws is now always exactly N_BOOT for every
+venue, by construction.
+
+The bootstrap-resampling signal moves into training instead: each replicate still draws grid
+cells with replacement (same rng, same mechanism as before), but instead of physically duplicating
+rows into a resampled boot_df, each row's sample_weight for that replicate's fold-fits is
+multiplied by how many times ITS cell was drawn this replicate (0 if the cell wasn't drawn at
+all). A cell drawn 0 times contributes weight 0 and is -- in effect, not in name -- excluded from
+that replicate's training data, the same as if its rows had never been duplicated into boot_df;
+a cell drawn twice gets 2x the influence, also the same as physical duplication would have given
+it. RandomForestRegressor's internal bootstrap=True row-resampling respects sample_weight (rows
+are drawn proportional to it), so this reproduces the original cell-level bootstrap's training-set
+variability exactly, without ever touching which venues are eligible to be predicted.
+
+Net effect: the variance recorded per venue is still "how much would this venue's predicted value
+move under a different, equally legitimate bootstrap resample of the training cells" -- the same
+quantity as before -- but now estimated from a FULL N_BOOT draws for every venue instead of a
+Binomial(N_BOOT, ~0.632)-distributed, sometimes-as-low-as-3 subset of them. This also makes the
+script faster: the spatial buffer exclusion set depends only on which rows are in which fold
+(fixed) and all rows' fixed positions, so it is computed ONCE instead of being recomputed from
+scratch, per replicate, against a resampled geometry, as before.
+
 Method: resample grid CELLS (not venues) with replacement -- same spatial-block design as
 sensitivity_spatial_block_bootstrap.py, which fixed the OTHER model-refit bootstrap defect this
 same external review caught (fit_mixing_model_2026_0X.py's "model-refit stability" check; see
-that script and the README bullet above this one). Each replicate reruns the real grid-cell-
-blocked, BUFFERED GroupKFold(5) (Note 7 fix -- same BUFFER_FT=1500 spatial buffer as
-fit_mixing_model_2026_0X.py's own PRIMARY CV; see that script's docstring and the README's "No
-spatial buffer between CV folds" for the full derivation) so every out-of-fold prediction stays
-genuinely held out, then records every venue's predicted value that replicate (averaged across a
-cell's occurrences if its cell was drawn more than once). The variance of those predictions
-across replicates is the empirical model-refit/prediction-uncertainty estimate for that
+that script and the README bullet above this one). Each replicate refits the real grid-cell-
+blocked, BUFFERED GroupKFold(5) (Note 7 fix; Note 12 fix above for how the split itself is now
+fixed and the bootstrap moves into sample_weight) and every venue's out-of-fold prediction that
+replicate goes straight into that venue's running list -- no averaging across duplicate cell
+occurrences needed anymore, since cells are never physically duplicated. The variance of those
+N_BOOT predictions per venue is the empirical model-refit/prediction-uncertainty estimate for that
 venue-month, in the same units as resid_vs_var so the two can be summed directly.
 
 Compute cost, stated plainly: this reruns the full grid-cell-blocked GroupKFold(5) N_BOOT times
 (15 by default -- 5x the model fits of a single published CV run), ~10-15 minutes per month on
-the data sizes seen so far (10k-30k venues). This is now a REQUIRED step before pool_persistence.py
-/consolidate_fragments.py for any new month, not an optional sensitivity check -- see README's
-"Run order per month" for where it goes in the monthly pipeline.
+the data sizes seen so far (10k-30k venues) -- the Note 12 fix changes WHERE that cost goes
+(no more per-replicate geometry/tree rebuild) but not materially how many RandomForest fits
+happen, so this remains a REQUIRED step before pool_persistence.py/consolidate_fragments.py for
+any new month, not an optional sensitivity check -- see README's "Run order per month" for where
+it goes in the monthly pipeline.
 
 Tracking EVERY venue instead of a reference-flagged subset costs nothing extra per replicate (the
 bottleneck is the 5 RandomForest refits per replicate, not how many venues' predictions get read
@@ -41,11 +82,10 @@ at all.
 
 Input:  OUTPUT_DIR/model_ready_<MONTH>.pkl (same file fit_mixing_model_2026_0X.py reads)
 Output: OUTPUT_DIR/model_prediction_variance_<MONTH>.csv -- one row per venue eligible that
-        month: placekey, month, n_draws (how many of the N_BOOT replicates actually drew that
-        venue's grid cell -- a block bootstrap doesn't draw every cell every time), and
-        model_pred_var (NaN if n_draws<2; pool_persistence.py falls back to resid_vs_var alone
-        for those few venue-months, which in practice has been a vanishingly small share -- see
-        the per-month "saved N venues, M with >=2 draws" print below).
+        month: placekey, month, n_draws (now always exactly N_BOOT, kept as a column for
+        continuity with pool_persistence.py and as a sanity check -- see Note 12 above for why
+        this is no longer variable), and model_pred_var (no longer ever NaN on the grounds of a
+        low draw count; see Note 12).
 """
 import os
 import time
@@ -95,62 +135,84 @@ print(f"[{time.time()-t0:.0f}s] {n_cells} distinct {GRID_CELL_FT}ft grid cells")
 pre = ColumnTransformer([("num", StandardScaler(), feats_num_full),
                           ("cat", OneHotEncoder(handle_unknown="ignore"), feats_cat)])
 
-rng = np.random.RandomState(7)
-cells_by_group = {cell: sub for cell, sub in df.groupby("_grid_cell")}
+X_full = df[feats_num_full + feats_cat]
+y_full = df["income_mixing_score"]
+w_known = df["income_known_devices"].to_numpy(dtype=float)  #the pre-existing, non-bootstrap weight
+groups_full = df["_grid_cell"].to_numpy()
 all_pks = df["placekey"].to_numpy()
-preds_by_venue = {pk: [] for pk in all_pks}
+n_rows = len(df)
+
+#Note 12: the grid-cell-blocked, buffered GroupKFold(5) split is now fixed ONCE over the full
+#venue universe, with the same shuffle=True/random_state=42 fold assignment as
+#fit_mixing_model_2026_0X.py's own PRIMARY CV, so every venue lands in exactly one fold every
+#replicate -- see module docstring.
+_xy_all = np.column_stack([_gdf.geometry.x.to_numpy(), _gdf.geometry.y.to_numpy()])
+_tree_all = cKDTree(_xy_all)
+n_splits = min(5, n_cells)
+gkf_main = GroupKFold(n_splits=n_splits, shuffle=True, random_state=42)
+
+fold_of_row = np.full(n_rows, -1, dtype=int)
+tr_idx_buf_by_fold = []
+te_idx_by_fold = []
+for fold_i, (tr_idx, te_idx) in enumerate(gkf_main.split(X_full, y_full, groups=groups_full)):
+    fold_of_row[te_idx] = fold_i
+    #Note 7 fix, computed once (fixed geometry/fixed test set -> fixed buffer exclusion set):
+    #same buffered-CV exclusion as fit_mixing_model_2026_0X.py's PRIMARY CV -- excludes any
+    #training-candidate venue within BUFFER_FT of ANY test-fold venue, not just the test cell's
+    #own venues.
+    _test_tree = cKDTree(_xy_all[te_idx])
+    _near_test = _test_tree.query_ball_tree(_tree_all, r=BUFFER_FT)
+    _near_test_idx = set()
+    for _lst in _near_test:
+        _near_test_idx.update(_lst)
+    tr_idx_buf = np.array([i for i in tr_idx if i not in _near_test_idx])
+    tr_idx_buf_by_fold.append(tr_idx_buf)
+    te_idx_by_fold.append(te_idx)
+    print(f"[{time.time()-t0:.0f}s] fold {fold_i}: {len(te_idx)} test venues, "
+          f"{len(tr_idx_buf)}/{len(tr_idx)} train venues survive the {BUFFER_FT}ft buffer")
+
+assert (fold_of_row >= 0).all(), "every row should land in exactly one fold"
+
+rng = np.random.RandomState(7)
+preds_matrix = np.full((N_BOOT, n_rows), np.nan)
 
 for b in range(N_BOOT):
+    #Note 12: same cell-level bootstrap draw as before, but it now feeds a per-row sample_weight
+    #multiplier instead of physically resampling rows into a replicate-specific boot_df. A cell
+    #drawn 0 times this replicate gets weight 0 (in effect excluded from training, same as if its
+    #rows were never duplicated into boot_df); a cell drawn k times gets k x its normal weight.
     sampled_cells = rng.choice(unique_cells, size=n_cells, replace=True)
-    boot_df = pd.concat([cells_by_group[c] for c in sampled_cells], ignore_index=True)
+    cells_drawn, draw_counts = np.unique(sampled_cells, return_counts=True)
+    draw_count_by_cell = dict(zip(cells_drawn, draw_counts))
+    row_draw_count = np.array([draw_count_by_cell.get(c, 0) for c in groups_full], dtype=float)
+    row_weight = w_known * row_draw_count
 
-    Xb = boot_df[feats_num_full + feats_cat]
-    yb = boot_df["income_mixing_score"]
-    wb = boot_df["income_known_devices"].values
-    groups_b = boot_df["_grid_cell"].values  #original cell id -- every draw of the same cell
-                                              #stays together in one fold (see
-                                              #sensitivity_spatial_block_bootstrap.py docstring
-                                              #for why this matters)
-
-    #Note 7 fix: same spatial buffer as fit_mixing_model_2026_0X.py's PRIMARY CV, applied fresh
-    #to this replicate's own (resampled, possibly duplicated) rows -- a cell drawn more than
-    #once still needs its buffer computed against this replicate's actual row positions.
-    _bgdf = gpd.GeoDataFrame(
-        boot_df, geometry=gpd.points_from_xy(boot_df["longitude"], boot_df["latitude"]), crs="EPSG:4326"
-    ).to_crs(epsg=2263)
-    _bxy = np.column_stack([_bgdf.geometry.x.to_numpy(), _bgdf.geometry.y.to_numpy()])
-    _btree = cKDTree(_bxy)
-
-    n_groups_b = len(np.unique(groups_b))
-    gkf = GroupKFold(n_splits=min(5, n_groups_b))
-    y_pred_boot = np.full(len(boot_df), np.nan)
-    for tr_idx, te_idx in gkf.split(Xb, yb, groups=groups_b):
-        _test_tree = cKDTree(_bxy[te_idx])
-        _near_test = _test_tree.query_ball_tree(_btree, r=BUFFER_FT)
-        _near_test_idx = set()
-        for _lst in _near_test:
-            _near_test_idx.update(_lst)
-        tr_idx_buf = np.array([i for i in tr_idx if i not in _near_test_idx])
+    y_pred_rep = np.full(n_rows, np.nan)
+    for fold_i in range(n_splits):
+        tr_idx_buf = tr_idx_buf_by_fold[fold_i]
+        te_idx = te_idx_by_fold[fold_i]
+        sw = row_weight[tr_idx_buf]
         pipe = Pipeline([("pre", pre), ("reg", RandomForestRegressor(
             n_estimators=100, max_depth=8, min_samples_leaf=20, random_state=b, n_jobs=-1))])
-        pipe.fit(Xb.iloc[tr_idx_buf], yb.iloc[tr_idx_buf], reg__sample_weight=wb[tr_idx_buf])
-        y_pred_boot[te_idx] = pipe.predict(Xb.iloc[te_idx])
+        pipe.fit(X_full.iloc[tr_idx_buf], y_full.iloc[tr_idx_buf], reg__sample_weight=sw)
+        y_pred_rep[te_idx] = pipe.predict(X_full.iloc[te_idx])
 
-    boot_df = boot_df.assign(_pred=y_pred_boot)
-    pred_this_rep = boot_df.groupby("placekey")["_pred"].mean()
-    for pk, val in pred_this_rep.items():
-        preds_by_venue[pk].append(val)
+    assert not np.isnan(y_pred_rep).any(), "every venue should get a prediction every replicate"
+    preds_matrix[b, :] = y_pred_rep
 
     print(f"[{time.time()-t0:.0f}s] {MONTH} replicate {b+1}/{N_BOOT} done "
-          f"({len(boot_df)} rows, {n_groups_b} distinct cells present)")
+          f"({len(cells_drawn)}/{n_cells} distinct cells drawn >=1x, "
+          f"{n_cells - len(cells_drawn)} cells drawn 0x)")
 
-rows = []
-for pk, preds in preds_by_venue.items():
-    preds = np.array(preds)
-    rows.append({"placekey": pk, "month": MONTH, "n_draws": len(preds),
-                 "model_pred_mean": preds.mean() if len(preds) else np.nan,
-                 "model_pred_var": preds.var(ddof=1) if len(preds) >= 2 else np.nan})
-out = pd.DataFrame(rows)
+model_pred_mean = preds_matrix.mean(axis=0)
+model_pred_var = preds_matrix.var(axis=0, ddof=1)
+out = pd.DataFrame({
+    "placekey": all_pks,
+    "month": MONTH,
+    "n_draws": N_BOOT,  #Note 12: always exactly N_BOOT now, by construction -- see module docstring
+    "model_pred_mean": model_pred_mean,
+    "model_pred_var": model_pred_var,
+})
 out.to_csv(os.path.join(OUTPUT_DIR, f"model_prediction_variance_{MONTH}.csv"), index=False)
 print(f"\n[{time.time()-t0:.0f}s] {MONTH}: saved {len(out)} venues, "
       f"{out['model_pred_var'].notna().sum()} with >=2 draws "
