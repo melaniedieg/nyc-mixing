@@ -47,6 +47,27 @@ resid_vs_var alone, since they were always diagnostic/comparison only, not the
 reported result -- see README for why mixing two changes into one column would make
 that comparison harder to read, not easier.
 
+MISSING MODEL-REFIT VARIANCE, FIXED (Note 11, external review): var_combined above used to
+silently treat a venue-month's missing model_pred_var (its grid cell was never drawn across
+estimate_model_prediction_variance.py's bootstrap replicates -- see that script's docstring)
+as if model-refit uncertainty were exactly ZERO for that venue-month, via a bare
+.fillna(0.0). That's backwards: a venue-month with no model_pred_var estimate is one we know
+LESS about, not one with zero refit uncertainty, and silently zero-filling it understated
+var_combined, overweighted that month in the GLS pooling below, and could tip a borderline
+venue's q_bh_hk under 0.05 on artificially narrowed uncertainty rather than real evidence.
+ADOPTED FIX: var_combined is no longer filled; a venue-month missing model_pred_var is instead
+excluded from the ADOPTED REML+Hartung-Knapp pooling specifically (n_months_adopted, computed
+below, counts only venue-months with a real model_pred_var estimate). n_months/
+persistence_tier/the DerSimonian-Laird diagnostic columns, which never depended on
+model_pred_var, are UNCHANGED -- this is a different kind of missingness than failing the
+income_known_devices eligibility floor (a venue simply not present in a month's data), not a
+second instance of the same thing, so it gets its own, separately-reported exclusion rather
+than being folded into n_months. The FDR-tested family (q_bh_hk/fdr_sig_05_hk) now requires
+n_months_adopted>=2, not just n_months>=2, for the same reason a single-eligible-month venue
+was already excluded. Effect on the published survivor count and the four named venues has NOT
+yet been measured -- this fix has not been run against real data yet; see README "Known
+limitations" until the pipeline is rerun with it in place.
+
 POOLING COVARIANCE, FIXED (Note 10, a seventh round of external review -- previously an open
 caveat here): the per-venue months pooled here used to be treated as independent replicates of
 r_vm. The number this docstring previously cited for that ("+0.20 excess at lag 1, fading by lag
@@ -125,6 +146,10 @@ Per venue, reports:
   - model_pred_var: the model-refit/prediction variance folded into var_combined
     for this venue (mean across its eligible months, for transparency/inspection --
     the pooling itself uses each month's own value, not this summary).
+  - n_months_adopted: how many of those n_months eligible months actually had a usable
+    model_pred_var estimate and so were included in the ADOPTED REML+Hartung-Knapp pooling
+    below (Note 11) -- can be LESS than n_months. tau2_reml/mu_hk/etc. are NaN when this is
+    <2, same as n_months<2 did before this fix.
   - tau2_reml, mu_hk, var_hk, ci_hk_lo/hi, p_hk, q_bh_hk, fdr_sig_05_hk, pred_lo/hi:
     the ADOPTED pooling result -- REML estimate of tau^2 (Viechtbauer 2005) over
     var_combined, plus Hartung-Knapp-Sidik-Jonkman's pooled mean/CI (t-distributed
@@ -331,9 +356,17 @@ long["month_idx"] = long["month"].map(MONTH_IDX)  #calendar position -- see Note
 #(model_pred_var, fallback 0 for the rare venue-month where it couldn't be estimated -- see
 #warning above). DL diagnostic columns below still use resid_vs_var alone -- see module
 #docstring for why those two are kept separate rather than both switched over.
-long["var_combined"] = long["resid_vs_var"] + long["model_pred_var"].fillna(0.0)
+#Note 11: no .fillna(0.0) here anymore -- a venue-month missing model_pred_var now stays NaN
+#in var_combined/w_combined instead of being silently treated as zero model-refit uncertainty.
+#The per-venue loop below filters to non-NaN var_combined rows before running the ADOPTED
+#REML+Hartung-Knapp pooling; see module docstring (Note 11).
+long["var_combined"] = long["resid_vs_var"] + long["model_pred_var"]
 long["w"] = 1.0 / long["resid_vs_var"]
 long["w_combined"] = 1.0 / long["var_combined"]
+n_missing_combined = int(long["var_combined"].isna().sum())
+print(f"Note 11: {n_missing_combined} of {len(long)} venue-months "
+      f"({n_missing_combined / len(long) * 100:.2f}%) have no model_pred_var estimate and are "
+      f"excluded from the ADOPTED pooling below (n_months_adopted < n_months for those venues)")
 
 print(f"\ntotal venue-months: {len(long)}, distinct venues: {long['placekey'].nunique()}")
 print(f"median resid_vs_var (visitor-sampling only): {long['resid_vs_var'].median():.6f}")
@@ -384,22 +417,32 @@ for pk, g in long.groupby("placekey"):
 
     #---- REML + Hartung-Knapp + prediction interval over var_combined: the ADOPTED pooling
     #result, see module docstring. q_bh_hk/fdr_sig_05_hk (below) are what's reported;
-    #q_bh/fdr_sig_05 (DL-based, above) are diagnostic/comparison only. ----
+    #q_bh/fdr_sig_05 (DL-based, above) are diagnostic/comparison only.
+    #Note 11: restricted to the subset of this venue's eligible months that have a real
+    #var_combined (i.e. a real model_pred_var estimate) -- a venue-month whose grid cell was
+    #never drawn by estimate_model_prediction_variance.py's bootstrap is excluded from THIS
+    #pooling specifically, not treated as zero model-refit uncertainty. n_months_adopted can be
+    #less than n_months; it does not affect n_months/persistence_tier/the DL diagnostic columns
+    #above, none of which depend on model_pred_var. ----
+    adopted_mask = ~np.isnan(v_combined)
+    m_adopted = int(adopted_mask.sum())
+    r_a, v_a, midx_a = r[adopted_mask], v_combined[adopted_mask], midx[adopted_mask]
     tau2_reml = mu_hk = var_hk = ci_hk_lo = ci_hk_hi = p_hk = pred_lo = pred_hi = np.nan
-    if m >= 2:
-        tau2_reml = reml_tau2(r, v_combined, midx)
-        mu_hk, var_hk = hartung_knapp(r, v_combined, midx, tau2_reml)
-        t_crit_ci = t_dist.ppf(0.975, df=m - 1)
+    if m_adopted >= 2:
+        tau2_reml = reml_tau2(r_a, v_a, midx_a)
+        mu_hk, var_hk = hartung_knapp(r_a, v_a, midx_a, tau2_reml)
+        t_crit_ci = t_dist.ppf(0.975, df=m_adopted - 1)
         ci_hk_lo, ci_hk_hi = mu_hk - t_crit_ci * np.sqrt(var_hk), mu_hk + t_crit_ci * np.sqrt(var_hk)
         t_stat_hk = mu_hk / np.sqrt(var_hk)
-        p_hk = 2.0 * t_dist.sf(abs(t_stat_hk), df=m - 1)
-        if m >= 3:  #prediction interval needs m-2 >= 1 df; undefined (NaN) at m=2
-            t_crit_pi = t_dist.ppf(0.975, df=m - 2)
+        p_hk = 2.0 * t_dist.sf(abs(t_stat_hk), df=m_adopted - 1)
+        if m_adopted >= 3:  #prediction interval needs m_adopted-2 >= 1 df; undefined at m_adopted=2
+            t_crit_pi = t_dist.ppf(0.975, df=m_adopted - 2)
             half_width = t_crit_pi * np.sqrt(tau2_reml + var_hk)
             pred_lo, pred_hi = mu_hk - half_width, mu_hk + half_width
 
     records.append({
         "placekey": pk, "n_months": m, "persistence_tier": persistence_tier(m),
+        "n_months_adopted": m_adopted,  #Note 11 -- see module docstring
         "months": ",".join(sorted(g["month"])),
         "mu_fe": mu_fe, "var_fe": var_fe, "ci_fe_lo": ci_fe[0], "ci_fe_hi": ci_fe[1],
         "Q": Q, "tau2": tau2, "I2": I2,
@@ -442,7 +485,9 @@ def benjamini_hochberg(pvals, alpha=0.05):
 #uncertainty), so it's excluded from the family rather than diluting/strengthening it --
 #otherwise this would silently re-introduce something close to the old point-in-time
 #percentile screen for exactly the venues where persistence can't be assessed at all.
-family_mask = (pooled["n_months"] >= 2).to_numpy()
+#Note 11: requires n_months_adopted>=2 (a real ADOPTED pooled estimate exists), not just
+#n_months>=2 -- see module docstring for why these two counts can now differ.
+family_mask = (pooled["n_months_adopted"] >= 2).to_numpy()
 pooled["q_bh"] = np.nan
 q_vals, _ = benjamini_hochberg(pooled.loc[family_mask, "p_re"].to_numpy(), alpha=0.05)
 pooled.loc[family_mask, "q_bh"] = q_vals
