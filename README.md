@@ -1083,15 +1083,35 @@ data licenses restrict redistribution even of aggregated results.
   once a corrected method is adopted (see the next bullet). Verified with a 600-venue synthetic
   dataset end to end (no crash, including the case where a reference venue's grid cell is never
   drawn across all replicates, which correctly returns NaN rather than a divide-by-zero) before
-  being applied to all 8 monthly scripts identically. Scope, stated plainly: this is a code
-  promotion, verified on synthetic data -- it has NOT yet been rerun against real data for any of
-  the 8 periods (each replicate requires a full 5-fold model refit, 20 replicates per month, a
-  substantially heavier compute job than the row-resampling check it replaces). The July 2026
-  numbers immediately above, from the original one-off `sensitivity_spatial_block_bootstrap.py`
-  run, remain the only real-data numbers available for this method until the default pipeline is
-  rerun; they are not expected to change, since the promoted code is the same design, same
-  `N_BOOT_SPATIALBLOCK=20`, same random seed convention -- but that equivalence has not been
-  re-confirmed against real data post-promotion.
+  being applied to all 8 monthly scripts identically.
+
+  RERUN AGAINST REAL DATA (all 8 periods, Dec 2025-Jul 2026): confirmed first that the promotion
+  is purely additive -- `cv_full`, `expected_mixing_cv`, `improbable_copresence_cv`/`_z`,
+  `resid_vs_mean`/`resid_vs_var`, and the retained `stability_pct` diagnostic all reproduce
+  byte-for-byte against the pre-rerun pickles in every period, so nothing upstream of the new
+  column changed. Across the 1,804 reference-flagged venue-months examined (each period's own
+  top/bottom 0.5%-per-borough flags), the ADOPTED `stability_pct_spatialblock` averages 55.5%
+  against the diagnostic row-resampling check's 52.6% -- a HIGHER mean this time, the opposite
+  direction from the one-off July-only check's 66.0%-vs-67.3% (corrected-lower-than-original).
+  The mean is the wrong number to anchor on either way: by the decision-relevant >=80%-stability
+  threshold, 208 of the 1,804 venue-months drop from >=80% under the flawed row-resampling check
+  to below 80% once corrected, against only 84 that move the other way -- a net reduction in how
+  many venues clear the bar, the same qualitative direction the one-off check found, just at full
+  8-month scale with different exact figures. UPDATE, stated plainly: the one-off
+  `sensitivity_spatial_block_bootstrap.py` run's own July 2026 numbers (67.3%/66.0% means,
+  Amenazel Organic 100%->61.5%) are now SUPERSEDED, and not just by a small amount -- Amenazel
+  Organic isn't even in July's current reference-flagged set any more (confirmed independently of
+  this promotion: the pre-rerun July pickle, with the identical deterministic CV, already didn't
+  flag it either), so that specific comparison no longer applies to today's pipeline state. Of
+  the four previously-named venues, under the CURRENT, full-rerun numbers, wherever each is still
+  reference-flagged: Chens Fresh Food Market clears 100% ADOPTED stability in all three periods
+  it's flagged (Mar/Apr/May 2026 -- actually an IMPROVEMENT over its own diagnostic number in
+  March, 100% vs. 63.3%); Hunts Point Floating Pier clears 100% in both periods it's flagged
+  (Jun/Jul 2026); the Jacob Riis fragments range 72.7-100% across May/Jun/Jul 2026 depending on
+  the specific fragment and period; and Amenazel Organic, now flagged in only one period (May
+  2026, not July), comes in at 93.75% (15 of 16 drawn iterations). All four remain reassuringly
+  robust under the corrected method wherever they currently appear -- the net degradation found
+  across the broader 1,804-venue-month population does not fall on these four specifically.
 
   **DerSimonian-Laird with 2-4 months, read honestly (UPDATE: superseded as the adopted
   method):** `tau2` and `I2` below use the standard moment-based DerSimonian-Laird estimator,
