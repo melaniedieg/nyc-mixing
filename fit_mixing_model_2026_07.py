@@ -50,6 +50,32 @@ and (b) only ever kept an aggregated stability percentage, discarding the per-dr
 real confidence interval needs. See the long comment at BOOTSTRAP 2/2 below for the full
 explanation.
 
+MODEL-REFIT STABILITY, PROMOTED (Note 14): the model-refit bootstrap (BOOTSTRAP 1/2) described
+above resamples individual VENUES (rows) with replacement, refits ONE RandomForest, and predicts
+on every venue including the ones whose own rows were just resampled into that same model's
+training set -- an in-sample prediction for those venues, not the out-of-fold prediction the
+published stability check is supposed to be testing the robustness of, and it never re-applies
+the project's own grid-cell spatial blocking (nearby venues' residuals are correlated
+~0.52-0.61 -- see "Location vs. category" in README). This was first fixed as a one-off
+sensitivity check, `sensitivity_spatial_block_bootstrap.py` (resample grid CELLS, not venues,
+with replacement, and rerun the actual grid-cell-blocked GroupKFold(5) inside each replicate),
+validated against the real July 2026 reference flags (266 venues): mean stability barely moved
+(67.3% original vs. 66.0% corrected) but that hid a real asymmetry -- 57 venues dropped from
+>=80% to below 80% once corrected, against only 10 the other way, and Amenazel Organic (the
+one headline venue this fix changes the picture for) dropped from 100% to 61.5%. ADOPTED FIX:
+that exact design is now PROMOTED into this default pipeline script as BOOTSTRAP 1-ADOPTED,
+producing `stability_pct_spatialblock` (the reported result) alongside the original row-
+resampling `stability_pct`, which is RETAINED, UNCHANGED, as a diagnostic/comparison column
+only -- same convention as DerSimonian-Laird's `mu_re`/`q_bh` being kept diagnostic-only
+elsewhere in this project once a corrected method is adopted. `n_iters_drawn_spatialblock`
+records how many of `N_BOOT_SPATIALBLOCK` iterations actually drew each reference venue's own
+grid cell (resampling cells with replacement means a venue's cell isn't drawn every iteration,
+so a stability percentage is only meaningful over the iterations it actually was). Compute
+cost, stated plainly: this block refits the full 5-fold CV per iteration (5x the model fits of
+the row-resampling bootstrap above), so N_BOOT_SPATIALBLOCK=20 is deliberately smaller than
+N_BOOT=30 -- the validated choice from the one-off sensitivity run, not a new, unvalidated
+number.
+
 Input:  OUTPUT_DIR/model_ready_2026_07.pkl (from build_features_2026_07.py -- must
         include q1_devices..q5_devices; see that script's docstring)
 Output: OUTPUT_DIR/results_mixing_2026_07.pkl
@@ -60,7 +86,10 @@ Output: OUTPUT_DIR/results_mixing_2026_07.pkl
         random-KFold comparison array. stable_top/stable_bottom carry both
         "stability_pct" (model-refit bootstrap) and "stability_pct_visitor_sampling", plus now
         "resid_vs_mean"/"resid_vs_var" (visitor-sampling bootstrap residual mean/variance per
-        venue, against the FIXED expected_mixing_cv -- see BOOTSTRAP 2/2 below). results_full
+        venue, against the FIXED expected_mixing_cv -- see BOOTSTRAP 2/2 below), and now
+        "stability_pct_spatialblock"/"n_iters_drawn_spatialblock" (Note 14, the ADOPTED
+        model-refit stability result -- "stability_pct" above is retained only as a
+        diagnostic/comparison column, see Note 14 above). results_full
         carries the same two columns for EVERY venue, not just the flagged subset, which is
         what a later cross-month persistence/pooling analysis needs -- a venue flagged in some
         months but not others still needs a comparable mean/variance in every month.
@@ -235,12 +264,15 @@ print("Bottom borough counts:", results_cv.loc[bottom_mask_ref, "borough"].value
 cols = ["placekey", "location_name", "borough", "top_category", "income_known_devices",
         "income_mixing_score", "expected_mixing_cv", "improbable_copresence_cv", "improbable_copresence_z"]
 
-#---- BOOTSTRAP 1/2, model-refit stability: resample venues (rows) with replacement, refit,
-#re-normalize per iteration (borough-renormalized), and re-apply the SAME borough-proportional
-#rule to see how often each reference flagged venue re-appears. This tests whether the MODEL's
-#ranking is stable under refitting on different training rows -- it does NOT test whether a
-#given venue's own score would look different under a different sample of its own visitors
-#(see BOOTSTRAP 2/2 below for that). ----
+#---- BOOTSTRAP 1/2, model-refit stability -- DIAGNOSTIC/COMPARISON ONLY (Note 14): resample
+#venues (rows) with replacement, refit, re-normalize per iteration (borough-renormalized), and
+#re-apply the SAME borough-proportional rule to see how often each reference flagged venue
+#re-appears. This tests whether the MODEL's ranking is stable under refitting on different
+#training rows -- it does NOT test whether a given venue's own score would look different
+#under a different sample of its own visitors (see BOOTSTRAP 2/2 below for that), and -- per
+#Note 14 above -- it predicts in-sample on resampled rows and never re-applies the project's
+#own spatial blocking, which is why it is kept here only for diagnostic/comparison purposes.
+#stability_pct_spatialblock (BOOTSTRAP 1-ADOPTED, immediately below) is the reported result.
 N_BOOT = 30
 top_ref = results_cv.loc[top_mask_ref, "placekey"].tolist()
 bottom_ref = results_cv.loc[bottom_mask_ref, "placekey"].tolist()
@@ -277,6 +309,91 @@ for b in range(N_BOOT):
 results_cv["stability_pct"] = np.nan
 for pk, c in {**top_counts, **bottom_counts}.items():
     results_cv.loc[results_cv["placekey"] == pk, "stability_pct"] = c / N_BOOT * 100
+
+#---- BOOTSTRAP 1-ADOPTED, model-refit stability via spatial-block resampling (Note 14,
+#promoted from sensitivity_spatial_block_bootstrap.py -- see module docstring for the full
+#external-review background and the validated July 2026 numbers this promotion rests on).
+#Resample grid CELLS (not venues) with replacement -- a cell and every venue inside it travel
+#together, preserving the spatial-block structure the published CV itself relies on -- then
+#rerun the actual grid-cell-blocked GroupKFold(5) inside each replicate, grouped by each
+#cell's ORIGINAL id (so a cell drawn more than once still lands entirely in one fold), keeping
+#every re-flagging prediction genuinely held out. Reference-flagged venues are tallied only
+#across the iterations where their OWN cell was actually drawn at all (a venue whose cell
+#never gets drawn isn't evidence either way that iteration) -- n_iters_drawn_spatialblock
+#records how many of N_BOOT_SPATIALBLOCK iterations that was, per venue. This is the reported
+#result (stability_pct_spatialblock); stability_pct above is retained only as a
+#diagnostic/comparison column. ----
+N_BOOT_SPATIALBLOCK = 20
+_spatial_boot_df = df.copy()
+_spatial_boot_df["_grid_cell"] = grid_cell
+_unique_cells = np.unique(grid_cell)
+_n_cells = len(_unique_cells)
+_cells_by_group = {cell: sub for cell, sub in _spatial_boot_df.groupby("_grid_cell")}
+_rng_spatial = np.random.RandomState(42)
+top_counts_spatial = {pk: 0 for pk in top_ref}
+bottom_counts_spatial = {pk: 0 for pk in bottom_ref}
+top_drawn_spatial = {pk: 0 for pk in top_ref}
+bottom_drawn_spatial = {pk: 0 for pk in bottom_ref}
+
+for b in range(N_BOOT_SPATIALBLOCK):
+    sampled_cells = _rng_spatial.choice(_unique_cells, size=_n_cells, replace=True)
+    boot_df = pd.concat([_cells_by_group[c] for c in sampled_cells], ignore_index=True)
+
+    Xb = boot_df[feats_num_full + feats_cat]
+    yb = boot_df["income_mixing_score"]
+    wb = boot_df["income_known_devices"].values
+    groups_b = boot_df["_grid_cell"].values  #original cell id -- every draw of the same cell
+                                              #stays together in one fold
+
+    n_groups_b = len(np.unique(groups_b))
+    gkf_boot = GroupKFold(n_splits=min(5, n_groups_b))
+    y_pred_boot = np.full(len(boot_df), np.nan)
+    for tr_idx, te_idx in gkf_boot.split(Xb, yb, groups=groups_b):
+        boot_pipe = Pipeline([("pre", pre), ("reg", RandomForestRegressor(
+            n_estimators=100, max_depth=8, min_samples_leaf=20, random_state=b, n_jobs=-1))])
+        boot_pipe.fit(Xb.iloc[tr_idx], yb.iloc[tr_idx], reg__sample_weight=wb[tr_idx])
+        y_pred_boot[te_idx] = boot_pipe.predict(Xb.iloc[te_idx])
+
+    resid_boot = yb.to_numpy() - y_pred_boot
+    boro_b = boot_df["borough"].to_numpy()
+    resid_z_boot = np.empty_like(resid_boot)
+    for bor in np.unique(boro_b):
+        mask = boro_b == bor
+        r = resid_boot[mask]
+        resid_z_boot[mask] = (r - r.mean()) / r.std()
+
+    top_mask_b, bottom_mask_b = borough_proportional_flags(resid_z_boot, boro_b, PCT)
+    pk_b = boot_df["placekey"].to_numpy()
+    top_pks_b = set(pk_b[top_mask_b])
+    bottom_pks_b = set(pk_b[bottom_mask_b])
+    drawn_pks = set(pk_b)
+
+    for pk in top_ref:
+        if pk in drawn_pks:
+            top_drawn_spatial[pk] += 1
+            if pk in top_pks_b:
+                top_counts_spatial[pk] += 1
+    for pk in bottom_ref:
+        if pk in drawn_pks:
+            bottom_drawn_spatial[pk] += 1
+            if pk in bottom_pks_b:
+                bottom_counts_spatial[pk] += 1
+
+    print(f"[{time.time()-t0:.0f}s] ADOPTED spatial-block bootstrap {b+1}/{N_BOOT_SPATIALBLOCK} "
+          f"done ({len(boot_df)} rows from {_n_cells} cell-draws, {n_groups_b} distinct cells present)")
+
+results_cv["stability_pct_spatialblock"] = np.nan
+results_cv["n_iters_drawn_spatialblock"] = np.nan
+for pk in top_ref:
+    _drawn = top_drawn_spatial[pk]
+    _pct = (top_counts_spatial[pk] / _drawn * 100) if _drawn > 0 else np.nan
+    results_cv.loc[results_cv["placekey"] == pk, "stability_pct_spatialblock"] = _pct
+    results_cv.loc[results_cv["placekey"] == pk, "n_iters_drawn_spatialblock"] = _drawn
+for pk in bottom_ref:
+    _drawn = bottom_drawn_spatial[pk]
+    _pct = (bottom_counts_spatial[pk] / _drawn * 100) if _drawn > 0 else np.nan
+    results_cv.loc[results_cv["placekey"] == pk, "stability_pct_spatialblock"] = _pct
+    results_cv.loc[results_cv["placekey"] == pk, "n_iters_drawn_spatialblock"] = _drawn
 
 #---- BOOTSTRAP 2/2, visitor-sampling stability: each venue's own income_mixing_score comes
 #from a finite sample of visiting devices (as few as 50, the eligibility floor) sorted into
@@ -393,7 +510,16 @@ stable_top = results_cv[results_cv["placekey"].isin(top_ref)].sort_values("impro
 stable_bottom = results_cv[results_cv["placekey"].isin(bottom_ref)].sort_values("improbable_copresence_z")
 
 n_top, n_bottom = len(stable_top), len(stable_bottom)
-print(f"\n[{time.time()-t0:.0f}s] MODEL-REFIT bootstrap -- "
+print(f"\n[{time.time()-t0:.0f}s] MODEL-REFIT bootstrap, ADOPTED spatial-block (Note 14) -- "
+      f"Top ({n_top} venues): {(stable_top['stability_pct_spatialblock'] >= 80).sum()}/{n_top} at >=80% stability, "
+      f"{(stable_top['stability_pct_spatialblock'] < 50).sum()}/{n_top} below 50%, "
+      f"mean={stable_top['stability_pct_spatialblock'].mean():.1f}%")
+print(f"Bottom ({n_bottom} venues): {(stable_bottom['stability_pct_spatialblock'] >= 80).sum()}/{n_bottom} at >=80% stability, "
+      f"{(stable_bottom['stability_pct_spatialblock'] < 50).sum()}/{n_bottom} below 50%, "
+      f"mean={stable_bottom['stability_pct_spatialblock'].mean():.1f}%")
+
+print(f"\n[{time.time()-t0:.0f}s] [diagnostic/comparison only, Note 14] MODEL-REFIT bootstrap, "
+      f"flawed row-resampling -- "
       f"Top ({n_top} venues): {(stable_top['stability_pct'] >= 80).sum()}/{n_top} at >=80% stability, "
       f"{(stable_top['stability_pct'] < 50).sum()}/{n_top} below 50%, mean={stable_top['stability_pct'].mean():.1f}%")
 print(f"Bottom ({n_bottom} venues): {(stable_bottom['stability_pct'] >= 80).sum()}/{n_bottom} at >=80% stability, "
@@ -407,15 +533,15 @@ print(f"Bottom ({n_bottom} venues): {(stable_bottom['stability_pct_visitor_sampl
       f"{(stable_bottom['stability_pct_visitor_sampling'] < 50).sum()}/{n_bottom} below 50%, "
       f"mean={stable_bottom['stability_pct_visitor_sampling'].mean():.1f}%")
 
-both_top = ((stable_top["stability_pct"] >= 80) & (stable_top["stability_pct_visitor_sampling"] >= 80)).sum()
-both_bottom = ((stable_bottom["stability_pct"] >= 80) & (stable_bottom["stability_pct_visitor_sampling"] >= 80)).sum()
-print(f"\n[{time.time()-t0:.0f}s] ROBUST UNDER BOTH bootstraps (>=80% on each) -- "
+both_top = ((stable_top["stability_pct_spatialblock"] >= 80) & (stable_top["stability_pct_visitor_sampling"] >= 80)).sum()
+both_bottom = ((stable_bottom["stability_pct_spatialblock"] >= 80) & (stable_bottom["stability_pct_visitor_sampling"] >= 80)).sum()
+print(f"\n[{time.time()-t0:.0f}s] ROBUST UNDER BOTH ADOPTED bootstraps (>=80% on each) -- "
       f"Top: {both_top}/{n_top}, Bottom: {both_bottom}/{n_bottom}")
 
 print("\nSTABLE TOP (borough-proportional):")
-print(stable_top[cols + ["stability_pct", "stability_pct_visitor_sampling"]].to_string(index=False))
+print(stable_top[cols + ["stability_pct_spatialblock", "stability_pct", "stability_pct_visitor_sampling"]].to_string(index=False))
 print("\nSTABLE BOTTOM (borough-proportional):")
-print(stable_bottom[cols + ["stability_pct", "stability_pct_visitor_sampling"]].to_string(index=False))
+print(stable_bottom[cols + ["stability_pct_spatialblock", "stability_pct", "stability_pct_visitor_sampling"]].to_string(index=False))
 
 results_full_cols = ["placekey", "location_name", "borough", "top_category", "income_known_devices",
                       "income_mixing_score", "expected_mixing_cv", "improbable_copresence_cv",
@@ -431,7 +557,8 @@ resid_vs_draws_flagged = pd.DataFrame(
 
 pd.to_pickle({"stable_top": stable_top, "stable_bottom": stable_bottom, "imp_df": imp_df,
               "cv_full": cv_full, "cv_random": cv_random, "grid_cell_ft": GRID_CELL_FT, "pct": PCT,
-              "n_boot_visitor_sampling": N_BOOT_VS, "results_full": results_full,
+              "n_boot_visitor_sampling": N_BOOT_VS, "n_boot_spatialblock": N_BOOT_SPATIALBLOCK,
+              "n_boot_rowboot_diagnostic": N_BOOT, "results_full": results_full,
               "resid_vs_draws_flagged": resid_vs_draws_flagged},
              os.path.join(OUTPUT_DIR, "results_mixing_2026_07.pkl"))
 print(f"\n[{time.time()-t0:.0f}s] TOTAL DONE")

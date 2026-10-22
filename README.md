@@ -1072,6 +1072,27 @@ data licenses restrict redistribution even of aggregated results.
   `sensitivity_spatial_block_bootstrap.py` and `sensitivity_spatial_block_bootstrap_results.csv`
   for the full 266-venue table.
 
+  **PROMOTED into the default pipeline (Note 14):** the corrected design above -- resample grid
+  cells, not venues, and rerun the actual grid-cell-blocked `GroupKFold(5)` inside each replicate
+  -- started as the one-off `sensitivity_spatial_block_bootstrap.py` check just described. It is
+  now the default in every `fit_mixing_model_2026_0X.py` script, as a new
+  `stability_pct_spatialblock` column (`N_BOOT_SPATIALBLOCK=20`, the same validated choice as the
+  sensitivity script) -- this is the reported model-refit stability result going forward. The
+  original row-resampling check is RETAINED, unchanged, as a diagnostic/comparison column only
+  (`stability_pct`), same convention as keeping DerSimonian-Laird's `mu_re`/`q_bh` diagnostic-only
+  once a corrected method is adopted (see the next bullet). Verified with a 600-venue synthetic
+  dataset end to end (no crash, including the case where a reference venue's grid cell is never
+  drawn across all replicates, which correctly returns NaN rather than a divide-by-zero) before
+  being applied to all 8 monthly scripts identically. Scope, stated plainly: this is a code
+  promotion, verified on synthetic data -- it has NOT yet been rerun against real data for any of
+  the 8 periods (each replicate requires a full 5-fold model refit, 20 replicates per month, a
+  substantially heavier compute job than the row-resampling check it replaces). The July 2026
+  numbers immediately above, from the original one-off `sensitivity_spatial_block_bootstrap.py`
+  run, remain the only real-data numbers available for this method until the default pipeline is
+  rerun; they are not expected to change, since the promoted code is the same design, same
+  `N_BOOT_SPATIALBLOCK=20`, same random seed convention -- but that equivalence has not been
+  re-confirmed against real data post-promotion.
+
   **DerSimonian-Laird with 2-4 months, read honestly (UPDATE: superseded as the adopted
   method):** `tau2` and `I2` below use the standard moment-based DerSimonian-Laird estimator,
   which is known to be optimistic (too-narrow intervals, too-eager to call `tau2=0`) with only a
